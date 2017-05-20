@@ -1,6 +1,6 @@
 # This file is part of CEED. For more details, see exascaleproject.org.
 
-# Clone MFEM, apply a patch, and build the parallel version.
+# Clone MFEM and build the parallel version using the occa-dev branch.
 
 if [[ -z "$pkg_sources_dir" ]]; then
    echo "This script ($0) should not be called directly. Stop."
@@ -10,25 +10,18 @@ if [[ -z "$OUT_DIR" ]]; then
    echo "The variable 'OUT_DIR' is not set. Stop."
    exit 1
 fi
-if [[ -z "$mfem_patch_file" ]]; then
-   echo "The variable 'mfem_patch_file' is not set. Stop."
-   exit 1
-fi
-mfem_patch_name="$(basename "$mfem_patch_file")"
-mfem_patch_name="${mfem_patch_name%.patch}"
-pkg_src_dir="mfem"
+pkg_src_dir="mfem-occa"
 MFEM_SOURCE_DIR="$pkg_sources_dir/$pkg_src_dir"
-pkg_bld_subdir="mfem-patched-$mfem_patch_name"
-pkg_bld_dir="$OUT_DIR/$pkg_bld_subdir"
+pkg_bld_dir="$OUT_DIR/mfem-occa"
 MFEM_DIR="$pkg_bld_dir"
 
 
-function mfem_clone()
+function mfem_occa_clone()
 {
-   local pkg="MFEM"
+   local pkg="MFEM (occa-dev)"
    pkg_repo_list=("git@github.com:mfem/mfem.git"
                   "https://github.com/mfem/mfem.git")
-   pkg_git_branch="master"
+   pkg_git_branch="occa-dev"
    cd "$pkg_sources_dir" || return 1
    if [[ -d "$pkg_src_dir" ]]; then
       update_git_package
@@ -36,26 +29,21 @@ function mfem_clone()
    fi
    for pkg_repo in "${pkg_repo_list[@]}"; do
       echo "Cloning $pkg from $pkg_repo ..."
-      git clone "$pkg_repo" "$pkg_src_dir" && return 0
+      git clone "$pkg_repo" "$pkg_src_dir" && \
+      cd "$pkg_src_dir" && \
+      git checkout "$pkg_git_branch" && \
+      return 0
    done
    echo "Could not successfully clone $pkg. Stop."
    exit 1
 }
 
 
-function mfem_build()
+function mfem_occa_build()
 {
-   local pkg="$pkg_bld_subdir"
+   local pkg="mfem (occa-dev)"
    if [[ ! -d "$pkg_bld_dir" ]]; then
-      cd "$OUT_DIR" && \
-      git clone "$MFEM_SOURCE_DIR" "$pkg_bld_subdir" && \
-      cd "$pkg_bld_subdir" && \
-      patch -p1 < "$mfem_patch_file" || {
-         printf "%s" "Cloning $MFEM_SOURCE_DIR to OUT_DIR/$pkg_bld_subdir"
-         echo " and patching it failed. Stop."
-         cd "$OUT_DIR" && rm -rf "$pkg_bld_dir"
-         exit 1
-      }
+      mkdir -p "$pkg_bld_dir"
    elif [[ -e "${pkg_bld_dir}_build_successful" ]]; then
       echo "Using successfully built $pkg from OUT_DIR."
       return 0
@@ -70,15 +58,22 @@ function mfem_build()
    fi
    local METIS_5="NO"
    [[ "$METIS_VERSION" = "5" ]] && METIS_5="YES"
+   if [[ -z "$OCCA_DIR" ]]; then
+      echo "The required variable 'OCCA_DIR' is not set. Stop."
+      exit 1
+   fi
    echo "Building $pkg, sending output to ${pkg_bld_dir}_build.log ..." && {
       cd "$pkg_bld_dir" && \
       make config \
+         -f "$MFEM_SOURCE_DIR/makefile" \
          MFEM_USE_MPI=YES \
+         MFEM_USE_OCCA=YES \
          $MFEM_EXTRA_CONFIG \
          MPICXX="$mpi_cxx" \
          CXXFLAGS="$CFLAGS" \
          HYPRE_DIR="$HYPRE_DIR/src/hypre" \
          METIS_DIR="$METIS_DIR" \
+         OCCA_DIR="$OCCA_DIR" \
          MFEM_USE_METIS_5="$METIS_5" \
          MFEM_MPIEXEC="${MPIEXEC:-mpirun}" \
          MFEM_MPIEXEC_NP="${MPIEXEC_NP:--np}" && \
@@ -92,4 +87,4 @@ function mfem_build()
 }
 
 
-mfem_clone && mfem_build
+mfem_occa_clone && mfem_occa_build

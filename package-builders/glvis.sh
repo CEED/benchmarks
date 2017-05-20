@@ -21,8 +21,12 @@ function glvis_clone()
    local pkg="GLVis"
    pkg_repo_list=("git@github.com:glvis/glvis.git"
                   "https://github.com/glvis/glvis.git")
+   pkg_git_branch="master"
    cd "$pkg_sources_dir" || return 1
-   [[ -d "$pkg_src_dir" ]] && return 0
+   if [[ -d "$pkg_src_dir" ]]; then
+      update_git_package
+      return 0
+   fi
    for pkg_repo in "${pkg_repo_list[@]}"; do
       echo "Cloning $pkg from $pkg_repo ..."
       git clone "$pkg_repo" "$pkg_src_dir" && return 0

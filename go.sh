@@ -6,6 +6,7 @@ test_file=""
 config=""
 compiler_list=""
 build=""
+update_packages=""
 run=""
 num_proc_build=""
 num_proc_run=""
@@ -26,6 +27,7 @@ Options:
    -c|--config <name>    choose a configuration file
    -m|--compiler \"list\"  choose a compiler, or a list of compilers to use
    -b|--build \"list\"     download and build the listed packages
+   -u|--update           update the packages before (re)building
    -r|--run <name>       run the tests in the script <name>
    -n|--num-proc \"list\"  total number of MPI tasks to use in the tests
    -p|--proc-node \"list\" number of MPI tasks per node to use in the tests
@@ -68,6 +70,24 @@ function set_build_dirs()
    cd "$output_dir" && OUT_DIR="$PWD" && cd "$cur_dir" || exit 1
    echo "Using OUT_DIR = $OUT_DIR"
    echo
+}
+
+
+function update_git_package()
+{
+   # Used variables: 'pkg', 'pkg_src_dir', 'pkg_git_branch', 'pkg_bld_dir'
+   if [[ "$update_packages" = "yes" ]]; then
+      echo "Updating $pkg ..."
+      cd "$pkg_src_dir" && \
+      git checkout . && \
+      git clean -df && \
+      git checkout "$pkg_git_branch" && \
+      git pull || {
+         echo "Error updating $pkg. Stop."
+         exit 1
+      }
+      rm -rf "${pkg_bld_dir}"{,_build.log,_build_successful}
+   fi
 }
 
 
@@ -193,6 +213,9 @@ case "$1" in
       [ $# -gt 0 ] || {
       echo "Missing \"list\" in --build \"list\""; exit 1; }
       build_list="$1"
+      ;;
+   -u|--update)
+      update_packages="yes"
       ;;
    -r|--run)
       run=on
