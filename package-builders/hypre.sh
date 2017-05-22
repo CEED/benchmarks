@@ -4,11 +4,11 @@
 
 if [[ -z "$pkg_sources_dir" ]]; then
    echo "This script ($0) should not be called directly. Stop."
-   exit 1
+   return 1
 fi
 if [[ -z "$OUT_DIR" ]]; then
    echo "The variable 'OUT_DIR' is not set. Stop."
-   exit 1
+   return 1
 fi
 pkg_src_dir="hypre"
 HYPRE_SOURCE_DIR="$pkg_sources_dir/$pkg_src_dir"
@@ -25,14 +25,14 @@ function hypre_clone()
    cd "$pkg_sources_dir" || return 1
    if [[ -d "$pkg_src_dir" ]]; then
       update_git_package
-      return 0
+      return
    fi
    for pkg_repo in "${pkg_repo_list[@]}"; do
       echo "Cloning $pkg from $pkg_repo ..."
       git clone "$pkg_repo" "$pkg_src_dir" && return 0
    done
    echo "Could not successfully clone $pkg. Stop."
-   exit 1
+   return 1
 }
 
 
@@ -42,7 +42,7 @@ function hypre_build()
    if [[ ! -d "$pkg_bld_dir" ]]; then
       cd "$OUT_DIR" && git clone "$HYPRE_SOURCE_DIR" || {
          echo "Cloning $HYPRE_SOURCE_DIR to OUT_DIR failed. Stop."
-         exit 1
+         return 1
       }
    elif [[ -e "${pkg_bld_dir}_build_successful" ]]; then
       echo "Using successfully built $pkg from OUT_DIR."
@@ -54,8 +54,8 @@ function hypre_build()
          make distclean
       fi && \
       ./configure \
-         CC="$mpi_cc" \
-         CXX="$mpi_cxx" \
+         CC="$MPICC" \
+         CXX="$MPICXX" \
          CFLAGS="$CFLAGS" \
          CXXFLAGS="$CFLAGS" \
          $HYPRE_EXTRA_CONFIG \
@@ -64,7 +64,7 @@ function hypre_build()
       make -j $num_proc_build
    } &> "${pkg_bld_dir}_build.log" || {
       echo " ... building $pkg FAILED, see log for details."
-      exit 1
+      return 1
    }
    echo "Build succesful."
    : > "${pkg_bld_dir}_build_successful"

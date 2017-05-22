@@ -1,7 +1,15 @@
-#!/bin/bash
+#!/bin/bash -i
 
 # This file is part of CEED. For more details, see exascaleproject.org.
 
+this_file="${BASH_SOURCE[0]}"
+if [[ "${#BASH_ARGV[@]}" -ne "$#" ]]; then
+   script_is_sourced="yes"
+   exit_cmd=return
+else
+   script_is_sourced=""
+   exit_cmd=exit
+fi
 test_file=""
 config=""
 compiler_list=""
@@ -12,15 +20,36 @@ num_proc_build=""
 num_proc_run=""
 num_proc_node=""
 dry_run="" # empty string = NO
+start_shell=""
+verbose=""
 cur_dir="$PWD"
-root_dir="$(dirname "$0")"
-cd "$root_dir" && root_dir="$PWD" && cd "$cur_dir" || exit 1
+
+function abspath()
+{
+   local outvar="$1" path="$2" cur_dir="$PWD"
+   cd "$path" && path="$PWD" && cd "$cur_dir" && eval "$outvar=\"$path\""
+}
+
+abspath root_dir "$(dirname "$this_file")" || $exit_cmd 1
 build_root="$root_dir/builds"
 configs_dir="$root_dir/machine-configs"
 pkg_sources_dir="$root_dir/package-sources"
 
+if [[ -t 1 ]]; then
+   # ANSI color codes
+   none=$'\E[0m'
+   red=$'\E[0;31m'
+   green=$'\E[0;32m'
+   yellow=$'\E[0;33m'
+   blue=$'\E[0;34m'
+   bblue=$'\E[1;34m'
+   magenta=$'\E[0;35m'
+   cyan=$'\E[0;36m'
+   clear="$(tput sgr0)"
+fi
+
 help_msg="
-$0 [options]
+$this_file [options]
 
 Options:
    -h|--help             print this usage information and exit
@@ -32,13 +61,16 @@ Options:
    -n|--num-proc \"list\"  total number of MPI tasks to use in the tests
    -p|--proc-node \"list\" number of MPI tasks per node to use in the tests
    -d|--dry-run          show (but do not run) the commands for the tests
+   -s|--shell            execute bash shell commands before running the test
+   -v|--verbose          print additional messages
+   -x                    enable script tracing with 'set -x'
 
 This script builds and/or runs a set of tests using specified configuration
 and compiler.
 
 Example usage:
-  $0 --config vulcan --compiler gcc --build \"metis hypre mfem\"
-  $0 --config vulcan --compiler gcc --run tests/mfem_bps/bp1_v1.sh
+  $this_file --config vulcan --compiler gcc --build \"metis hypre mfem\"
+  $this_file --config vulcan --compiler gcc --run tests/mfem_bps/bp1_v1.sh
 "
 
 function print_configs()
@@ -64,10 +96,10 @@ function set_build_dirs()
 {
    # Setup separate build directories inside $build_root based on $config
    # and $compiler.
-   [[ -d "$build_root" ]] || mkdir -p "$build_root" || exit 1
+   [[ -d "$build_root" ]] || mkdir -p "$build_root" || return 1
    output_dir="${build_root}/${short_config}_${compiler}"
-   [[ -d "$output_dir" ]] || mkdir -p "$output_dir" || exit 1
-   cd "$output_dir" && OUT_DIR="$PWD" && cd "$cur_dir" || exit 1
+   [[ -d "$output_dir" ]] || mkdir -p "$output_dir" || return 1
+   OUT_DIR="$output_dir"
    echo "Using OUT_DIR = $OUT_DIR"
    echo
 }
@@ -81,10 +113,12 @@ function update_git_package()
       cd "$pkg_src_dir" && \
       git checkout . && \
       git clean -df && \
-      git checkout "$pkg_git_branch" && \
-      git pull || {
+      git checkout "$pkg_git_branch" && {
+         git pull --ff-only || \
+         git checkout -B "$pkg_git_branch" "origin/$pkg_git_branch"
+      } || {
          echo "Error updating $pkg. Stop."
-         exit 1
+         return 1
       }
       rm -rf "${pkg_bld_dir}"{,_build.log,_build_successful}
    fi
@@ -99,11 +133,11 @@ function build_packages()
       if [[ -e "$pkg.sh" ]]; then
          . "$pkg.sh" || {
             echo "Error building package \"$pkg\". Stop."
-            exit 1
+            return 1
          }
       else
          echo "Package \"$pkg\" does not exist. Stop."
-         exit 1
+         return 1
       fi
    done
    cd "$cur_dir"
@@ -151,7 +185,7 @@ function set_num_nodes()
       ((num_proc_run % num_proc_node != 0)) && {
          echo "The total number of tasks ($num_proc_run) must be a multiple of"
          echo "the number of tasks per node ($num_proc_node). Stop."
-         exit 1
+         return 1
       }
       ((num_nodes = num_proc_run / num_proc_node))
    else
@@ -166,15 +200,16 @@ function set_num_nodes()
 
 function show_compilers()
 {
+   [[ "$verbose" = "yes" ]] || return 0
    echo "Compilers:"
    echo "----------"
-   which $mpi_cc
+   which $MPICC
    echo
-   $mpi_cc $mpi_info_flag
+   $MPICC $mpi_info_flag
    echo
-   which $mpi_cxx
+   which $MPICXX
    echo
-   $mpi_cxx $mpi_info_flag
+   $MPICXX $mpi_info_flag
    echo
 }
 
@@ -188,30 +223,30 @@ case "$1" in
       # Echo usage information
       echo "$help_msg"
       print_configs
-      exit
+      $exit_cmd
       ;;
    -c|--config)
       shift
-      [ $# -gt 0 ] || { echo "Missing <name> in --config <name>"; exit 1; }
+      [ $# -gt 0 ] || { echo "Missing <name> in --config <name>"; $exit_cmd 1; }
       config="$1"
       [ -r "$config" ] || {
          config="$configs_dir/${config}.sh"
          [ -r "$config" ] || {
-            echo "Configuration file not found: '$1' / '$config'"; exit 1
+            echo "Configuration file not found: '$1' / '$config'"; $exit_cmd 1
          }
       }
       ;;
    -m|--compiler)
       shift
       [ $# -gt 0 ] || {
-      echo "Missing \"list\" in --compiler \"list\""; exit 1; }
+      echo "Missing \"list\" in --compiler \"list\""; $exit_cmd 1; }
       compiler_list="$1"
       ;;
    -b|--build)
       build=on
       shift
       [ $# -gt 0 ] || {
-      echo "Missing \"list\" in --build \"list\""; exit 1; }
+      echo "Missing \"list\" in --build \"list\""; $exit_cmd 1; }
       build_list="$1"
       ;;
    -u|--update)
@@ -220,30 +255,39 @@ case "$1" in
    -r|--run)
       run=on
       shift
-      [ $# -gt 0 ] || { echo "Missing <name> in --run <name>"; exit 1; }
+      [ $# -gt 0 ] || { echo "Missing <name> in --run <name>"; $exit_cmd 1; }
       test_file="$1"
       [[ -r "$test_file" ]] || {
-         echo "Test script not found: '$1'"; exit 1
+         echo "Test script not found: '$1'"; $exit_cmd 1
       }
       ;;
    -n|--num-proc)
       shift
       [ $# -gt 0 ] || {
-      echo "Missing \"list\" in --num_proc \"list\""; exit 1; }
+      echo "Missing \"list\" in --num_proc \"list\""; $exit_cmd 1; }
       num_proc_run="$1"
       ;;
    -p|--proc-node)
       shift
       [ $# -gt 0 ] || {
-      echo "Missing \"list\" in --proc-node \"list\""; exit 1; }
+      echo "Missing \"list\" in --proc-node \"list\""; $exit_cmd 1; }
       num_proc_node="$1"
       ;;
    -d|--dry-run)
       dry_run="quoted_echo"
       ;;
+   -s|--shell)
+      start_shell="yes"
+      ;;
+   -v|--verbose)
+      verbose="yes"
+      ;;
+   -x)
+      set -x
+      ;;
    *)
       echo "Unknown option: '$1'"
-      exit 1
+      $exit_cmd 1
       ;;
 esac
 
@@ -259,28 +303,22 @@ done # while ...
    echo "Choose a configuration with -c <name>, or use -h for help"
    echo
    print_configs
-   exit 1
+   $exit_cmd 1
 }
 
 echo "Reading configuration $config ..."
-. "$config" || exit 1
+. "$config" || $exit_cmd 1
 
 [ -z "$valid_compilers" ] && {
    echo "Invalid configuration file: $config"
-   exit 1
+   $exit_cmd 1
 }
 
-config_dir="$(dirname "$config")"
-cd "${config_dir}" && config_dir="$PWD" && cd "$cur_dir" || exit 1
+abspath config_dir "$(dirname "$config")" || $exit_cmd 1
 short_config="$(basename "$config")"
 config="${config_dir}/${short_config}"
 short_config="${short_config#config_}"
 short_config="${short_config%.sh}"
-
-test_dir="$(dirname "$test_file")"
-cd "${test_dir}" && test_dir="$PWD" && cd "$cur_dir" || exit 1
-test_basename="$(basename "$test_file")"
-test_file="${test_dir}/${test_basename}"
 
 [ -z "$compiler_list" ] && {
    echo
@@ -288,7 +326,7 @@ test_file="${test_dir}/${test_basename}"
    echo
    echo "Available compilers: $valid_compilers"
    echo
-   exit 1
+   $exit_cmd 1
 }
 
 num_proc_list=(${num_proc_run:-4})
@@ -300,7 +338,7 @@ num_proc_node_list_size=${#num_proc_node_list[@]}
 The size of the number-of-processors list (option --num-proc) must be the same
 as the size of the number-of-processors-per-node list (option --proc-node)."
    echo
-   exit 1
+   $exit_cmd 1
 }
 
 
@@ -319,7 +357,7 @@ valid_comp_pat=" ${valid_compilers} "
    echo
    echo "Available compilers: $valid_compilers"
    echo
-   exit 1
+   $exit_cmd 1
 }
 
 echo "Setting up compiler $compiler ..."
@@ -331,13 +369,13 @@ show_compilers
 
 ### Build packages
 
-set_build_dirs
+set_build_dirs || $exit_cmd 1
 
 [[ -n "$build" ]] && {
    num_proc_build=${num_proc_build:-4}
    echo "Building packages using $num_proc_build processors."
 
-   build_packages $build_list
+   build_packages $build_list || $exit_cmd 1
    echo
 }
 
@@ -346,31 +384,37 @@ set_build_dirs
 
 [ -n "$run" ] && {
 
-echo "Config file, $(basename "$config"):"
-echo "------------------------------------------------"
-cat $config
-echo "------------------------------------------------"
-echo
+abspath test_dir "$(dirname "$test_file")" || $exit_cmd 1
+test_basename="$(basename "$test_file")"
+test_file="${test_dir}/${test_basename}"
 
-echo "Test problem file, $test_basename:"
-echo "------------------------------------------------"
-cat $test_file
-echo "------------------------------------------------"
-echo
+[[ "$verbose" = "yes" ]] && {
+   echo "Config file, $(basename "$config"):"
+   echo "------------------------------------------------"
+   cat $config
+   echo "------------------------------------------------"
+   echo
+
+   echo "Test problem file, $test_basename:"
+   echo "------------------------------------------------"
+   cat $test_file
+   echo "------------------------------------------------"
+   echo
+}
 
 test_up_dir="$(basename "$test_dir")"
 test_exe_dir="$OUT_DIR/$test_up_dir"
 echo "Creating test executables directory: OUT_DIR/$test_up_dir"
-$dry_run mkdir -p "$test_exe_dir" || exit 1
+$dry_run mkdir -p "$test_exe_dir" || $exit_cmd 1
 
-trap 'printf "\nScript interrupted.\n"; exit 33' INT
+trap 'printf "\nScript interrupted.\n"; '$exit_cmd' 33' INT
 
 ## Source the test script file.
 test_required_packages=""
-. "$test_file" || exit 1
+. "$test_file" || $exit_cmd 1
 
 ## Build any packages required by the test
-build_packages $test_required_packages
+build_packages $test_required_packages || $exit_cmd 1
 echo
 
 ## Loop over the number-of-processors list.
@@ -380,7 +424,30 @@ do
 num_proc_run="${num_proc_list[$num_proc_idx]}"
 num_proc_node="${num_proc_node_list[$num_proc_idx]}"
 
-set_num_nodes
+set_num_nodes || $exit_cmd 1
+
+if [[ "$start_shell" = "yes" ]]; then
+   echo "Reading shell commands, type 'c' to continue, 'exit' to stop ..."
+   echo
+   cd "$cur_dir"
+   HISTFILE="$root_dir/.bash_history"
+   history -r
+   # bind '"\\C-i": menu-complete'
+   set -o emacs
+   alias c='break'
+   while cwd="$PWD/" cwd="${cwd#${root_dir}/}" cwd="${cwd%/}" \
+         prompt="[${cyan}benchmarks$none:$blue$cwd$clear]\$ " && \
+         read -p "$prompt" -e line; do
+      history -s "$line"
+      history -w
+      shopt -q -s expand_aliases
+      eval "$line"
+      shopt -q -u expand_aliases
+   done
+   [[ "${#line}" -eq 0 ]] && { echo; $exit_cmd 0; }
+   shopt -q -u expand_aliases
+   echo "Continuing ..."
+fi
 
 build_and_run_tests
 echo
@@ -391,8 +458,8 @@ trap - INT
 
 } ## run is on
 
-) || exit 1
+) || $exit_cmd 1
 done ## Loop over $compiler_list
 
 
-exit 0
+$exit_cmd 0

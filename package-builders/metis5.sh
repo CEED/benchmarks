@@ -4,7 +4,7 @@
 
 if [[ -z "$root_dir" ]]; then
    echo "This script ($0) should not be called directly. Stop."
-   exit 1
+   return 1
 fi
 METIS_VERSION="5"
 . "$root_dir/package-builders/metis.sh"

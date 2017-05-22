@@ -4,11 +4,11 @@
 
 if [[ -z "$pkg_sources_dir" ]]; then
    echo "This script ($0) should not be called directly. Stop."
-   exit 1
+   return 1
 fi
 if [[ -z "$OUT_DIR" ]]; then
    echo "The variable 'OUT_DIR' is not set. Stop."
-   exit 1
+   return 1
 fi
 pkg_src_dir="occa"
 OCCA_SOURCE_DIR="$pkg_sources_dir/$pkg_src_dir"
@@ -25,7 +25,7 @@ function occa_clone()
    cd "$pkg_sources_dir" || return 1
    if [[ -d "$pkg_src_dir" ]]; then
       update_git_package
-      return 0
+      return
    fi
    for pkg_repo in "${pkg_repo_list[@]}"; do
       echo "Cloning $pkg from $pkg_repo ..."
@@ -35,7 +35,7 @@ function occa_clone()
       return 0
    done
    echo "Could not successfully clone $pkg. Stop."
-   exit 1
+   return 1
 }
 
 
@@ -45,7 +45,7 @@ function occa_build()
    if [[ ! -d "$pkg_bld_dir" ]]; then
       cd "$OUT_DIR" && git clone "$OCCA_SOURCE_DIR" || {
          echo "Cloning $OCCA_SOURCE_DIR to OUT_DIR failed. Stop."
-         exit 1
+         return 1
       }
    elif [[ -e "${pkg_bld_dir}_build_successful" ]]; then
       echo "Using successfully built $pkg from OUT_DIR."
@@ -54,21 +54,24 @@ function occa_build()
    echo "Building $pkg, sending output to ${pkg_bld_dir}_build.log ..." && {
       cd "$pkg_bld_dir" && \
       make \
-         CXX="$mpi_cxx" \
+         CXX="$MPICXX" \
          CXXFLAGS="$CFLAGS" \
          $OCCA_EXTRA_CONFIG \
          -j $num_proc_build
    } &> "${pkg_bld_dir}_build.log" || {
       echo " ... building $pkg FAILED, see log for details."
-      exit 1
+      return 1
    }
    echo "Build succesful."
    : > "${pkg_bld_dir}_build_successful"
 }
 
 
-occa_clone && occa_build
-PATH="${PATH}${PATH:+:}${OCCA_DIR}/bin"
-LD_LIBRARY_PATH="${LD_LIBRARY_PATH}${LD_LIBRARY_PATH:+:}${OCCA_DIR}/lib"
-DYLD_LIBRARY_PATH="${DYLD_LIBRARY_PATH}${DYLD_LIBRARY_PATH:+:}${OCCA_DIR}/lib"
-export PATH LD_LIBRARY_PATH DYLD_LIBRARY_PATH
+occa_clone && occa_build && {
+   PATH="${PATH}${PATH:+:}${OCCA_DIR}/bin"
+   LD_LIBRARY_PATH="${LD_LIBRARY_PATH}${LD_LIBRARY_PATH:+:}${OCCA_DIR}/lib"
+   DYLD_LIBRARY_PATH="${DYLD_LIBRARY_PATH}${DYLD_LIBRARY_PATH:+:}${OCCA_DIR}/lib"
+   OCCA_CXX="${OCCA_CXX:-$MPICXX}"
+   OCCA_CXXFLAGS="${OCCA_CXXFLAGS:-$CFLAGS}"
+   export PATH LD_LIBRARY_PATH DYLD_LIBRARY_PATH OCCA_CXX OCCA_CXXFLAGS
+}

@@ -4,11 +4,11 @@
 
 if [[ -z "$pkg_sources_dir" ]]; then
    echo "This script ($0) should not be called directly. Stop."
-   exit 1
+   return 1
 fi
 if [[ -z "$OUT_DIR" ]]; then
    echo "The variable 'OUT_DIR' is not set. Stop."
-   exit 1
+   return 1
 fi
 METIS_VERSION="${METIS_VERSION:-4}"
 pkg_src_url_base="http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis"
@@ -35,7 +35,7 @@ function metis_download()
       curl -O "$pkg_src_url" && return 0
    fi
    echo "Could not download $pkg. Stop."
-   exit 1
+   return 1
 }
 
 
@@ -45,7 +45,7 @@ function metis_build()
    if [[ ! -d "$pkg_bld_dir" ]]; then
       cd "$OUT_DIR" && tar zxf "$METIS_SOURCE_FILE" || {
          echo "Error extracting \"$METIS_SOURCE_FILE\". Stop."
-         exit 1
+         return 1
       }
    elif [[ -e "${pkg_bld_dir}_build_successful" ]]; then
       echo "Using successfully built $pkg from OUT_DIR."
@@ -55,19 +55,19 @@ function metis_build()
       if [[ "$METIS_VERSION" = "4" ]]; then
          cd "$pkg_bld_dir" && \
          make -C Lib realclean && \
-         make -C Lib CC="$mpi_cc" OPTFLAGS="$CFLAGS" -j $num_proc_build
+         make -C Lib CC="$MPICC" OPTFLAGS="$CFLAGS" -j $num_proc_build
       else
          cd "$pkg_bld_dir/build" && \
          if [[ ! -e Makefile ]]; then \
             if ! command -v cmake &> /dev/null; then
                echo "Building $pkg requires cmake (not found). Stop."
-               exit 1
+               return 1
             fi
             cmake .. \
                -DCMAKE_VERBOSE_MAKEFILE=1 \
                -DGKLIB_PATH="$pkg_bld_dir/GKlib" \
-               -DCMAKE_C_COMPILER="$mpi_cc" \
-               -DCMAKE_CXX_COMPILER="$mpi_cxx" \
+               -DCMAKE_C_COMPILER="$MPICC" \
+               -DCMAKE_CXX_COMPILER="$MPICXX" \
                -DSHARED="0" \
                -DBUILD_SHARED_LIBS="0" \
                -DMETIS_INSTALL="ON" \
@@ -80,7 +80,7 @@ function metis_build()
       fi
    } &> "${pkg_bld_dir}_build.log" || {
       echo " ... building $pkg FAILED, see log for details."
-      exit 1
+      return 1
    }
    echo "Build succesful."
    : > "${pkg_bld_dir}_build_successful"

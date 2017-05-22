@@ -4,8 +4,8 @@
 function setup_clang()
 {
    # Homebrew open-mpi; default is to use apple clang
-   mpi_cc=mpicc
-   mpi_cxx=mpicxx
+   MPICC=mpicc
+   MPICXX=mpicxx
 
    CFLAGS="-O3"
    TEST_EXTRA_CFLAGS="-march=native -fcolor-diagnostics -fvectorize"
@@ -18,12 +18,14 @@ function setup_clang()
 function setup_gcc_6()
 {
    # Homebrew open-mpi with gcc v6
-   mpi_cc=mpicc
-   mpi_cxx=mpicxx
+   MPICC=mpicc
+   MPICXX=mpicxx
+   OCCA_CXX=g++-6
    export OMPI_CC=gcc-6
    export OMPI_CXX=g++-6
 
    CFLAGS="-O3"
+   OCCA_CXXFLAGS="-O3 -march=native"
    TEST_EXTRA_CFLAGS="-march=native --param max-completely-peel-times=3"
    # "-std=c++11 -pedantic -Wall -fdump-tree-optimized-blocks"
 }
@@ -35,6 +37,7 @@ function set_mpi_options()
 }
 
 
+# MFEM_EXTRA_CONFIG="MFEM_TIMER_TYPE=4"
 GLVIS_EXTRA_CONFIG="GLVIS_MULTISAMPLE=4 GLVIS_MS_LINEWIDTH=0.01"
 
 valid_compilers="clang gcc_6"

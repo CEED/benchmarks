@@ -4,11 +4,11 @@
 
 if [[ -z "$pkg_sources_dir" ]]; then
    echo "This script ($0) should not be called directly. Stop."
-   exit 1
+   return 1
 fi
 if [[ -z "$OUT_DIR" ]]; then
    echo "The variable 'OUT_DIR' is not set. Stop."
-   exit 1
+   return 1
 fi
 pkg_src_dir="mfem"
 MFEM_SOURCE_DIR="$pkg_sources_dir/$pkg_src_dir"
@@ -25,14 +25,14 @@ function mfem_clone()
    cd "$pkg_sources_dir" || return 1
    if [[ -d "$pkg_src_dir" ]]; then
       update_git_package
-      return 0
+      return
    fi
    for pkg_repo in "${pkg_repo_list[@]}"; do
       echo "Cloning $pkg from $pkg_repo ..."
       git clone "$pkg_repo" "$pkg_src_dir" && return 0
    done
    echo "Could not successfully clone $pkg. Stop."
-   exit 1
+   return 1
 }
 
 
@@ -47,11 +47,11 @@ function mfem_build()
    fi
    if [[ -z "$HYPRE_DIR" ]]; then
       echo "The required variable 'HYPRE_DIR' is not set. Stop."
-      exit 1
+      return 1
    fi
    if [[ -z "$METIS_DIR" ]]; then
       echo "The required variable 'METIS_DIR' is not set. Stop."
-      exit 1
+      return 1
    fi
    local METIS_5="NO"
    [[ "$METIS_VERSION" = "5" ]] && METIS_5="YES"
@@ -61,7 +61,7 @@ function mfem_build()
          -f "$MFEM_SOURCE_DIR/makefile" \
          MFEM_USE_MPI=YES \
          $MFEM_EXTRA_CONFIG \
-         MPICXX="$mpi_cxx" \
+         MPICXX="$MPICXX" \
          CXXFLAGS="$CFLAGS" \
          HYPRE_DIR="$HYPRE_DIR/src/hypre" \
          METIS_DIR="$METIS_DIR" \
@@ -71,7 +71,7 @@ function mfem_build()
       make -j $num_proc_build
    } &> "${pkg_bld_dir}_build.log" || {
       echo " ... building $pkg FAILED, see log for details."
-      exit 1
+      return 1
    }
    echo "Build succesful."
    : > "${pkg_bld_dir}_build_successful"

@@ -4,11 +4,11 @@
 
 if [[ -z "$pkg_sources_dir" ]]; then
    echo "This script ($0) should not be called directly. Stop."
-   exit 1
+   return 1
 fi
 if [[ -z "$OUT_DIR" ]]; then
    echo "The variable 'OUT_DIR' is not set. Stop."
-   exit 1
+   return 1
 fi
 pkg_src_dir="mfem"
 MFEM_SOURCE_DIR="$pkg_sources_dir/$pkg_src_dir"
@@ -25,14 +25,14 @@ function mfem_clone()
    cd "$pkg_sources_dir" || return 1
    if [[ -d "$pkg_src_dir" ]]; then
       update_git_package
-      return 0
+      return
    fi
    for pkg_repo in "${pkg_repo_list[@]}"; do
       echo "Cloning $pkg from $pkg_repo ..."
       git clone "$pkg_repo" "$pkg_src_dir" && return 0
    done
    echo "Could not successfully clone $pkg. Stop."
-   exit 1
+   return 1
 }
 
 
@@ -50,12 +50,12 @@ function mfem_serial_build()
       make config \
          -f "$MFEM_SOURCE_DIR/makefile" \
          $MFEM_EXTRA_CONFIG \
-         CXX="$mpi_cxx" \
+         CXX="$MPICXX" \
          CXXFLAGS="$CFLAGS" && \
       make -j $num_proc_build
    } &> "${pkg_bld_dir}_build.log" || {
       echo " ... building $pkg FAILED, see log for details."
-      exit 1
+      return 1
    }
    echo "Build succesful."
    : > "${pkg_bld_dir}_build_successful"
