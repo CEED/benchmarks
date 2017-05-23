@@ -14,11 +14,11 @@ pkg_src_dir="occa"
 OCCA_SOURCE_DIR="$pkg_sources_dir/$pkg_src_dir"
 pkg_bld_dir="$OUT_DIR/occa"
 OCCA_DIR="$pkg_bld_dir"
+pkg="OCCA"
 
 
 function occa_clone()
 {
-   local pkg="OCCA"
    pkg_repo_list=("git@github.com:libocca/occa.git"
                   "https://github.com/libocca/occa.git")
    pkg_git_branch="1.0"
@@ -41,7 +41,6 @@ function occa_clone()
 
 function occa_build()
 {
-   local pkg="occa"
    if [[ ! -d "$pkg_bld_dir" ]]; then
       cd "$OUT_DIR" && git clone "$OCCA_SOURCE_DIR" || {
          echo "Cloning $OCCA_SOURCE_DIR to OUT_DIR failed. Stop."
@@ -67,7 +66,10 @@ function occa_build()
 }
 
 
-occa_clone && occa_build && {
+function build_package()
+{
+   occa_clone && occa_build || return 1
+
    PATH="${PATH}${PATH:+:}${OCCA_DIR}/bin"
    LD_LIBRARY_PATH="${LD_LIBRARY_PATH}${LD_LIBRARY_PATH:+:}${OCCA_DIR}/lib"
    DYLD_LIBRARY_PATH="${DYLD_LIBRARY_PATH}${DYLD_LIBRARY_PATH:+:}${OCCA_DIR}/lib"

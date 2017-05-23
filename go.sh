@@ -14,7 +14,9 @@ test_file=""
 config=""
 compiler_list=""
 build=""
+build_list=""
 update_packages=""
+remove_list=""
 run=""
 num_proc_build=""
 num_proc_run=""
@@ -57,6 +59,7 @@ Options:
    -m|--compiler \"list\"  choose a compiler, or a list of compilers to use
    -b|--build \"list\"     download and build the listed packages
    -u|--update           update the packages before (re)building
+  -rm|--remove \"list\"    remove packages from the build dir (before building)
    -r|--run <name>       run the tests in the script <name>
    -n|--num-proc \"list\"  total number of MPI tasks to use in the tests
    -p|--proc-node \"list\" number of MPI tasks per node to use in the tests
@@ -105,6 +108,44 @@ function set_build_dirs()
 }
 
 
+function search_file_list()
+{
+   local out_var="$1" this_file=""
+   shift
+   for this_file; do
+      [[ -e "$this_file" ]] && {
+         eval "${out_var}='$this_file'"
+         return 0
+      }
+   done
+   eval "${out_var}="
+   return 1
+}
+
+
+function array_union()
+{
+   # Append an entry to an array, if it is not already in the array.
+   # Return false if the entry is already in the array.
+   local array_var="$1" entry="$2" idx=""
+   eval "local A=(\"\${${array_var}[@]}\")"
+   for (( idx=0; idx<"${#A[@]}"; idx++ )); do
+      [[ "${A[idx]}" = "$entry" ]] && return 1
+   done
+   A[idx]="$entry"
+   eval "${array_var}=(\"\${A[@]}\")"
+   return 0
+}
+
+
+function remove_package()
+{
+   # Used variables: 'pkg', 'pkg_bld_dir'
+   echo "Removing $pkg from OUT_DIR ..."
+   rm -rf "${pkg_bld_dir}"{,_build.log,_build_successful}
+}
+
+
 function update_git_package()
 {
    # Used variables: 'pkg', 'pkg_src_dir', 'pkg_git_branch', 'pkg_bld_dir'
@@ -120,23 +161,42 @@ function update_git_package()
          echo "Error updating $pkg. Stop."
          return 1
       }
-      rm -rf "${pkg_bld_dir}"{,_build.log,_build_successful}
+      remove_package
    fi
+}
+
+
+function remove_packages()
+{
+   local _pkg=""
+   for _pkg; do
+      cd "$root_dir/package-builders"
+      if [[ -e "$_pkg.sh" ]]; then
+         source "$_pkg.sh" && remove_package || {
+            echo "Error removing package \"$_pkg\". Stop."
+            return 1
+         }
+      else
+         echo "Package \"$_pkg\" does not exist. Stop."
+         return 1
+      fi
+   done
 }
 
 
 function build_packages()
 {
+   local _pkg=
    mkdir -p "$pkg_sources_dir"
-   for pkg; do
+   for _pkg; do
       cd "$root_dir/package-builders"
-      if [[ -e "$pkg.sh" ]]; then
-         . "$pkg.sh" || {
-            echo "Error building package \"$pkg\". Stop."
+      if [[ -e "$_pkg.sh" ]]; then
+         source "$_pkg.sh" && build_package || {
+            echo "Error building package \"$_pkg\". Stop."
             return 1
          }
       else
-         echo "Package \"$pkg\" does not exist. Stop."
+         echo "Package \"$_pkg\" does not exist. Stop."
          return 1
       fi
    done
@@ -251,6 +311,12 @@ case "$1" in
       ;;
    -u|--update)
       update_packages="yes"
+      ;;
+   -rm|--remove)
+      shift
+      [ $# -gt 0 ] || {
+      echo "Missing \"list\" in --remove \"list\""; $exit_cmd 1; }
+      remove_list="$1"
       ;;
    -r|--run)
       run=on
@@ -367,9 +433,18 @@ echo
 show_compilers
 
 
-### Build packages
-
 set_build_dirs || $exit_cmd 1
+
+
+### Remove packages
+
+[[ -n "$remove_list" ]] && {
+   remove_packages $remove_list || $exit_cmd 1
+   echo
+}
+
+
+### Build packages
 
 [[ -n "$build" ]] && {
    num_proc_build=${num_proc_build:-4}
@@ -431,6 +506,7 @@ if [[ "$start_shell" = "yes" ]]; then
    echo
    cd "$cur_dir"
    HISTFILE="$root_dir/.bash_history"
+   history -c
    history -r
    # bind '"\\C-i": menu-complete'
    set -o emacs

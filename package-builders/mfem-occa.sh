@@ -14,11 +14,11 @@ pkg_src_dir="mfem-occa"
 MFEM_SOURCE_DIR="$pkg_sources_dir/$pkg_src_dir"
 pkg_bld_dir="$OUT_DIR/mfem-occa"
 MFEM_DIR="$pkg_bld_dir"
+pkg="MFEM (occa-dev)"
 
 
 function mfem_occa_clone()
 {
-   local pkg="MFEM (occa-dev)"
    pkg_repo_list=("git@github.com:mfem/mfem.git"
                   "https://github.com/mfem/mfem.git")
    pkg_git_branch="occa-dev"
@@ -41,7 +41,6 @@ function mfem_occa_clone()
 
 function mfem_occa_build()
 {
-   local pkg="mfem (occa-dev)"
    if [[ ! -d "$pkg_bld_dir" ]]; then
       mkdir -p "$pkg_bld_dir"
    elif [[ -e "${pkg_bld_dir}_build_successful" ]]; then
@@ -62,6 +61,14 @@ function mfem_occa_build()
       echo "The required variable 'OCCA_DIR' is not set. Stop."
       return 1
    fi
+   local SUNDIALS_MAKE_OPTS=()
+   if [[ -n "$SUNDIALS_DIR" ]]; then
+      SUNDIALS_MAKE_OPTS=(
+         "MFEM_USE_SUNDIALS=YES"
+         "SUNDIALS_DIR=$SUNDIALS_DIR")
+   else
+      echo "${magenta}Warning: Building $pkg without SUNDIALS ...${none}"
+   fi
    echo "Building $pkg, sending output to ${pkg_bld_dir}_build.log ..." && {
       cd "$pkg_bld_dir" && \
       make config \
@@ -73,8 +80,10 @@ function mfem_occa_build()
          CXXFLAGS="$CFLAGS" \
          HYPRE_DIR="$HYPRE_DIR/src/hypre" \
          METIS_DIR="$METIS_DIR" \
-         OCCA_DIR="$OCCA_DIR" \
          MFEM_USE_METIS_5="$METIS_5" \
+         OCCA_DIR="$OCCA_DIR" \
+         "${SUNDIALS_MAKE_OPTS[@]}" \
+         LDFLAGS="${LDFLAGS[*]}" \
          MFEM_MPIEXEC="${MPIEXEC:-mpirun}" \
          MFEM_MPIEXEC_NP="${MPIEXEC_NP:--np}" && \
       make -j $num_proc_build
@@ -87,4 +96,7 @@ function mfem_occa_build()
 }
 
 
-mfem_occa_clone && mfem_occa_build
+function build_package()
+{
+   mfem_occa_clone && mfem_occa_build
+}

@@ -14,11 +14,11 @@ pkg_src_dir="hypre"
 HYPRE_SOURCE_DIR="$pkg_sources_dir/$pkg_src_dir"
 pkg_bld_dir="$OUT_DIR/hypre"
 HYPRE_DIR="$pkg_bld_dir"
+pkg="hypre"
 
 
 function hypre_clone()
 {
-   local pkg="hypre"
    pkg_repo_list=("git@github.com:LLNL/hypre.git"
                   "https://github.com/LLNL/hypre.git")
    pkg_git_branch="master"
@@ -38,7 +38,6 @@ function hypre_clone()
 
 function hypre_build()
 {
-   local pkg="hypre"
    if [[ ! -d "$pkg_bld_dir" ]]; then
       cd "$OUT_DIR" && git clone "$HYPRE_SOURCE_DIR" || {
          echo "Cloning $HYPRE_SOURCE_DIR to OUT_DIR failed. Stop."
@@ -71,4 +70,7 @@ function hypre_build()
 }
 
 
-hypre_clone && hypre_build
+function build_package()
+{
+   hypre_clone && hypre_build
+}

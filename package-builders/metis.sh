@@ -13,19 +13,20 @@ fi
 METIS_VERSION="${METIS_VERSION:-4}"
 pkg_src_url_base="http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis"
 if [[ "$METIS_VERSION" = "4" ]]; then
-   pkg_src_dir="metis-4.0.3"
+   METIS_FULL_VERSION="4.0.3"
 else
-   pkg_src_dir="metis-5.1.0"
+   METIS_FULL_VERSION="5.1.0"
 fi
+pkg_src_dir="metis-$METIS_FULL_VERSION"
 pkg_src_url="$pkg_src_url_base/${pkg_src_dir}.tar.gz"
 METIS_SOURCE_FILE="$pkg_sources_dir/${pkg_src_dir}.tar.gz"
 pkg_bld_dir="$OUT_DIR/$pkg_src_dir"
 METIS_DIR="$pkg_bld_dir"
+pkg="METIS v$METIS_FULL_VERSION"
 
 
 function metis_download()
 {
-   local pkg="METIS v$METIS_VERSION"
    cd "$pkg_sources_dir" || return 1
    [[ -e "$METIS_SOURCE_FILE" ]] && return 0
    echo "Downloading $pkg from $pkg_src_url ..."
@@ -41,7 +42,6 @@ function metis_download()
 
 function metis_build()
 {
-   local pkg="$pkg_src_dir"
    if [[ ! -d "$pkg_bld_dir" ]]; then
       cd "$OUT_DIR" && tar zxf "$METIS_SOURCE_FILE" || {
          echo "Error extracting \"$METIS_SOURCE_FILE\". Stop."
@@ -87,4 +87,7 @@ function metis_build()
 }
 
 
-metis_download && metis_build
+function build_package()
+{
+   metis_download && metis_build
+}

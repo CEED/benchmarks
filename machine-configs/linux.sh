@@ -41,6 +41,9 @@ function set_mpi_options()
 }
 
 
+search_file_list LAPACK_LIB \
+   "/usr/lib64/atlas/libsatlas.so" "/usr/lib64/libopenblas.so"
+
 valid_compilers="gcc clang"
 # Number of processors to use for building packages and tests:
 num_proc_build=8

@@ -21,11 +21,11 @@ MFEM_SOURCE_DIR="$pkg_sources_dir/$pkg_src_dir"
 pkg_bld_subdir="mfem-patched-$mfem_patch_name"
 pkg_bld_dir="$OUT_DIR/$pkg_bld_subdir"
 MFEM_DIR="$pkg_bld_dir"
+pkg="MFEM (patched, $mfem_patch_name)"
 
 
 function mfem_clone()
 {
-   local pkg="MFEM"
    pkg_repo_list=("git@github.com:mfem/mfem.git"
                   "https://github.com/mfem/mfem.git")
    pkg_git_branch="master"
@@ -45,7 +45,6 @@ function mfem_clone()
 
 function mfem_build()
 {
-   local pkg="$pkg_bld_subdir"
    if [[ ! -d "$pkg_bld_dir" ]]; then
       cd "$OUT_DIR" && \
       git clone "$MFEM_SOURCE_DIR" "$pkg_bld_subdir" && \
@@ -92,4 +91,7 @@ function mfem_build()
 }
 
 
-mfem_clone && mfem_build
+function build_package()
+{
+   mfem_clone && mfem_build
+}

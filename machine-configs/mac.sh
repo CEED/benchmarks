@@ -39,6 +39,9 @@ function set_mpi_options()
 
 # MFEM_EXTRA_CONFIG="MFEM_TIMER_TYPE=4"
 GLVIS_EXTRA_CONFIG="GLVIS_MULTISAMPLE=4 GLVIS_MS_LINEWIDTH=0.01"
+search_file_list LAPACK_LIB \
+   "$(brew --prefix)/opt/openblas/lib/libopenblas.dylib" || \
+LAPACK_LIB="-framework Accelerate"
 
 valid_compilers="clang gcc_6"
 num_proc_build=4

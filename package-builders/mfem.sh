@@ -14,11 +14,11 @@ pkg_src_dir="mfem"
 MFEM_SOURCE_DIR="$pkg_sources_dir/$pkg_src_dir"
 pkg_bld_dir="$OUT_DIR/mfem"
 MFEM_DIR="$pkg_bld_dir"
+pkg="MFEM"
 
 
 function mfem_clone()
 {
-   local pkg="MFEM"
    pkg_repo_list=("git@github.com:mfem/mfem.git"
                   "https://github.com/mfem/mfem.git")
    pkg_git_branch="master"
@@ -38,7 +38,6 @@ function mfem_clone()
 
 function mfem_build()
 {
-   local pkg="mfem"
    if [[ ! -d "$pkg_bld_dir" ]]; then
       mkdir -p "$pkg_bld_dir"
    elif [[ -e "${pkg_bld_dir}_build_successful" ]]; then
@@ -55,6 +54,14 @@ function mfem_build()
    fi
    local METIS_5="NO"
    [[ "$METIS_VERSION" = "5" ]] && METIS_5="YES"
+   local SUNDIALS_MAKE_OPTS=()
+   if [[ -n "$SUNDIALS_DIR" ]]; then
+      SUNDIALS_MAKE_OPTS=(
+         "MFEM_USE_SUNDIALS=YES"
+         "SUNDIALS_DIR=$SUNDIALS_DIR")
+   else
+      echo "${magenta}Warning: Building $pkg without SUNDIALS ...${none}"
+   fi
    echo "Building $pkg, sending output to ${pkg_bld_dir}_build.log ..." && {
       cd "$pkg_bld_dir" && \
       make config \
@@ -66,6 +73,8 @@ function mfem_build()
          HYPRE_DIR="$HYPRE_DIR/src/hypre" \
          METIS_DIR="$METIS_DIR" \
          MFEM_USE_METIS_5="$METIS_5" \
+         "${SUNDIALS_MAKE_OPTS[@]}" \
+         LDFLAGS="${LDFLAGS[*]}" \
          MFEM_MPIEXEC="${MPIEXEC:-mpirun}" \
          MFEM_MPIEXEC_NP="${MPIEXEC_NP:--np}" && \
       make -j $num_proc_build
@@ -78,4 +87,7 @@ function mfem_build()
 }
 
 
-mfem_clone && mfem_build
+function build_package()
+{
+   mfem_clone && mfem_build
+}

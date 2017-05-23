@@ -14,11 +14,11 @@ pkg_src_dir="mfem"
 MFEM_SOURCE_DIR="$pkg_sources_dir/$pkg_src_dir"
 pkg_bld_dir="$OUT_DIR/mfem-serial"
 MFEM_SERIAL_DIR="$pkg_bld_dir"
+pkg="MFEM serial"
 
 
 function mfem_clone()
 {
-   local pkg="MFEM"
    pkg_repo_list=("git@github.com:mfem/mfem.git"
                   "https://github.com/mfem/mfem.git")
    pkg_git_branch="master"
@@ -38,7 +38,6 @@ function mfem_clone()
 
 function mfem_serial_build()
 {
-   local pkg="mfem-serial"
    if [[ ! -d "$pkg_bld_dir" ]]; then
       mkdir -p "$pkg_bld_dir"
    elif [[ -e "${pkg_bld_dir}_build_successful" ]]; then
@@ -62,4 +61,7 @@ function mfem_serial_build()
 }
 
 
-mfem_clone && mfem_serial_build
+function build_package()
+{
+   mfem_clone && mfem_serial_build
+}

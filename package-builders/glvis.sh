@@ -14,11 +14,11 @@ pkg_src_dir="glvis"
 GLVIS_SOURCE_DIR="$pkg_sources_dir/$pkg_src_dir"
 pkg_bld_dir="$OUT_DIR/glvis"
 GLVIS_DIR="$pkg_bld_dir"
+pkg="GLVis"
 
 
 function glvis_clone()
 {
-   local pkg="GLVis"
    pkg_repo_list=("git@github.com:glvis/glvis.git"
                   "https://github.com/glvis/glvis.git")
    pkg_git_branch="master"
@@ -38,7 +38,6 @@ function glvis_clone()
 
 function glvis_build()
 {
-   local pkg="GLVis"
    if [[ ! -d "$pkg_bld_dir" ]]; then
       cd "$OUT_DIR" && git clone "$GLVIS_SOURCE_DIR" || {
          echo "Cloning $GLVIS_SOURCE_DIR to OUT_DIR failed. Stop."
@@ -67,4 +66,7 @@ function glvis_build()
 }
 
 
-glvis_clone && glvis_build
+function build_package()
+{
+   glvis_clone && glvis_build
+}
