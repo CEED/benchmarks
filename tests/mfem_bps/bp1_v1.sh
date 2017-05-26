@@ -105,7 +105,7 @@ function configure_tests()
 # 'set_test_params', and 'run_tests_if_enabled':
 test_name=bp1_v1
 # problem: 0 - diffusion, 1 - mass
-problem=1
+problem=${problem:-1}
 geom=Geometry::CUBE
 mesh_p=1
 # test id:     0   1   2   3   4   5   6   7   8   9
