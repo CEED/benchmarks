@@ -58,7 +58,7 @@ Options:
    -c|--config <name>    choose a configuration file
    -m|--compiler \"list\"  choose a compiler, or a list of compilers to use
    -b|--build \"list\"     download and build the listed packages
-   -u|--update           update the packages before (re)building
+   -u|--update           update the package sources before (re)building
   -rm|--remove \"list\"    remove packages from the build dir (before building)
    -r|--run <name>       run the tests in the script <name>
    -n|--num-proc \"list\"  total number of MPI tasks to use in the tests
