@@ -31,6 +31,30 @@ function setup_gcc_6()
 }
 
 
+function setup_gcc_7()
+{
+   # Homebrew open-mpi with gcc v7
+   MPICC=mpicc
+   MPICXX=mpicxx
+   OCCA_CXX=g++-7
+   export OMPI_CC=gcc-7
+   export OMPI_CXX=g++-7
+
+   CFLAGS="-O3"
+   OCCA_CXXFLAGS="-O3 -march=native"
+   TEST_EXTRA_CFLAGS="-march=native --param max-completely-peel-times=3"
+   # "-std=c++11 -pedantic -Wall -fdump-tree-optimized-blocks"
+}
+
+
+function setup_gcc_7a()
+{
+   # Homebrew open-mpi with gcc v7 without "--param max-completely-peel-times=3"
+   setup_gcc_7
+   TEST_EXTRA_CFLAGS="-march=native"
+}
+
+
 function set_mpi_options()
 {
    num_proc_node=${num_proc_run}
@@ -43,7 +67,7 @@ search_file_list LAPACK_LIB \
    "$(brew --prefix)/opt/openblas/lib/libopenblas.dylib" || \
 LAPACK_LIB="-framework Accelerate"
 
-valid_compilers="clang gcc_6"
+valid_compilers="clang gcc_6 gcc_7 gcc_7a"
 num_proc_build=4
 num_proc_run=${num_proc_run:-2}
 num_proc_node=${num_proc_run}

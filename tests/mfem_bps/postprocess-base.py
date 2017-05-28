@@ -14,6 +14,7 @@ i=0
 mesh_p=0
 config='unknown'
 compiler='unknown'
+test='unknown'
 num_procs=0
 num_procs_node=0
 lnfmt='%05i'
@@ -44,6 +45,9 @@ while True:
       elif 'Setting up compiler' in line:
          # out.write(lnfmt%i+': %s'%line)
          compiler=line.split()[3]
+      elif 'Reading test file: ' in line:
+         # out.write(lnfmt%i+': %s'%line)
+         test=line.split('Reading test file: ',1)[-1]
       elif 'Running the tests using a total of' in line:
          # out.write(lnfmt%i+': %s'%line)
          num_procs=int(line.split('a total of ',1)[1].split(None,1)[0])
@@ -61,6 +65,7 @@ while True:
          data={}
          data['config']=config
          data['compiler']=compiler
+         data['test']=test
          data['num-procs']=num_procs
          data['num-procs-node']=num_procs_node
          data['mesh-order']=mesh_p

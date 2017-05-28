@@ -35,6 +35,13 @@ compilers=compilers[0:2]
 print 'Using compilers:', compilers
 sel_runs=[run for run in sel_runs if run['compiler'] in compilers]
 
+tests=list(set([run['test'] for run in sel_runs]))
+# print 'Present tests:', tests
+test=tests[0]
+print 'Using test:', test
+test_short=test.rsplit('/',1)[-1].rsplit('.sh',1)[0]
+sel_runs=[run for run in sel_runs if run['test']==test]
+
 pl_set=[(run['order'],
          run['quadrature-pts'],
          run['num-procs']/run['num-procs-node'])
@@ -89,9 +96,9 @@ for plt in pl_set:
    plot(y/slope1,y,'k--',label='%g iter/s'%slope1)
    plot(y/slope2,y,'k-',label='%g iter/s'%slope2)
 
-   title('%s (%i node%s), p=%i, q=%i, Mass, PA'%(
+   title('Config: %s (%i node%s), p=%i, q=%i, %s, PA'%(
          config_short,num_nodes,'' if num_nodes==1 else 's', sol_p,
-         sol_p+(1 if qpts==(sol_p+1)**3 else 2)))
+         sol_p+(1 if qpts==(sol_p+1)**3 else 2),test_short))
    xscale('log') # subsx=[2,4,6,8]
    yscale('log')
    # rng=arange(1e7,1.02e8,1e7)
@@ -105,7 +112,7 @@ for plt in pl_set:
    ylabel('[DOFs x CG iterations] / [compute nodes x seconds]')
    legend(ncol=2, loc='best')
 
-   # savefig('test_bp1_%s_N%03i_p%i_q%i.pdf'%(config_short,
+   # savefig('test_%s_%s_N%03i_p%i_q%i.pdf'%(test_short,config_short,
    #         num_nodes,sol_p,sol_p+(1 if qpts==(sol_p+1)**3 else 2)),
    #         format='pdf', bbox_inches='tight')
 

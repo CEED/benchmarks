@@ -30,6 +30,13 @@ print 'Using configuration:', config
 config_short=config.rsplit('/',1)[-1].rsplit('.sh',1)[0]
 sel_runs=[run for run in sel_runs if run['config']==config]
 
+tests=list(set([run['test'] for run in sel_runs]))
+# print 'Present tests:', tests
+test=tests[0]
+print 'Using test:', test
+test_short=test.rsplit('/',1)[-1].rsplit('.sh',1)[0]
+sel_runs=[run for run in sel_runs if run['test']==test]
+
 pl_set=[(run['compiler'],run['num-procs'],run['num-procs-node'])
         for run in sel_runs]
 pl_set=sorted(set(pl_set))
@@ -103,9 +110,9 @@ for plt in pl_set:
    plot(y/slope1,y,'k--',label='%g iter/s'%slope1)
    plot(y/slope2,y,'k-',label='%g iter/s'%slope2)
 
-   title('%s (%i node%s, %i tasks/node), %s, Mass, PA'%(
+   title('Config: %s (%i node%s, %i tasks/node), %s, %s, PA'%(
          config_short,num_nodes,'' if num_nodes==1 else 's',
-         num_procs_node,compiler))
+         num_procs_node,compiler,test_short))
    xscale('log') # subsx=[2,4,6,8]
    yscale('log')
    # rng=arange(1e7,1.02e8,1e7)
@@ -119,8 +126,8 @@ for plt in pl_set:
    ylabel('[DOFs x CG iterations] / [compute nodes x seconds]')
    legend(ncol=2, loc='best')
 
-   # savefig('test_bp1_%s_%s_N%03i_pn%i.pdf'%(
-   #         config_short,compiler,num_nodes,num_procs_node),
+   # savefig('test_%s_%s_%s_N%03i_pn%i.pdf'%(
+   #         test_short,config_short,compiler,num_nodes,num_procs_node),
    #         format='pdf', bbox_inches='tight')
 
 show()

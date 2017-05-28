@@ -11,6 +11,8 @@ function build_and_run_tests()
 
       dev_info="mode: 'Serial'"
 
+      # dev_info="mode: 'CUDA', deviceID: 0"
+
       # dev_info="mode: 'OpenMP'"
       # $dry_run export OMP_NUM_THREADS="$num_proc_run"
 

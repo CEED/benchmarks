@@ -1,4 +1,4 @@
-#!/bin/bash -i
+#!/bin/bash
 
 # This file is part of CEED. For more details, see exascaleproject.org.
 
@@ -485,6 +485,8 @@ $dry_run mkdir -p "$test_exe_dir" || $exit_cmd 1
 trap 'printf "\nScript interrupted.\n"; '$exit_cmd' 33' INT
 
 ## Source the test script file.
+echo "Reading test file: $test_file"
+echo
 test_required_packages=""
 . "$test_file" || $exit_cmd 1
 
@@ -505,11 +507,13 @@ if [[ "$start_shell" = "yes" ]]; then
    echo "Reading shell commands, type 'c' to continue, 'exit' to stop ..."
    echo
    cd "$cur_dir"
+   set -o emacs
+   PS1='$ '
+   [[ -r $HOME/.bashrc ]] && source $HOME/.bashrc
    HISTFILE="$root_dir/.bash_history"
    history -c
    history -r
    # bind '"\\C-i": menu-complete'
-   set -o emacs
    alias c='break'
    while cwd="$PWD/" cwd="${cwd#${root_dir}/}" cwd="${cwd%/}" \
          prompt="[${cyan}benchmarks$none:$blue$cwd$clear]\$ " && \

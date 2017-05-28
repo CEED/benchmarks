@@ -31,6 +31,13 @@ compilers=compilers[0:2]
 print 'Using compilers:', compilers
 sel_runs=[run for run in sel_runs if run['compiler'] in compilers]
 
+tests=list(set([run['test'] for run in sel_runs]))
+# print 'Present tests:', tests
+test=tests[0]
+print 'Using test:', test
+test_short=test.rsplit('/',1)[-1].rsplit('.sh',1)[0]
+sel_runs=[run for run in sel_runs if run['test']==test]
+
 action_type='matrix-free'
 sel_runs=[run for run in sel_runs if run['action-type']==action_type]
 
@@ -96,8 +103,8 @@ for plt in pl_set:
          fill_between(d[:,0],d[:,1],d[:,2],facecolor=colors[i],alpha=0.1)
       i=i+1
 
-   title('%s (%i node%s), Mass, PA'%(
-         config_short,num_nodes,'' if num_nodes==1 else 's'))
+   title('Config: %s (%i node%s), %s, PA'%(
+         config_short,num_nodes,'' if num_nodes==1 else 's',test_short))
    yscale('log')
    # rng=arange(1e7,1.02e8,1e7)
    # yticks(rng,['%i'%int(v/1e6) for v in rng])
@@ -110,7 +117,7 @@ for plt in pl_set:
    ylabel('[DOFs x CG iterations] / [compute nodes x seconds]')
    legend(ncol=2, loc='best')
 
-   # savefig('test_bp1_%s_N%03i.pdf'%(config_short,num_nodes),
+   # savefig('test_%s_%s_N%03i.pdf'%(test_short,config_short,num_nodes),
    #         format='pdf', bbox_inches='tight')
 
 show()
