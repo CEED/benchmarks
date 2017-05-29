@@ -47,7 +47,7 @@ while True:
          compiler=line.split()[3]
       elif 'Reading test file: ' in line:
          # out.write(lnfmt%i+': %s'%line)
-         test=line.split('Reading test file: ',1)[-1]
+         test=line.strip().split('Reading test file: ',1)[-1]
       elif 'Running the tests using a total of' in line:
          # out.write(lnfmt%i+': %s'%line)
          num_procs=int(line.split('a total of ',1)[1].split(None,1)[0])

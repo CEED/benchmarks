@@ -1,0 +1,101 @@
+diff --git a/fem/tbilinearform.hpp b/fem/tbilinearform.hpp
+index 6589871..8085148 100644
+--- a/fem/tbilinearform.hpp
++++ b/fem/tbilinearform.hpp
+@@ -121,8 +121,52 @@ public:
+    {
+       if (assembled_data)
+       {
++#ifndef MFEM_EXPERIMENT_1
+          const int num_elem = 1;
+          MultAssembled<num_elem>(x, y);
++#else
++         if (solFE_type::geom == Geometry::SQUARE)
++         {
++            y = 0.0;
++            add_mult_mass_quad(
++               solFE_type::dofs_1d,       /* number of 1D dofs (points) */
++               IR::qpts_1d,               /* number of 1D quadrature points */
++               mesh.GetNE(),              /* number of elements */
++               (double *)assembled_data,  /* nqpt_1d x nqpt_1d x nelem */
++               solEval.Get_B_1D(),        /* nqpt_1d x ndof_1d dense matrix,
++                                             column-major layout */
++               solEval.Get_Bt_1D(),       /* trasnspose of B1d */
++               solFES.GetIndexer().GetElemDof(),  /* array of size ndofs_1d x
++                                                     ndofs_1d x nelem
++                                                     representing a boolean P */
++               x.GetData(),               /* input vector */
++               y.GetData()                /* result, input-output vector */
++            );
++         }
++         else if (solFE_type::geom == Geometry::CUBE)
++         {
++            y = 0.0;
++            add_mult_mass_hex(
++               solFE_type::dofs_1d,       /* number of 1D dofs (points) */
++               IR::qpts_1d,               /* number of 1D quadrature points */
++               mesh.GetNE(),              /* number of elements */
++               (double *)assembled_data,  /* (nqpt_1d)^3 x nelem */
++               solEval.Get_B_1D(),        /* nqpt_1d x ndof_1d dense matrix,
++                                             column-major layout */
++               solEval.Get_Bt_1D(),       /* trasnspose of B1d */
++               solFES.GetIndexer().GetElemDof(), /* array of size (ndofs_1d)^3 x
++                                                    nelem representing a boolean
++                                                    P */
++               x.GetData(),               /* input vector */
++               y.GetData()                /* result, input-output vector */
++            );
++         }
++         else
++         {
++            MFEM_ABORT("geometry type : " << solFE_type::geom
++                       << " is not supported.");
++         }
++#endif
+       }
+       else
+       {
+diff --git a/fem/tevaluator.hpp b/fem/tevaluator.hpp
+index 5d1abcc..519d35a 100644
+--- a/fem/tevaluator.hpp
++++ b/fem/tevaluator.hpp
+@@ -605,6 +605,8 @@ public:
+       }
+ #endif
+    }
++   double *Get_B_1D() const { return const_cast<double *>(B_1d.data); }
++   double *Get_Bt_1D() const { return const_cast<double *>(Bt_1d.data); }
+ };
+ 
+ // ShapeEvaluator with 3D tensor-product structure
+@@ -893,6 +895,8 @@ public:
+       }
+ #endif
+    }
++   double *Get_B_1D() const { return const_cast<double *>(B_1d.data); }
++   double *Get_Bt_1D() const { return const_cast<double *>(Bt_1d.data); }
+ };
+ 
+ // ShapeEvaluator with tensor-product structure in any dimension
+diff --git a/fem/tfespace.hpp b/fem/tfespace.hpp
+index 1e7bc5e..cf8158f 100644
+--- a/fem/tfespace.hpp
++++ b/fem/tfespace.hpp
+@@ -103,6 +103,8 @@ public:
+    {
+       return loc_dof_list[loc_dof_idx + elem_offset * FE::dofs];
+    }
++
++   int *GetElemDof() const { return const_cast<int *>(el_dof_list); }
+ };
+ 
+ 
+@@ -399,6 +401,8 @@ public:
+    {
+       return Matches(fes) && vec_layout_t::Matches(fes);
+    }
++
++   typename base_class::index_type &GetIndexer() { return base_class::ind; }
+ };
+ 
+ 

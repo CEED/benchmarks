@@ -129,27 +129,34 @@ function configure_tests()
 
 # Set variables used by the functions 'build_tests', 'run_test',
 # 'set_test_params', and 'run_tests_if_enabled':
-test_name=mass2d
+test_name=mass
 # problem: 0 - diffusion, 1 - mass
 problem=1
-geom=Geometry::SQUARE
+dim=${dim:-2}
+case "$dim" in
+   2) geom="Geometry::SQUARE"
+      mesh_s_list=( 17  17  18  17  16  16  15  14  17  17)
+      ;;
+   3) geom="Geometry::CUBE"
+      mesh_s_list=( 15  15  16  15  14  13  13  12  15  15)
+      ;;
+   *) echo "Invalid dim = $dim. Stop."
+      return 1
+      ;;
+esac
 mesh_p=1
 # test id:     0   1   2   3   4   5   6   7   8   9
 sol_p_list=(   1   2   3   4   5   6   7   8   1   2)
 ir_order_list=(0   0   0   0   0   0   0   0   3   5)
-mesh_s_list=( 17  17  18  17  16  16  15  14  17  17)
 par_ref_list=( 2   1   0   0   0   0   0   0   2   1) # set below
 enabled_tests="0   1   2   3   4   5   6   7   8   9"
-enabled_tests="2"
+# enabled_tests="2"
 ser_ref=0
 mesh_s_reduction_base=0     # used in run_tests_if_enabled()
 mesh_s_reduction_limit=0    # used in run_tests_if_enabled()
 mesh_s_max=29 # s=30 causes overflow in number of faces/edges
 use_mpi_wtime=yes # leave empty for 'no'
 rebuild_tests=no
-[[ "$geom" = "Geometry::SQUARE" ]] && dimension=2
-[[ "$geom" = "Geometry::CUBE" ]] && dimension=3
-[[ -z "$dimension" ]] && { echo "Invalid Geometry."; exit 1; }
 
 local n=$num_proc_run
 proc_t=0
@@ -195,19 +202,19 @@ function set_test_params()
       par_ref="${par_ref_list[$1]}"
    }
    # echo "proc_t = $proc_t, mesh_s = $mesh_s, ser_ref = $ser_ref"
-   if (( mesh_s + dimension*(ser_ref+par_ref) < 0 )); then
+   if (( mesh_s + dim*(ser_ref+par_ref) < 0 )); then
       # invalid number of elements
       return 1
    fi
-   if (( mesh_s + dimension*(ser_ref+par_ref) > mesh_s_max )); then
+   if (( mesh_s + dim*(ser_ref+par_ref) > mesh_s_max )); then
       # too many elements
       return 1
    fi
    # adjust mesh_s as needed:
-   if (( proc_t > mesh_s + dimension*ser_ref )); then
-      if (( proc_t <= mesh_s + dimension*(ser_ref+par_ref) )); then
-         while (( proc_t > mesh_s + dimension*ser_ref )); do
-            (( mesh_s = mesh_s + dimension ))
+   if (( proc_t > mesh_s + dim*ser_ref )); then
+      if (( proc_t <= mesh_s + dim*(ser_ref+par_ref) )); then
+         while (( proc_t > mesh_s + dim*ser_ref )); do
+            (( mesh_s = mesh_s + dim ))
             (( par_ref = par_ref - 1 ))
          done
       else
@@ -232,9 +239,9 @@ function run_tests_if_enabled()
                sft <= mesh_s_reduction_limit; sft++ )); do
             (( mesh_s_shift = -sft ))
             set_test_params $test_id && run_test || {
-               if (( mesh_s+dimension*(ser_ref+par_ref) >= 0 )); then
+               if (( mesh_s+dim*(ser_ref+par_ref) >= 0 )); then
                   printf "Skipped test #$test_id with number of mesh elements"
-                  echo " = $(( 2**(mesh_s+dimension*(ser_ref+par_ref)) ))."
+                  echo " = $(( 2**(mesh_s+dim*(ser_ref+par_ref)) ))."
                fi
             }
          done
@@ -263,4 +270,4 @@ $dry_run make -f "$test_dir/makefile" clean-exec
 
 
 test_required_packages="metis hypre mfem-patched"
-mfem_patch_file="$test_dir/mass2d.patch"
+mfem_patch_file="$test_dir/mass.patch"

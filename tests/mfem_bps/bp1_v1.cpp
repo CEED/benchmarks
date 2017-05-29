@@ -40,7 +40,7 @@ const Geometry::Type geom     = GEOM;      // mesh elements  (default: hex)
 const int            mesh_p   = MESH_P;    // mesh curvature (default: 3)
 const int            sol_p    = SOL_P;     // solution order (default: 3)
 const int            rdim     = Geometry::Constants<geom>::Dimension;
-const int            ir_order = IR_ORDER ? IR_ORDER : 2*sol_p+rdim-1;
+const int            ir_order = IR_ORDER ? IR_ORDER : 2*(sol_p+2)-1;
 
 // Static mesh type
 typedef H1_FiniteElement<geom,mesh_p>         mesh_fe_t;
