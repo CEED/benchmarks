@@ -11,8 +11,15 @@
 // Comment/uncomment to disable/enable the use of add_mult_mass_{quad,hex}(...):
 #define MFEM_EXPERIMENT_1
 
+#ifndef PROBLEM
+#define PROBLEM 0
+#endif
+
+#define MFEM_EXPERIMENT_1_PROBLEM PROBLEM
+
 #include "mass-quad.h"
 #include "mass-hex.h"
+#include "diffusion-quad.h"
 
 #include "mfem-performance.hpp"
 #include <fstream>
@@ -35,10 +42,6 @@ using namespace mfem;
 
 #ifndef IR_ORDER
 #define IR_ORDER 0
-#endif
-
-#ifndef PROBLEM
-#define PROBLEM 0
 #endif
 
 // Define template parameters for optimized build.

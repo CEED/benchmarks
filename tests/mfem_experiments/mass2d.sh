@@ -131,7 +131,7 @@ function configure_tests()
 # 'set_test_params', and 'run_tests_if_enabled':
 test_name=mass
 # problem: 0 - diffusion, 1 - mass
-problem=1
+problem=${problem:-1}
 dim=${dim:-2}
 case "$dim" in
    2) geom="Geometry::SQUARE"
@@ -224,7 +224,7 @@ function set_test_params()
    fi
    suffix=_${geom#Geometry::}_p${sol_p}_m${mesh_p}
    (( ir_order != 0 )) && suffix+="_i${ir_order}"
-   (( problem != 1 )) && suffix="_Diff$suffix"
+   (( problem != 1 )) && suffix="_diff$suffix"
    split_power2 mesh_nxyz $mesh_s
    make_mesh_file
    mesh_opt="-m $mesh_file"

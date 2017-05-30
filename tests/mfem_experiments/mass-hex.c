@@ -1,4 +1,4 @@
-// This file is part of CEED. For more details, see exascaleproject.org.
+/* This file is part of CEED. For more details, see exascaleproject.org. */
 
 void add_mult_mass_hex(
    int ndof_1d,      /* number of 1D dofs (points) */

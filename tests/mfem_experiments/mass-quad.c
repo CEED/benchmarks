@@ -1,4 +1,4 @@
-// This file is part of CEED. For more details, see exascaleproject.org.
+/* This file is part of CEED. For more details, see exascaleproject.org. */
 
 void add_mult_mass_quad(
    int ndof_1d,      /* number of 1D dofs (points) */
@@ -92,7 +92,7 @@ void add_mult_mass_quad(
             x_loc[k2+n*k1] = 0.0;
             for (k3 = 0; k3 < m; k3++)
             {
-               x_loc[k2+n*k1] += B1d[k3+m*k2] * t[k3+m*k1];
+               x_loc[k2+n*k1] += B1d_t[k2+n*k3] * t[k3+m*k1];
             }
          }
       }
