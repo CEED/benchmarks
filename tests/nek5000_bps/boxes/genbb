@@ -1,0 +1,10 @@
+cp $1.box ttt.box
+../../../product-sources/Nek5000/bin/genbox << EOF
+ttt.box
+EOF
+../../../product-sources/Nek5000/bin/genmap << EOF
+box
+.1
+EOF
+mvn box $1
+rm ttt.box

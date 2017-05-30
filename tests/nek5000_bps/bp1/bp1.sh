@@ -1,54 +1,29 @@
-#/bin/bash
+#!/bin/bash
 
-mkdir w
-cp zw SIZE makenek submit.sh w/
-cp -r b*  w/
+export BP_ROOT=`pwd`/..
+export BENCH_ROOT="$BP_ROOT/../.."
 
+# Generate the boxes
+cd $BP_ROOT/boxes
+./boxes.sh
+cd $BP_ROOT/bp1
+
+# Setup the sin version of the bp
 mkdir sin
-cp zsin SIZE makenek submit.sh sin/
-cp -r b*  w/
-
-cd w
-for lx1 in `seq 2 1 11`
-do
-
-# Set lx1 in SIZE file
-sed -i "s/lx1=[0-9]*/lx1=${lx1}" SIZE
-
-# Make the executable
-./makenek zw
-
-for n in `seq 14 1 21`
-do
-cd 'b'${n}
-cp ../nek5000 .
-cp ../submit.sh .
-qsub -n 512 ./submit.sh 'b'${n} 32
-sleep 5
-cd ..
-done
-
-done
-
-cd ..
 cd sin
-for lx1 in `seq 2 1 11`
+
+for i in `seq 2 1 4`
 do
+
+mkdir lx$i
+cp -r $BP_ROOT/boxes/b?? $BP_ROOT/SIZE ../zsin.usr lx$i/
 
 # Set lx1 in SIZE file
-sed -i "s/lx1=[0-9]*/lx1=${lx1}" SIZE
+sed -i "s/lx1=[0-9]*/lx1=${i}/" lx$i/SIZE
 
 # Make the executable
-./makenek zsin
-
-for n in `seq 14 1 21`
-do
-cd 'b'${n}
-cp ../nek5000 .
-cp ../submit.sh .
-qsub -n 512 ./submit.sh 'b'${n} 32
-sleep 5
+cd lx$i
+$BP_ROOT/makenek zsin
 cd ..
-done
 
 done

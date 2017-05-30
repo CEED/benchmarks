@@ -41,7 +41,7 @@ function xyz()
 }
 
 # Run thorugh the box sizes
-for i in `seq 10 1 15`                                           # nelt
+for i in `seq 10 1 12`                                           # nelt
 do
 
 # Set the number of elements in box file.

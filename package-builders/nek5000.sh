@@ -40,8 +40,6 @@ function nek5k_build()
 ## Just build the requited tools: genbox and genmap
    cd $NEK5K_SOURCE_DIR
 
-   cp bin/makenek ../../tests/nek5000_bps/ 
-
    cd tools
    ./maketools genmap
    ./maketools genbox
