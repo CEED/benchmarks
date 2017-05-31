@@ -6,5 +6,5 @@ EOF
 box
 .1
 EOF
-mvn box $1
+../../../product-sources/Nek5000/bin/mvn box $1
 rm ttt.box
