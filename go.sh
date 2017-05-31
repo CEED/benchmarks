@@ -477,9 +477,9 @@ test_file="${test_dir}/${test_basename}"
    echo
 }
 
-test_up_dir="$(basename "$test_dir")"
-test_exe_dir="$OUT_DIR/$test_up_dir"
-echo "Creating test executables directory: OUT_DIR/$test_up_dir"
+test_up_dir="${test_dir#$root_dir/tests}"
+test_exe_dir="$OUT_DIR/${test_up_dir#/}"
+echo "Creating test executables directory: OUT_DIR/${test_up_dir#/}"
 $dry_run mkdir -p "$test_exe_dir" || $exit_cmd 1
 
 trap 'printf "\nScript interrupted.\n"; '$exit_cmd' 33' INT
