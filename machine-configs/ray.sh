@@ -10,6 +10,8 @@ function setup_xlc()
    CFLAGS="-O3 -qarch=auto -qcache=auto -qhot -qtune=auto"
    TEST_EXTRA_CFLAGS="-O5"
    # TEST_EXTRA_CFLAGS+=" -std=c++11 -qreport"
+
+   add_to_path PATH "$cuda_path"
 }
 
 
@@ -24,6 +26,8 @@ function setup_gcc()
    CFLAGS="-O3 -mcpu=native -mtune=native"
    TEST_EXTRA_CFLAGS=""
    # TEST_EXTRA_CFLAGS+=" -std=c++11 -fdump-tree-optimized-blocks"
+
+   add_to_path PATH "$cuda_path"
 }
 
 
@@ -39,6 +43,8 @@ function setup_clang()
    TEST_EXTRA_CFLAGS="-fcolor-diagnostics -fvectorize"
    TEST_EXTRA_CFLAGS+=" -fslp-vectorize -fslp-vectorize-aggressive"
    TEST_EXTRA_CFLAGS+=" -ffp-contract=fast"
+
+   add_to_path PATH "$cuda_path"
 }
 
 
@@ -70,3 +76,5 @@ memory_per_node=256
 # MPIEXEC=jsrun (under dev)
 MPIEXEC="bsub"
 MPIEXEC_NP="-n"
+
+cuda_path=/usr/local/cuda-8.0/bin

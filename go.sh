@@ -123,6 +123,38 @@ function search_file_list()
 }
 
 
+function add_to_path()
+{
+   local out_var="$1" pos="after" var= item=
+   shift
+   eval var="\${${out_var}}"
+   for item; do
+      [[ -z "$item" ]] && continue
+      case "$item" in
+         *:)
+            pos="${item%:}"
+            continue
+            ;;
+      esac
+      case ":${var}:" in
+         *:"$item":*)
+            ;;
+         ::)
+            var="$item"
+            ;;
+         *)
+            if [[ "$pos" = "after" ]]; then
+               var="${var}:$item"
+            else
+               var="${item}:$var"
+            fi
+            ;;
+      esac
+   done
+   eval "${out_var}=\${var}"
+}
+
+
 function array_union()
 {
    # Append an entry to an array, if it is not already in the array.
