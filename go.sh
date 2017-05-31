@@ -223,6 +223,7 @@ function build_packages()
    for _pkg; do
       cd "$root_dir/package-builders"
       if [[ -e "$_pkg.sh" ]]; then
+         unset -f build_package
          source "$_pkg.sh" && build_package || {
             echo "Error building package \"$_pkg\". Stop."
             return 1
