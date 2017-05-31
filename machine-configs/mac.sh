@@ -1,13 +1,29 @@
 # This file is part of CEED. For more details, see exascaleproject.org.
 
 
+function setup_openmpi()
+{
+   MPICC=mpicc
+   MPICXX=mpicxx
+   MPIFC=mpifort
+   export OMPI_CC="$CC"
+   export OMPI_CXX="$CXX"
+   export OMPI_FC="$FC"
+}
+
+
 function setup_clang()
 {
    # Homebrew open-mpi; default is to use apple clang
-   MPICC=mpicc
-   MPICXX=mpicxx
+   CC=clang
+   CXX=clang++
+   # Use gfortran
+   FC=gfortran
+
+   setup_openmpi
 
    CFLAGS="-O3"
+   FFLAGS="$CFLAGS"
    TEST_EXTRA_CFLAGS="-march=native -fcolor-diagnostics -fvectorize"
    TEST_EXTRA_CFLAGS+=" -fslp-vectorize -fslp-vectorize-aggressive"
    TEST_EXTRA_CFLAGS+=" -ffp-contract=fast"
@@ -18,13 +34,14 @@ function setup_clang()
 function setup_gcc_6()
 {
    # Homebrew open-mpi with gcc v6
-   MPICC=mpicc
-   MPICXX=mpicxx
-   OCCA_CXX=g++-6
-   export OMPI_CC=gcc-6
-   export OMPI_CXX=g++-6
+   CC=gcc-6
+   CXX=g++-6
+   FC=gfortran-6
+
+   setup_openmpi
 
    CFLAGS="-O3"
+   FFLAGS="$CFLAGS"
    OCCA_CXXFLAGS="-O3 -march=native"
    TEST_EXTRA_CFLAGS="-march=native --param max-completely-peel-times=3"
    # "-std=c++11 -pedantic -Wall -fdump-tree-optimized-blocks"
@@ -34,13 +51,15 @@ function setup_gcc_6()
 function setup_gcc_7()
 {
    # Homebrew open-mpi with gcc v7
-   MPICC=mpicc
-   MPICXX=mpicxx
-   OCCA_CXX=g++-7
-   export OMPI_CC=gcc-7
-   export OMPI_CXX=g++-7
+   CC=gcc-7
+   CXX=g++-7
+   FC=gfortran-7
+   OCCA_CXX="$CXX"
+
+   setup_openmpi
 
    CFLAGS="-O3"
+   FFLAGS="$CFLAGS"
    OCCA_CXXFLAGS="-O3 -march=native"
    TEST_EXTRA_CFLAGS="-march=native --param max-completely-peel-times=3"
    # "-std=c++11 -pedantic -Wall -fdump-tree-optimized-blocks"

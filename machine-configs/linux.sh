@@ -1,13 +1,31 @@
 # This file is part of CEED. For more details, see exascaleproject.org.
 
 
-function setup_gcc()
+function setup_mpi()
 {
-   # Default MPI compiler.
    MPICC=mpicc
    MPICXX=mpicxx
+   MPIFC=mpifort
+   # OpenMPI
+   export OMPI_CC="$CC"
+   export OMPI_CXX="$CXX"
+   export OMPI_FC="$FC"
+   # or MPICH
+   export MPICH_CC="$CC"
+   export MPICH_CXX="$CXX"
+   export MPICH_FC="$FC"
+}
+
+function setup_gcc()
+{
+   CC=gcc
+   CXX=g++
+   FC=gfortran
+
+   setup_mpi
 
    CFLAGS="-O3"
+   FFLAGS="$CFLAGS"
 
    # The following options assume GCC:
    TEST_EXTRA_CFLAGS="-march=native --param max-completely-peel-times=3"
@@ -17,16 +35,15 @@ function setup_gcc()
 
 function setup_clang()
 {
-   MPICC=mpicc
-   MPICXX=mpicxx
-   # OpenMPI
-   export OMPI_CC=clang
-   export OMPI_CXX=clang++
-   # or MPICH
-   export MPICH_CC=clang
-   export MPICH_CXX=clang++
+   CC=clang
+   CXX=clang++
+   # Use gfortran
+   FC=gfortran
+
+   setup_mpi
 
    CFLAGS="-O3"
+   FFLAGS="$CFLAGS"
 
    TEST_EXTRA_CFLAGS="-march=native -fcolor-diagnostics -fvectorize"
    TEST_EXTRA_CFLAGS+=" -fslp-vectorize -fslp-vectorize-aggressive"
