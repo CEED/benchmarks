@@ -1,10 +1,10 @@
 cp $1.box ttt.box
-../../../product-sources/Nek5000/bin/genbox << EOF
+$NEK5K_DIR/bin/genbox << EOF
 ttt.box
 EOF
-../../../product-sources/Nek5000/bin/genmap << EOF
+$NEK5K_DIR/bin/genmap << EOF
 box
 .1
 EOF
-../../../product-sources/Nek5000/bin/mvn box $1
+$NEK5K_DIR/bin/mvn box $1
 rm ttt.box

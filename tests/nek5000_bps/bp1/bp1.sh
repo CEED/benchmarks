@@ -2,13 +2,13 @@
 
 function build_and_run_tests()
 {
-   export BP_ROOT=`pwd`/tests/nek5000_bps
-   export BENCH_ROOT=`pwd`
+   export BP_ROOT="$root_dir"/tests/nek5000_bps
+   export BENCH_ROOT="$root_dir"
 
    # Generate the boxes
    cd $BP_ROOT/boxes
    ./boxes.sh
-   cd $OUT_DIR/bp1
+   cd "$test_exe_dir"
 
    # Setup the sin version of the bp
    mkdir sin
