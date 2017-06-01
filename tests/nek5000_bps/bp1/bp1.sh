@@ -51,6 +51,7 @@ EOF
   $NEK5K_DIR/bin/mvn box $1
 
   rm ttt.box
+  mv box.rea $1.rea
 
   return 0
 }
@@ -108,8 +109,15 @@ function build_and_run_tests()
     # Make the executable
     cd lx$i
     $BP_ROOT/makenek zsin
-    cd ..
+    for j in `seq 10 1 12`
+    do
+      cd b$j
+      cp ../nek5000 .
+      $NEK5K_DIR/bin/nekbmpi b$j 4
+      cd ..
+    done
 
+    cd ..
   done
 
   return 0
