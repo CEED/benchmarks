@@ -10,12 +10,12 @@ if [[ -z "$OUT_DIR" ]]; then
    echo "The variable 'OUT_DIR' is not set. Stop."
    return 1
 fi
+
 pkg_src_dir="Nek5000"
 NEK5K_SOURCE_DIR="$pkg_sources_dir/$pkg_src_dir"
 pkg_bld_dir="$OUT_DIR/$pkg_src_dir"
 NEK5K_DIR="$pkg_bld_dir"
 pkg="Nek5000"
-
 
 function nek5k_clone()
 {
