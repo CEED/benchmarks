@@ -87,14 +87,6 @@ function build_and_run_tests()
   export BP_ROOT="$root_dir"/tests/nek5000_bps
   export BENCH_ROOT="$root_dir"
 
-  # Temporary work around; otherwise I can't access NEK5K_DIR
-  # in this script
-  pkg_src_dir="Nek5000"
-  NEK5K_SOURCE_DIR="$pkg_sources_dir/$pkg_src_dir"
-  pkg_bld_dir="$OUT_DIR/$pkg_src_dir"
-  NEK5K_DIR="$pkg_bld_dir"
-  pkg="Nek5000"
-
   # Generate the boxes
   cd $BP_ROOT/boxes
   generate_boxes
@@ -104,7 +96,7 @@ function build_and_run_tests()
   mkdir sin
   cd sin
 
-  for i in `seq 2 1 4`
+  for i in `seq 2 1 2`
   do
 
     mkdir lx$i
@@ -122,3 +114,5 @@ function build_and_run_tests()
 
   return 0
 }
+
+test_required_packages="nek5000"

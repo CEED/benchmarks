@@ -3,9 +3,11 @@
 
 function setup_openmpi()
 {
-   MPICC=mpicc
-   MPICXX=mpicxx
-   MPIFC=mpifort
+   export MPICC=mpicc
+   export MPICXX=mpicxx
+   export MPIFC=mpifort
+   export MPIF77=mpif77
+   #OMP
    export OMPI_CC="$CC"
    export OMPI_CXX="$CXX"
    export OMPI_FC="$FC"
@@ -22,8 +24,8 @@ function setup_clang()
 
    setup_openmpi
 
-   CFLAGS="-O3"
-   FFLAGS="$CFLAGS"
+   export CFLAGS="-O3"
+   export FFLAGS="$CFLAGS"
    TEST_EXTRA_CFLAGS="-march=native -fcolor-diagnostics -fvectorize"
    TEST_EXTRA_CFLAGS+=" -fslp-vectorize -fslp-vectorize-aggressive"
    TEST_EXTRA_CFLAGS+=" -ffp-contract=fast"
@@ -40,8 +42,8 @@ function setup_gcc_6()
 
    setup_openmpi
 
-   CFLAGS="-O3"
-   FFLAGS="$CFLAGS"
+   export CFLAGS="-O3"
+   export FFLAGS="$CFLAGS"
    OCCA_CXXFLAGS="-O3 -march=native"
    TEST_EXTRA_CFLAGS="-march=native --param max-completely-peel-times=3"
    # "-std=c++11 -pedantic -Wall -fdump-tree-optimized-blocks"
@@ -58,8 +60,8 @@ function setup_gcc_7()
 
    setup_openmpi
 
-   CFLAGS="-O3"
-   FFLAGS="$CFLAGS"
+   export CFLAGS="-O3"
+   export FFLAGS="$CFLAGS"
    OCCA_CXXFLAGS="-O3 -march=native"
    TEST_EXTRA_CFLAGS="-march=native --param max-completely-peel-times=3"
    # "-std=c++11 -pedantic -Wall -fdump-tree-optimized-blocks"

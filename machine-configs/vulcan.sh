@@ -3,14 +3,14 @@
 
 function setup_xlc()
 {
-   MPICC=mpixlc_r-fastmpi
-   MPICXX=mpixlcxx_r-fastmpi
+   export MPICC=mpixlc_r-fastmpi
+   export MPICXX=mpixlcxx_r-fastmpi
    mpi_info_flag="-qversion=verbose"
 
    # CFLAGS=""
    # CFLAGS="-O2 -qmaxmem=-1"
    # CFLAGS="-O3 -qstrict -qdebug=forcesqrt -qdebug=nsel -qmaxmem=-1"
-   CFLAGS="-O3 -qnounwind -qsuppress=1540-1088:1540-1090:1540-1101"
+   export CFLAGS="-O3 -qnounwind -qsuppress=1540-1088:1540-1090:1540-1101"
    # TEST_EXTRA_CFLAGS=""
    TEST_EXTRA_CFLAGS="-O5 -qnounwind -qstrict"
    TEST_EXTRA_CFLAGS+=" -qsuppress=1540-1088:1540-1090:1540-1101"
@@ -22,10 +22,10 @@ function setup_xlc()
 function setup_gcc()
 {
    # GCC 4.7.2
-   MPICC=mpigcc-4.7.2-fastmpi
-   MPICXX=mpig++-4.7.2-fastmpi
+   export MPICC=mpigcc-4.7.2-fastmpi
+   export MPICXX=mpig++-4.7.2-fastmpi
 
-   CFLAGS="-O3 -mcpu=a2 -mtune=a2"
+   export CFLAGS="-O3 -mcpu=a2 -mtune=a2"
    TEST_EXTRA_CFLAGS=""
    # TEST_EXTRA_CFLAGS+=" -std=c++11 -fdump-tree-optimized-blocks"
 }
@@ -34,10 +34,10 @@ function setup_gcc()
 function setup_gcc_b()
 {
    # GCC 4.7.2
-   MPICC=mpigcc-4.7.2-fastmpi
-   MPICXX=mpig++-4.7.2-fastmpi
+   export MPICC=mpigcc-4.7.2-fastmpi
+   export MPICXX=mpig++-4.7.2-fastmpi
 
-   CFLAGS="-O3 -mcpu=a2 -mtune=a2"
+   export CFLAGS="-O3 -mcpu=a2 -mtune=a2"
    TEST_EXTRA_CFLAGS="--param max-completely-peel-times=3"
    # TEST_EXTRA_CFLAGS+=" -std=c++11 -fdump-tree-optimized-blocks"
 }
@@ -46,10 +46,10 @@ function setup_gcc_b()
 function setup_clang()
 {
    # clang 3.7.0
-   MPICC=mpiclang-fastmpi
-   MPICXX=mpiclang++-fastmpi
+   export MPICC=mpiclang-fastmpi
+   export MPICXX=mpiclang++-fastmpi
 
-   CFLAGS="-O3 -mcpu=a2 -mtune=a2"
+   export CFLAGS="-O3 -mcpu=a2 -mtune=a2"
    TEST_EXTRA_CFLAGS="-fcolor-diagnostics -fvectorize -fslp-vectorize"
    TEST_EXTRA_CFLAGS+=" -fslp-vectorize-aggressive -ffp-contract=fast"
    # "-std=c++11 -pedantic -Wall"

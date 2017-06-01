@@ -8,8 +8,8 @@ SOURCE_ROOT="$BENCH_ROOT/package-sources/Nek5000"
 SOURCE_ROOT_GSLIB="$SOURCE_ROOT/3rd_party/gslib/src" 
 
 # Fortran/C compiler
-F77="mpif77"
-CC="mpicc"
+F77="$MPIF77"
+CC="$MPICC"
 
 # pre-processor list (set to "?" to get a list of available symbols)
 PPLIST="" 
