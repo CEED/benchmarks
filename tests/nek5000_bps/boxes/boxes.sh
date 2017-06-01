@@ -40,6 +40,22 @@ function xyz()
   echo "$nex $ney $nez"
 }
 
+function genbb()
+{
+  cp $1.box ttt.box
+  $NEK5K_DIR/bin/genbox << EOF
+  ttt.box
+  EOF
+  $NEK5K_DIR/bin/genmap << EOF
+  box
+  .1
+  EOF
+  $NEK5K_DIR/bin/mvn box $1
+  rm ttt.box
+
+  return 0
+}
+
 # Run thorugh the box sizes
 for i in `seq 10 1 12`                                           # nelt
 do
@@ -56,8 +72,8 @@ cp b.box b$i/b$i.box
 cp b1e.rea b$i
 
 cd b$i
-sed -i "5s/.*/-$nex -$ney -$nez/" 'b'$i.box
-genbb 'b'$i
+sed -i "5s/.*/-$nex -$ney -$nez/" b$i.box
+genbb b$i
 cd ..
 
 done
