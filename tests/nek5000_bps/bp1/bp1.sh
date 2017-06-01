@@ -52,8 +52,6 @@ EOF
 
   rm ttt.box
   mv box.rea $1.rea
-
-  return 0
 }
 
 function generate_boxes()
@@ -79,8 +77,20 @@ function generate_boxes()
     cd ..
 
   done
+}
 
-  return 0
+function nekbmpi()
+{
+  echo $1        >  SESSION.NAME
+  echo `pwd`'/' >>  SESSION.NAME
+  touch $1.rea
+  rm -f logfile
+  rm -f ioinfo
+  mv $1.log.$2 $1.log1.$2 2>/dev/null
+  mv $1.sch $1.sch1       2>/dev/null
+  $mpi_run ./nek5000 > $1.log.$2 &
+  sleep 2
+  ln $1.log.$2 logfile
 }
 
 function configure_tests()
@@ -92,8 +102,6 @@ function configure_tests()
   max_elem=12
   min_order=2
   max_order=2
-
-  return 0
 }
 
 function build_tests()
@@ -109,7 +117,6 @@ function build_tests()
 
   for i in `seq $min_order 1 $max_order`
   do
-
     mkdir lx$i
     cp -r $BP_ROOT/boxes/b?? $BP_ROOT/SIZE $BP_ROOT/bp1/zsin.usr lx$i/
 
@@ -129,18 +136,40 @@ function build_tests()
 
     cd ..
   done
+
+  cd ..
 }
 
 function run_tests()
 {
+  set_mpi_options  
+  local mpi_run="${MPIEXEC:-mpirun} $MPIEXEC_OPTS"
+  mpi_run="$mpi_run ${MPIEXEC_NP:--np} $num_proc_run $bind_sh"
+
+  cd sin
+
+  for i in `seq $min_order 1 $max_order`
+  do
+    cd lx$i 
+    for j in `seq $min_elem 1 $max_elem`
+    do
+      cd b$j
+      nekbmpi b$j $num_proc_run
+      cd ..
+    done
+
+    cd ..
+  done
 }
 
 function build_and_run_tests()
 {
+  echo 'Setting up the tests ...'
   configure_tests
+  echo 'Buiding the tests ...'
   build_tests
-
-  return 0
+  echo 'Running the tests ...'
+  run_tests
 }
 
 test_required_packages="nek5000"
