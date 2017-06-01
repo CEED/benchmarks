@@ -59,7 +59,7 @@ EOF
 function generate_boxes()
 {
   # Run thorugh the box sizes
-  for i in `seq 10 1 12`                                           # nelt
+  for i in `seq $min_elem 1 $max_elem`
   do
 
     # Set the number of elements in box file.
@@ -75,7 +75,7 @@ function generate_boxes()
 
     cd b$i
     sed -i "5s/.*/-$nex -$ney -$nez/" b$i.box
-    genbb b$i
+    genbb b$i > log
     cd ..
 
   done
@@ -83,11 +83,21 @@ function generate_boxes()
   return 0
 }
 
-function build_and_run_tests()
+function configure_tests()
 {
   export BP_ROOT="$root_dir"/tests/nek5000_bps
   export BENCH_ROOT="$root_dir"
 
+  min_elem=10
+  max_elem=12
+  min_order=2
+  max_order=2
+
+  return 0
+}
+
+function build_tests()
+{
   # Generate the boxes
   cd $BP_ROOT/boxes
   generate_boxes
@@ -97,7 +107,7 @@ function build_and_run_tests()
   mkdir sin
   cd sin
 
-  for i in `seq 2 1 2`
+  for i in `seq $min_order 1 $max_order`
   do
 
     mkdir lx$i
@@ -106,19 +116,29 @@ function build_and_run_tests()
     # Set lx1 in SIZE file
     sed -i "s/lx1=[0-9]*/lx1=${i}/" lx$i/SIZE
 
-    # Make the executable
+    # Make the executable and copy it into all the
+    # box directories
     cd lx$i
-    $BP_ROOT/makenek zsin
-    for j in `seq 10 1 12`
+    $BP_ROOT/makenek zsin > buildlog
+    for j in `seq $min_elem 1 $max_elem`
     do
       cd b$j
       cp ../nek5000 .
-      $NEK5K_DIR/bin/nekbmpi b$j 4
       cd ..
     done
 
     cd ..
   done
+}
+
+function run_tests()
+{
+}
+
+function build_and_run_tests()
+{
+  configure_tests
+  build_tests
 
   return 0
 }
