@@ -183,7 +183,14 @@ function update_git_package()
    # Used variables: 'pkg', 'pkg_src_dir', 'pkg_git_branch', 'pkg_bld_dir'
    if [[ "$update_packages" = "yes" ]]; then
       echo "Updating $pkg ..."
-      cd "$pkg_src_dir" && \
+      cd "$pkg_src_dir" && {
+         local remote_ref=($(git ls-remote origin $pkg_git_branch))
+         local local_ref="$(git rev-parse $pkg_git_branch)"
+         if [[ "${remote_ref[0]}" = "$local_ref" ]]; then
+            echo "Package $pkg is up to date."
+            return 0
+         fi
+      } && \
       git checkout . && \
       git clean -df && \
       git checkout "$pkg_git_branch" && {
