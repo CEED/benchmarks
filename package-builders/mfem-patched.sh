@@ -70,6 +70,8 @@ function mfem_build()
    local METIS_5="NO"
    [[ "$METIS_VERSION" = "5" ]] && METIS_5="YES"
    echo "Building $pkg, sending output to ${pkg_bld_dir}_build.log ..." && {
+      local num_nodes=1  # for 'make check' or 'make test'
+      set_mpi_options    # for 'make check' or 'make test'
       cd "$pkg_bld_dir" && \
       make config \
          MFEM_USE_MPI=YES \
@@ -80,7 +82,7 @@ function mfem_build()
          METIS_DIR="$METIS_DIR" \
          MFEM_USE_METIS_5="$METIS_5" \
          MFEM_MPIEXEC="${MPIEXEC:-mpirun}" \
-         MFEM_MPIEXEC_NP="${MPIEXEC_NP:--np}" && \
+         MFEM_MPIEXEC_NP="${MPIEXEC_OPTS} ${MPIEXEC_NP:--np}" && \
       make -j $num_proc_build
    } &> "${pkg_bld_dir}_build.log" || {
       echo " ... building $pkg FAILED, see log for details."
