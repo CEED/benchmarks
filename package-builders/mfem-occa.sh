@@ -41,11 +41,11 @@ function mfem_occa_clone()
 
 function mfem_occa_build()
 {
-   if [[ ! -d "$pkg_bld_dir" ]]; then
-      mkdir -p "$pkg_bld_dir"
-   elif [[ -e "${pkg_bld_dir}_build_successful" ]]; then
+   if package_build_is_good; then
       echo "Using successfully built $pkg from OUT_DIR."
       return 0
+   elif [[ ! -d "$pkg_bld_dir" ]]; then
+      mkdir -p "$pkg_bld_dir"
    fi
    if [[ -z "$HYPRE_DIR" ]]; then
       echo "The required variable 'HYPRE_DIR' is not set. Stop."

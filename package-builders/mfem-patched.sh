@@ -45,7 +45,10 @@ function mfem_clone()
 
 function mfem_build()
 {
-   if [[ ! -d "$pkg_bld_dir" ]]; then
+   if package_build_is_good; then
+      echo "Using successfully built $pkg from OUT_DIR."
+      return 0
+   elif [[ ! -d "$pkg_bld_dir" ]]; then
       cd "$OUT_DIR" && \
       git clone "$MFEM_SOURCE_DIR" "$pkg_bld_subdir" && \
       cd "$pkg_bld_subdir" && \
@@ -55,9 +58,6 @@ function mfem_build()
          cd "$OUT_DIR" && rm -rf "$pkg_bld_dir"
          return 1
       }
-   elif [[ -e "${pkg_bld_dir}_build_successful" ]]; then
-      echo "Using successfully built $pkg from OUT_DIR."
-      return 0
    fi
    if [[ -z "$HYPRE_DIR" ]]; then
       echo "The required variable 'HYPRE_DIR' is not set. Stop."

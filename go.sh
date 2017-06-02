@@ -200,8 +200,27 @@ function update_git_package()
          echo "Error updating $pkg. Stop."
          return 1
       }
-      remove_package
+      cd ..
+      : > "${pkg_src_dir}_updated"
    fi
+}
+
+
+function package_build_is_good()
+{
+   # Used variables: 'pkg_bld_dir', 'pkg_src_dir', 'pkg'
+   if [[ -d "${pkg_bld_dir}" && -e "${pkg_bld_dir}_build_successful" ]]; then
+      if [[ ! -e "$pkg_sources_dir/${pkg_src_dir}_updated" ]] || \
+         [[ "${pkg_bld_dir}_build_successful" -nt \
+            "$pkg_sources_dir/${pkg_src_dir}_updated" ]]; then
+         #
+         return 0
+      else
+         echo "Package $pkg needs to be updated ..."
+         remove_package
+      fi
+   fi
+   return 1
 }
 
 

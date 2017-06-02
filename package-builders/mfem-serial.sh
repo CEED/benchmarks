@@ -38,11 +38,11 @@ function mfem_clone()
 
 function mfem_serial_build()
 {
-   if [[ ! -d "$pkg_bld_dir" ]]; then
-      mkdir -p "$pkg_bld_dir"
-   elif [[ -e "${pkg_bld_dir}_build_successful" ]]; then
+   if package_build_is_good; then
       echo "Using successfully built $pkg from OUT_DIR."
       return 0
+   elif [[ ! -d "$pkg_bld_dir" ]]; then
+      mkdir -p "$pkg_bld_dir"
    fi
    echo "Building $pkg, sending output to ${pkg_bld_dir}_build.log ..." && {
       cd "$pkg_bld_dir" && \
