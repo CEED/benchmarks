@@ -46,20 +46,10 @@ function nek5k_build()
       echo "Using successfully built $pkg from OUT_DIR."
       return 0
    fi
-   [[ -n "$FC" && -n "$CC" ]] || {
-      echo "$pkg requires both Fortran and C compilers."
-      echo "Please update the used config/compiler settings. Stop."
-      return 1
-   }
+
    echo "Building $pkg, sending output to ${pkg_bld_dir}_build.log ..." && {
       ## Just build the requited tools: genbox and genmap
-      cd "$pkg_bld_dir/tools" && {
-         # replace set F77 and CC in 'maketools'
-         [[ -e "maketools.orig" ]] || cp -p maketools maketools.orig
-         sed -e "s/^F77=.*$/F77=\"$FC \"/" \
-             -e "s/^CC=.*$/CC=\"$CC \"/" \
-             maketools.orig > maketools
-      } && \
+      cd "$pkg_bld_dir/tools" && \
       ./maketools genmap && \
       ./maketools genbox
    } &> "${pkg_bld_dir}_build.log" || {
