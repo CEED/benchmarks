@@ -5,6 +5,7 @@ function setup_xlc()
 {
    export MPICC=mpixlc_r-fastmpi
    export MPICXX=mpixlcxx_r-fastmpi
+   export MPIF77=mpixlf77_r-fastmpi
    mpi_info_flag="-qversion=verbose"
 
    # CFLAGS=""
@@ -24,6 +25,7 @@ function setup_gcc()
    # GCC 4.7.2
    export MPICC=mpigcc-4.7.2-fastmpi
    export MPICXX=mpig++-4.7.2-fastmpi
+   export MPIF77=mpif77-fastmpi
 
    export CFLAGS="-O3 -mcpu=a2 -mtune=a2"
    TEST_EXTRA_CFLAGS=""
@@ -36,6 +38,7 @@ function setup_gcc_b()
    # GCC 4.7.2
    export MPICC=mpigcc-4.7.2-fastmpi
    export MPICXX=mpig++-4.7.2-fastmpi
+   export MPIF77=mpif77-fastmpi
 
    export CFLAGS="-O3 -mcpu=a2 -mtune=a2"
    TEST_EXTRA_CFLAGS="--param max-completely-peel-times=3"
@@ -48,6 +51,7 @@ function setup_clang()
    # clang 3.7.0
    export MPICC=mpiclang-fastmpi
    export MPICXX=mpiclang++-fastmpi
+   export MPIF77=mpif77-fastmpi
 
    export CFLAGS="-O3 -mcpu=a2 -mtune=a2"
    TEST_EXTRA_CFLAGS="-fcolor-diagnostics -fvectorize -fslp-vectorize"

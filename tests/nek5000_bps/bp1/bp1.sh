@@ -73,7 +73,7 @@ function generate_boxes()
 
     cd b$i
     sed -i "5s/.*/-$nex -$ney -$nez/" b$i.box
-    genbb b$i > log
+    genbb b$i &> log
     cd ..
 
   done
@@ -126,7 +126,7 @@ function build_tests()
     # Make the executable and copy it into all the
     # box directories
     cd lx$i
-    $BP_ROOT/makenek zsin > buildlog
+    $BP_ROOT/makenek zsin &> buildlog
     for j in `seq $min_elem 1 $max_elem`
     do
       cd b$j
@@ -160,6 +160,24 @@ function run_tests()
 
     cd ..
   done
+
+  cd ..
+}
+
+function postprocess()
+{
+  cd sin 
+
+  for i in `seq $min_order 1 $max_order`
+  do
+    for j in `seq $min_elem 1 $max_elem`
+    do
+      grep "case vec" lx$i/b$j/logfile >> sin.vec
+      grep "case sca" lx$i/b$j/logfile >> sin.sca
+    done
+  done
+
+  cd ..
 }
 
 function build_and_run_tests()
@@ -170,6 +188,8 @@ function build_and_run_tests()
   build_tests
   echo 'Running the tests ...'
   run_tests
+  echo 'Postprocessing ...'
+  postprocess
 }
 
 test_required_packages="nek5000"

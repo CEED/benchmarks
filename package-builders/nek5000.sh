@@ -56,8 +56,8 @@ function nek5k_build()
       cd "$pkg_bld_dir/tools" && {
          # replace set F77 and CC in 'maketools'
          [[ -e "maketools.orig" ]] || cp -p maketools maketools.orig
-         sed -e "s/^F77=.*$/F77=\"$FC $FFLAGS\"/" \
-             -e "s/^CC=.*$/CC=\"$CC $CFLAGS\"/" \
+         sed -e "s/^F77=.*$/F77=\"$FC \"/" \
+             -e "s/^CC=.*$/CC=\"$CC \"/" \
              maketools.orig > maketools
       } && \
       ./maketools genmap && \
