@@ -3,9 +3,9 @@
 
 function setup_xlc()
 {
-   export MPICC=mpixlc_r-fastmpi
+   export MPICC=mpixlc-fastmpi
    export MPICXX=mpixlcxx_r-fastmpi
-   export MPIF77=mpixlf77_r-fastmpi
+   export MPIF77=mpixlf77-fastmpi
    mpi_info_flag="-qversion=verbose"
 
    # CFLAGS=""
