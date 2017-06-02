@@ -45,6 +45,9 @@ function mfem_clone()
 
 function mfem_build()
 {
+   if [[ "$mfem_patch_file" -nt "${pkg_bld_dir}_build_successful" ]]; then
+      remove_package
+   fi
    if package_build_is_good; then
       echo "Using successfully built $pkg from OUT_DIR."
       return 0
