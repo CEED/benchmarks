@@ -3,44 +3,51 @@
 
 function setup_xlc()
 {
-   export MPICC=mpixlc-fastmpi
-   export MPICXX=mpixlcxx_r-fastmpi
-   export MPIF77=mpixlf77-fastmpi
+   MPICC=mpixlc_r-fastmpi
+   MPICXX=mpixlcxx_r-fastmpi
+   MPIF77=mpixlf77_r-fastmpi
    mpi_info_flag="-qversion=verbose"
 
    # CFLAGS=""
    # CFLAGS="-O2 -qmaxmem=-1"
    # CFLAGS="-O3 -qstrict -qdebug=forcesqrt -qdebug=nsel -qmaxmem=-1"
-   export CFLAGS="-O3 -qnounwind -qsuppress=1540-1088:1540-1090:1540-1101"
+   CFLAGS="-O3 -qnounwind -qsuppress=1540-1088:1540-1090:1540-1101"
+   FFLAGS="-O3 -qnounwind"
    # TEST_EXTRA_CFLAGS=""
    TEST_EXTRA_CFLAGS="-O5 -qnounwind -qstrict"
    TEST_EXTRA_CFLAGS+=" -qsuppress=1540-1088:1540-1090:1540-1101"
    # TEST_EXTRA_CFLAGS+=" -qnoeh"
    # TEST_EXTRA_CFLAGS+=" -qreport -qlistopt -qlist -qskipsrc=hide -qsource"
+
+   NEK5K_EXTRA_PPLIST="BGQ EXTBAR"
 }
 
 
 function setup_gcc()
 {
    # GCC 4.7.2
-   export MPICC=mpigcc-4.7.2-fastmpi
-   export MPICXX=mpig++-4.7.2-fastmpi
-   export MPIF77=mpif77-fastmpi
+   MPICC=mpigcc-4.7.2-fastmpi
+   MPICXX=mpig++-4.7.2-fastmpi
+   MPIF77=mpigfortran-4.7.2-fastmpi
 
-   export CFLAGS="-O3 -mcpu=a2 -mtune=a2"
+   CFLAGS="-O3 -mcpu=a2 -mtune=a2"
+   FFLAGS="$CFLAGS"
    TEST_EXTRA_CFLAGS=""
    # TEST_EXTRA_CFLAGS+=" -std=c++11 -fdump-tree-optimized-blocks"
+
+   NEK5K_EXTRA_PPLIST=""
 }
 
 
 function setup_gcc_b()
 {
    # GCC 4.7.2
-   export MPICC=mpigcc-4.7.2-fastmpi
-   export MPICXX=mpig++-4.7.2-fastmpi
-   export MPIF77=mpif77-fastmpi
+   MPICC=mpigcc-4.7.2-fastmpi
+   MPICXX=mpig++-4.7.2-fastmpi
+   MPIF77=mpigfortran-4.7.2-fastmpi
 
-   export CFLAGS="-O3 -mcpu=a2 -mtune=a2"
+   CFLAGS="-O3 -mcpu=a2 -mtune=a2"
+   FFLAGS="$CFLAGS"
    TEST_EXTRA_CFLAGS="--param max-completely-peel-times=3"
    # TEST_EXTRA_CFLAGS+=" -std=c++11 -fdump-tree-optimized-blocks"
 }
@@ -49,11 +56,12 @@ function setup_gcc_b()
 function setup_clang()
 {
    # clang 3.7.0
-   export MPICC=mpiclang-fastmpi
-   export MPICXX=mpiclang++-fastmpi
-   export MPIF77=mpif77-fastmpi
+   MPICC=mpiclang-fastmpi
+   MPICXX=mpiclang++-fastmpi
+   MPIF77=mpif77-fastmpi
 
-   export CFLAGS="-O3 -mcpu=a2 -mtune=a2"
+   CFLAGS="-O3 -mcpu=a2 -mtune=a2"
+   FFLAGS="$CFLAGS"
    TEST_EXTRA_CFLAGS="-fcolor-diagnostics -fvectorize -fslp-vectorize"
    TEST_EXTRA_CFLAGS+=" -fslp-vectorize-aggressive -ffp-contract=fast"
    # "-std=c++11 -pedantic -Wall"

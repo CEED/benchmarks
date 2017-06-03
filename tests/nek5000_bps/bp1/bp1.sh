@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Helper functions
-function log2() 
+function log2()
 {
     local x=0
     for (( y=$1-1 ; $y > 0; y >>= 1 )) ; do
@@ -10,25 +10,25 @@ function log2()
     echo $x
 }
 
-function xyz() 
+function xyz()
 {
   prod=$1
-  
+
   if [ $((prod%3)) -eq 0 ]
   then
-    nez=$((prod/3)) 
-    ney=$((prod/3)) 
-    nex=$((prod/3)) 
-  elif [ $((prod%3)) -eq 1 ] 
-  then 
-    nez=$((prod/3 +1)) 
-    ney=$((prod/3)) 
-    nex=$((prod/3)) 
-  elif [ $((prod%3)) -eq 2 ] 
+    nez=$((prod/3))
+    ney=$((prod/3))
+    nex=$((prod/3))
+  elif [ $((prod%3)) -eq 1 ]
   then
-    nez=$((prod/3 +1)) 
-    ney=$((prod/3 +1)) 
-    nex=$((prod/3)) 
+    nez=$((prod/3 +1))
+    ney=$((prod/3))
+    nex=$((prod/3))
+  elif [ $((prod%3)) -eq 2 ]
+  then
+    nez=$((prod/3 +1))
+    ney=$((prod/3 +1))
+    nex=$((prod/3))
   fi
 
   nex=$((2**nex))
@@ -67,7 +67,7 @@ function generate_boxes()
     ney=$( echo $xyz | cut -f 2 -d ' ' )
     nez=$( echo $xyz | cut -f 3 -d ' ' )
 
-    mkdir b$i
+    mkdir -p b$i
     cp b.box b$i/b$i.box
     cp b1e.rea b$i
 
@@ -88,15 +88,16 @@ function nekbmpi()
   rm -f ioinfo
   mv $1.log.$2 $1.log1.$2 2>/dev/null
   mv $1.sch $1.sch1       2>/dev/null
-  $mpi_run ./nek5000 > $1.log.$2 &
-  sleep 2
+  echo "Executing: $mpi_run ./nek5000 > $1.log.$2"
+  echo "In directory: $PWD"
+  $mpi_run ./nek5000 > $1.log.$2
+  # sleep 2
   ln $1.log.$2 logfile
 }
 
 function configure_tests()
 {
   export BP_ROOT="$root_dir"/tests/nek5000_bps
-  export BENCH_ROOT="$root_dir"
 
   min_elem=10
   max_elem=12
@@ -108,16 +109,24 @@ function build_tests()
 {
   # Generate the boxes
   cd $BP_ROOT/boxes
+  echo "Generating the box meshes ..."
   generate_boxes
   cd "$test_exe_dir"
 
   # Setup the sin version of the bp
-  mkdir sin
+  mkdir -p sin
   cd sin
+
+  # Export variables needed by the 'makenek' script.
+  # CFLAGS="${CFLAGS//:/\\:}"
+  # FFLAGS="${FFLAGS//:/\\:}"
+  PPLIST="$NEK5K_EXTRA_PPLIST"
+  # export NEK5K_DIR CFLAGS FFLAGS MPIF77 MPICC PPLIST
+  export NEK5K_DIR MPIF77 MPICC PPLIST
 
   for i in `seq $min_order 1 $max_order`
   do
-    mkdir lx$i
+    mkdir -p lx$i
     cp -r $BP_ROOT/boxes/b?? $BP_ROOT/SIZE $BP_ROOT/bp1/zsin.usr lx$i/
 
     # Set lx1 in SIZE file
@@ -126,7 +135,12 @@ function build_tests()
     # Make the executable and copy it into all the
     # box directories
     cd lx$i
+    echo "Building the test in directory $PWD ..."
     $BP_ROOT/makenek zsin &> buildlog
+    if [[ ! -e nek5000 ]]; then
+      echo "Error building the test, see 'buildlog' for details. Stop."
+      return 1
+    fi
     for j in `seq $min_elem 1 $max_elem`
     do
       cd b$j
@@ -142,7 +156,7 @@ function build_tests()
 
 function run_tests()
 {
-  set_mpi_options  
+  set_mpi_options
   local mpi_run="${MPIEXEC:-mpirun} $MPIEXEC_OPTS"
   mpi_run="$mpi_run ${MPIEXEC_NP:--np} $num_proc_run $bind_sh"
 
@@ -150,7 +164,7 @@ function run_tests()
 
   for i in `seq $min_order 1 $max_order`
   do
-    cd lx$i 
+    cd lx$i
     for j in `seq $min_elem 1 $max_elem`
     do
       cd b$j
@@ -166,7 +180,7 @@ function run_tests()
 
 function postprocess()
 {
-  cd sin 
+  cd sin
 
   for i in `seq $min_order 1 $max_order`
   do
@@ -183,13 +197,13 @@ function postprocess()
 function build_and_run_tests()
 {
   echo 'Setting up the tests ...'
-  configure_tests
+  $dry_run configure_tests
   echo 'Buiding the tests ...'
-  build_tests
+  $dry_run build_tests || return 1
   echo 'Running the tests ...'
-  run_tests
+  $dry_run run_tests
   echo 'Postprocessing ...'
-  postprocess
+  $dry_run postprocess
 }
 
 test_required_packages="nek5000"

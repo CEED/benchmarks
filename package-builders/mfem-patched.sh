@@ -86,7 +86,7 @@ function mfem_build()
       echo " ... building $pkg FAILED, see log for details."
       return 1
    }
-   echo "Build succesful."
+   echo "Build successful."
    : > "${pkg_bld_dir}_build_successful"
 }
 

@@ -3,16 +3,16 @@
 # Nek5000 build file
 #-------------------------------------------------------------------------------
 
-# source path 
-SOURCE_ROOT="$BENCH_ROOT/package-sources/Nek5000"
-SOURCE_ROOT_GSLIB="$SOURCE_ROOT/3rd_party/gslib/src" 
+# source path
+SOURCE_ROOT="$NEK5K_DIR"
+SOURCE_ROOT_GSLIB="$SOURCE_ROOT/3rd_party/gslib/src"
 
 # Fortran/C compiler
 F77="$MPIF77"
 CC="$MPICC"
 
 # pre-processor list (set to "?" to get a list of available symbols)
-PPLIST="" 
+PPLIST="${PPLIST:-}"
 
 #-------------------------------------------------------------------------------
 # WHAT FOLLOWS ARE OPTIONAL SETTINGS
@@ -27,10 +27,10 @@ PPLIST=""
 
 # auxilliary files to compile
 # NOTE: source files have to located in the same directory as makenek
-#       a makefile_usr.inc has to be provided containing the build rules 
+#       a makefile_usr.inc has to be provided containing the build rules
 #USR="foo.o"
 
-# MPI (default 1) 
+# MPI (default 1)
 #MPI=0
 
 # profiling (default 1)
@@ -63,9 +63,9 @@ if [ -d $2 ] && [ $# -eq 2 ]; then
 fi
 
 if [ $MPI -eq 0 ]; then
-  gslib="gsserial" 
+  gslib="gsserial"
 else
-  gslib="gs" 
+  gslib="gs"
 fi
 USR_LFLAGS+=" -L$SOURCE_ROOT_GSLIB -l$gslib"
 
@@ -76,9 +76,9 @@ source $SOURCE_ROOT/core/makenek.inc
 if [ ! -f "$SOURCE_ROOT_GSLIB/lib$gslib.a" ]; then
   make -j4 -B -C $SOURCE_ROOT_GSLIB MPI=0 CC="$CC" CFLAGS="$CFLAGS" ADDUS=$UNDERSCORE lib \
    2>&1 | tee compiler.out
-  if [ $MPI -ne 0 ]; then 
+  if [ $MPI -ne 0 ]; then
     make -j4 -B -C $SOURCE_ROOT_GSLIB MPI=1 CC="$CC" CFLAGS="$CFLAGS" ADDUS=$UNDERSCORE lib \
-     2>&1 | tee compiler.out 
+     2>&1 | tee compiler.out
   fi
 fi
 
