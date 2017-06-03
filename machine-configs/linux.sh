@@ -3,10 +3,10 @@
 
 function setup_mpi()
 {
-   export MPICC=mpicc
-   export MPICXX=mpicxx
-   export MPIFC=mpifort
-   export MPIF77=mpif77
+   MPICC=mpicc
+   MPICXX=mpicxx
+   MPIFC=mpifort
+   MPIF77=mpif77
    # OpenMPI
    export OMPI_CC="$CC"
    export OMPI_CXX="$CXX"
@@ -25,8 +25,8 @@ function setup_gcc()
 
    setup_mpi
 
-   export CFLAGS="-O3"
-   export FFLAGS="$CFLAGS"
+   CFLAGS="-O3"
+   FFLAGS="$CFLAGS"
 
    # The following options assume GCC:
    TEST_EXTRA_CFLAGS="-march=native --param max-completely-peel-times=3"
@@ -43,8 +43,8 @@ function setup_clang()
 
    setup_mpi
 
-   export CFLAGS="-O3"
-   export FFLAGS="$CFLAGS"
+   CFLAGS="-O3"
+   FFLAGS="$CFLAGS"
 
    TEST_EXTRA_CFLAGS="-march=native -fcolor-diagnostics -fvectorize"
    TEST_EXTRA_CFLAGS+=" -fslp-vectorize -fslp-vectorize-aggressive"
