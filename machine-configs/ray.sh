@@ -3,11 +3,13 @@
 
 function setup_xlc()
 {
-   export MPICC=mpixlc
-   export MPICXX=mpixlC
+   MPICC=mpixlc
+   MPICXX=mpixlC
+   MPIF77=mpixlf
    mpi_info_flag="-qversion=verbose"
 
-   export CFLAGS="-O3 -qarch=auto -qcache=auto -qhot -qtune=auto"
+   CFLAGS="-O3 -qarch=auto -qcache=auto -qhot -qtune=auto"
+   FFLAGS="$CFLAGS"
    TEST_EXTRA_CFLAGS="-O5"
    # TEST_EXTRA_CFLAGS+=" -std=c++11 -qreport"
 }
@@ -17,11 +19,13 @@ function setup_gcc()
 {
    # GCC 4.9.3 is the default GCC as of 2017-05-28.
 
-   export MPICC=mpigcc
-   export MPICXX=mpig++
+   MPICC=mpigcc
+   MPICXX=mpig++
+   MPIF77=mpigfortran
    mpi_info_flag="--version"
 
-   export CFLAGS="-O3 -mcpu=native -mtune=native"
+   CFLAGS="-O3 -mcpu=native -mtune=native"
+   FFLAGS="$CFLAGS"
    TEST_EXTRA_CFLAGS=""
    # TEST_EXTRA_CFLAGS+=" -std=c++11 -fdump-tree-optimized-blocks"
 }
@@ -31,11 +35,13 @@ function setup_clang()
 {
    # Clang coral compilers: clang-coral-2017.05.19 as of 2017-05-29.
 
-   export MPICC=mpiclang
-   export MPICXX=mpiclang++
+   MPICC=mpiclang
+   MPICXX=mpiclang++
+   # MPIF77=?
    mpi_info_flag="--version"
 
-   export CFLAGS="-O3 -mcpu=native -mtune=native"
+   CFLAGS="-O3 -mcpu=native -mtune=native"
+   # FFLAGS=?
    TEST_EXTRA_CFLAGS="-fcolor-diagnostics -fvectorize"
    TEST_EXTRA_CFLAGS+=" -fslp-vectorize -fslp-vectorize-aggressive"
    TEST_EXTRA_CFLAGS+=" -ffp-contract=fast"
