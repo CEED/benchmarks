@@ -11,6 +11,7 @@ function setup_openmpi()
    export OMPI_CC="$CC"
    export OMPI_CXX="$CXX"
    export OMPI_FC="$FC"
+   export OMPI_F77="$FC"
 }
 
 

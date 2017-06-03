@@ -68,11 +68,10 @@ function generate_boxes()
     nez=$( echo $xyz | cut -f 3 -d ' ' )
 
     mkdir -p b$i
-    cp b.box b$i/b$i.box
+    sed "5s/.*/-$nex -$ney -$nez/" b.box > b$i/b$i.box
     cp b1e.rea b$i
 
     cd b$i
-    sed -i "5s/.*/-$nex -$ney -$nez/" b$i.box
     genbb b$i &> log
     cd ..
 
@@ -127,10 +126,10 @@ function build_tests()
   for i in `seq $min_order 1 $max_order`
   do
     mkdir -p lx$i
-    cp -r $BP_ROOT/boxes/b?? $BP_ROOT/SIZE $BP_ROOT/bp1/zsin.usr lx$i/
+    cp -r $BP_ROOT/boxes/b?? $BP_ROOT/bp1/zsin.usr lx$i/
 
     # Set lx1 in SIZE file
-    sed -i "s/lx1=[0-9]*/lx1=${i}/" lx$i/SIZE
+    sed "s/lx1=[0-9]*/lx1=${i}/" $BP_ROOT/SIZE > lx$i/SIZE
 
     # Make the executable and copy it into all the
     # box directories
