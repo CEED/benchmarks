@@ -38,6 +38,7 @@ function set_mpi_options()
 {
    # Run all tasks on the same node.
    num_proc_node=${num_proc_run}
+   compose_mpi_run_command
 }
 
 

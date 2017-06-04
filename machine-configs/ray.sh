@@ -52,15 +52,16 @@ function set_mpi_options()
 {
    MPIEXEC_OPTS="-npernode $num_proc_node"
    # Q: Is bind.sh equivalent to the mpirun option '-bind-to core'?
-   MPIEXEC_OPTS="-bind-to core $MPIEXEC_OPTS"
+   # MPIEXEC_OPTS="-bind-to core $MPIEXEC_OPTS"
    # MPIEXEC_OPTS+=" -report-bindings"
    # echo "$LSB_HOSTS" > hostfile
    # MPIEXEC_OPTS+=" -hostfile hostfile"
    if [ "$num_proc_node" -gt "20" ]; then
       MPIEXEC_OPTS="-oversubscribe $MPIEXEC_OPTS"
    fi
-   local BSUB_OPTS="-q pdebug -G guests -n $((num_nodes*20)) -I"
+   local BSUB_OPTS="-q pbatch -G guests -n $((num_nodes*20)) -I"
    MPIEXEC_OPTS="$BSUB_OPTS mpirun $MPIEXEC_OPTS"
+   compose_mpi_run_command
 }
 
 
@@ -71,7 +72,7 @@ num_proc_node=${num_proc_node:-20}
 memory_per_node=256
 
 # Optional (default): MPIEXEC (mpirun), MPIEXEC_OPTS (), MPIEXEC_NP (-np)
-# bind_sh=mpibind
+bind_sh=mpibind
 # bind_sh=bind.sh
 # MPIEXEC=jsrun (under dev)
 MPIEXEC="bsub"

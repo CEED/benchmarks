@@ -263,6 +263,13 @@ function build_packages()
 }
 
 
+function compose_mpi_run_command()
+{
+   mpi_run="${MPIEXEC:-mpirun} ${MPIEXEC_OPTS}"
+   mpi_run+=" ${MPIEXEC_NP:--np} ${num_proc_run} $bind_sh"
+}
+
+
 function check_memory_req()
 {
    local total_mem=""
@@ -518,6 +525,7 @@ set_build_dirs || $exit_cmd 1
 
 [ -n "$run" ] && {
 
+cd "$cur_dir"
 abspath test_dir "$(dirname "$test_file")" || $exit_cmd 1
 test_basename="$(basename "$test_file")"
 test_file="${test_dir}/${test_basename}"
@@ -550,6 +558,7 @@ test_required_packages=""
 . "$test_file" || $exit_cmd 1
 
 ## Build any packages required by the test
+echo "Packages required by the test: $test_required_packages"
 build_packages $test_required_packages || $exit_cmd 1
 echo
 
@@ -563,6 +572,10 @@ num_proc_node="${num_proc_node_list[$num_proc_idx]}"
 set_num_nodes || $exit_cmd 1
 
 if [[ "$start_shell" = "yes" ]]; then
+   if [[ ! -t 1 ]]; then
+      echo "Standard output is not a terminal. Stop."
+      $exit_cmd 1
+   fi
    echo "Reading shell commands, type 'c' to continue, 'exit' to stop ..."
    echo
    cd "$cur_dir"
