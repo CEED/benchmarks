@@ -25,7 +25,7 @@ function setup_gcc()
 
    setup_mpi
 
-   CFLAGS="-O3"
+   CFLAGS="-O3 -mcmodel=medium"
    FFLAGS="$CFLAGS"
 
    # The following options assume GCC:
@@ -43,7 +43,7 @@ function setup_clang()
 
    setup_mpi
 
-   CFLAGS="-O3"
+   CFLAGS="-O3 -mcmodel=medium"
    FFLAGS="$CFLAGS"
 
    TEST_EXTRA_CFLAGS="-march=native -fcolor-diagnostics -fvectorize"

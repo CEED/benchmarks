@@ -86,8 +86,8 @@ function configure_tests()
 
   min_elem=6
   max_elem=12
-  min_order=2
-  max_order=3
+  min_order=3
+  max_order=4
 }
 
 function build_tests()
@@ -107,7 +107,7 @@ function build_tests()
   # FFLAGS="${FFLAGS//:/\\:}"
   PPLIST="$NEK5K_EXTRA_PPLIST"
   # export NEK5K_DIR CFLAGS FFLAGS MPIF77 MPICC PPLIST
-  export NEK5K_DIR MPIF77 MPICC PPLIST
+  export NEK5K_DIR MPIF77 MPICC PPLIST CFLAGS FFLAGS
 
   for i in `seq $min_order 1 $max_order`
   do
@@ -131,9 +131,7 @@ function build_tests()
       fi
       for j in `seq $min_elem 1 $max_elem`
       do
-        cd b$j
-        cp ../nek5000 .
-        cd ..
+        cp ./nek5000 b$j/
       done
 
       cd ..
