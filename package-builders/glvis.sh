@@ -38,14 +38,14 @@ function glvis_clone()
 
 function glvis_build()
 {
-   if [[ ! -d "$pkg_bld_dir" ]]; then
+   if package_build_is_good; then
+      echo "Using successfully built $pkg from OUT_DIR."
+      return 0
+   elif [[ ! -d "$pkg_bld_dir" ]]; then
       cd "$OUT_DIR" && git clone "$GLVIS_SOURCE_DIR" || {
          echo "Cloning $GLVIS_SOURCE_DIR to OUT_DIR failed. Stop."
          return 1
       }
-   elif [[ -e "${pkg_bld_dir}_build_successful" ]]; then
-      echo "Using successfully built $pkg from OUT_DIR."
-      return 0
    fi
    if [[ -z "$MFEM_SERIAL_DIR" ]]; then
       echo "The required variable 'MFEM_SERIAL_DIR' is not set. Stop."

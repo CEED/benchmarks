@@ -101,8 +101,6 @@ function run_test()
 {
    set_mpi_options
    local test_name_sfx="${test_name}${suffix}"
-   local mpi_run="${MPIEXEC:-mpirun} $MPIEXEC_OPTS"
-   mpi_run="$mpi_run ${MPIEXEC_NP:--np} $num_proc_run $bind_sh"
    local common_args="-no-vis $mesh_opt -rs $ser_ref -rp $par_ref -pc none"
    local num_args="${#args_list[@]}" args= all_args=()
    for ((i = 0; i < num_args; i++)) do
@@ -131,7 +129,7 @@ function configure_tests()
 # 'set_test_params', and 'run_tests_if_enabled':
 test_name=mass
 # problem: 0 - diffusion, 1 - mass
-problem=1
+problem=${problem:-1}
 dim=${dim:-2}
 case "$dim" in
    2) geom="Geometry::SQUARE"
@@ -224,7 +222,7 @@ function set_test_params()
    fi
    suffix=_${geom#Geometry::}_p${sol_p}_m${mesh_p}
    (( ir_order != 0 )) && suffix+="_i${ir_order}"
-   (( problem != 1 )) && suffix="_Diff$suffix"
+   (( problem != 1 )) && suffix="_diff$suffix"
    split_power2 mesh_nxyz $mesh_s
    make_mesh_file
    mesh_opt="-m $mesh_file"

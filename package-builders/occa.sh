@@ -41,14 +41,14 @@ function occa_clone()
 
 function occa_build()
 {
-   if [[ ! -d "$pkg_bld_dir" ]]; then
+   if package_build_is_good; then
+      echo "Using successfully built $pkg from OUT_DIR."
+      return 0
+   elif [[ ! -d "$pkg_bld_dir" ]]; then
       cd "$OUT_DIR" && git clone "$OCCA_SOURCE_DIR" || {
          echo "Cloning $OCCA_SOURCE_DIR to OUT_DIR failed. Stop."
          return 1
       }
-   elif [[ -e "${pkg_bld_dir}_build_successful" ]]; then
-      echo "Using successfully built $pkg from OUT_DIR."
-      return 0
    fi
    echo "Building $pkg, sending output to ${pkg_bld_dir}_build.log ..." && {
       cd "$pkg_bld_dir" && \
@@ -70,10 +70,12 @@ function build_package()
 {
    occa_clone && occa_build || return 1
 
-   PATH="${PATH}${PATH:+:}${OCCA_DIR}/bin"
-   LD_LIBRARY_PATH="${LD_LIBRARY_PATH}${LD_LIBRARY_PATH:+:}${OCCA_DIR}/lib"
-   DYLD_LIBRARY_PATH="${DYLD_LIBRARY_PATH}${DYLD_LIBRARY_PATH:+:}${OCCA_DIR}/lib"
+   add_to_path PATH "${OCCA_DIR}/bin"
+   add_to_path LD_LIBRARY_PATH "${OCCA_DIR}/lib"
+   add_to_path DYLD_LIBRARY_PATH "${OCCA_DIR}/lib"
    OCCA_CXX="${OCCA_CXX:-$MPICXX}"
    OCCA_CXXFLAGS="${OCCA_CXXFLAGS:-$CFLAGS}"
+   OCCA_CUDA_COMPILER_FLAGS="${CUFLAGS}"
    export PATH LD_LIBRARY_PATH DYLD_LIBRARY_PATH OCCA_CXX OCCA_CXXFLAGS
+   export OCCA_CUDA_COMPILER_FLAGS
 }

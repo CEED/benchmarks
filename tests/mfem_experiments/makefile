@@ -31,7 +31,8 @@ endif
 %.o: %.cpp
 
 # Rule for building mass-lib.o
-$(BLD)mass-lib.o: $(SRC)mass-lib.cpp $(SRC)mass-quad.c $(SRC)mass-hex.c
+mass-lib-src = mass-quad.c mass-hex.c diffusion-quad.c
+$(BLD)mass-lib.o: $(SRC)mass-lib.cpp $(addprefix $(SRC),$(mass-lib-src))
 	$(MFEM_CXX) -c $(MFEM_FLAGS) $< -o $@
 
 # Replace the default implicit rule for *.cpp files

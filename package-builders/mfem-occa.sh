@@ -41,11 +41,11 @@ function mfem_occa_clone()
 
 function mfem_occa_build()
 {
-   if [[ ! -d "$pkg_bld_dir" ]]; then
-      mkdir -p "$pkg_bld_dir"
-   elif [[ -e "${pkg_bld_dir}_build_successful" ]]; then
+   if package_build_is_good; then
       echo "Using successfully built $pkg from OUT_DIR."
       return 0
+   elif [[ ! -d "$pkg_bld_dir" ]]; then
+      mkdir -p "$pkg_bld_dir"
    fi
    if [[ -z "$HYPRE_DIR" ]]; then
       echo "The required variable 'HYPRE_DIR' is not set. Stop."
@@ -70,6 +70,8 @@ function mfem_occa_build()
       echo "${magenta}Warning: Building $pkg without SUNDIALS ...${none}"
    fi
    echo "Building $pkg, sending output to ${pkg_bld_dir}_build.log ..." && {
+      local num_nodes=1  # for 'make check' or 'make test'
+      set_mpi_options    # for 'make check' or 'make test'
       cd "$pkg_bld_dir" && \
       make config \
          -f "$MFEM_SOURCE_DIR/makefile" \
@@ -85,7 +87,7 @@ function mfem_occa_build()
          "${SUNDIALS_MAKE_OPTS[@]}" \
          LDFLAGS="${LDFLAGS[*]}" \
          MFEM_MPIEXEC="${MPIEXEC:-mpirun}" \
-         MFEM_MPIEXEC_NP="${MPIEXEC_NP:--np}" && \
+         MFEM_MPIEXEC_NP="${MPIEXEC_OPTS} ${MPIEXEC_NP:--np}" && \
       make -j $num_proc_build
    } &> "${pkg_bld_dir}_build.log" || {
       echo " ... building $pkg FAILED, see log for details."
