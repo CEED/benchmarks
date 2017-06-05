@@ -111,6 +111,8 @@ function build_tests()
 
   for i in `seq $min_order 1 $max_order`
   do
+    # Only build nek5000 if it is not built
+    # already.
     if [[ ! -e lx$i ]]; then 
       mkdir -p lx$i
       cp -r $BP_ROOT/boxes/b?? $BP_ROOT/bp1/zsin.usr lx$i/
@@ -143,10 +145,12 @@ function build_tests()
 
 function nekbmpi()
 {
-  cp $BP_ROOT/"submit_${short_config}.sh" .
+  cp $BP_ROOT/"submit.sh" .
   
   if [[ "$short_config" -eq "vulcan" ]]; then
-    sbatch ./submit_vulcan.sh $1 $2
+    sbatch ./submit.sh $1 $2
+  elif [[ "$short_config" -eq "linux" || "$short_config" -eq "mac" ]]; then
+    ./submit.sh $1 $2 
   fi
 }
 
@@ -176,22 +180,6 @@ function run_tests()
   cd ..
 }
 
-function postprocess()
-{
-  cd sin
-
-  for i in `seq $min_order 1 $max_order`
-  do
-    for j in `seq $min_elem 1 $max_elem`
-    do
-      grep "case vec" lx$i/b$j/logfile >> sin.vec
-      grep "case sca" lx$i/b$j/logfile >> sin.sca
-    done
-  done
-
-  cd ..
-}
-
 function build_and_run_tests()
 {
   echo 'Setting up the tests ...'
@@ -200,8 +188,6 @@ function build_and_run_tests()
   $dry_run build_tests || return 1
   echo 'Running the tests ...'
   $dry_run run_tests
-  echo 'Postprocessing ...'
-#  $dry_run postprocess
 }
 
 test_required_packages="nek5000"
