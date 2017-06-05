@@ -59,40 +59,26 @@ function generate_boxes()
   # Run thorugh the box sizes
   for i in `seq $min_elem 1 $max_elem`
   do
+    # Generate the boxes only if they have not
+    # been generated before.
+    if [[ ! -f b$i/b$i.rea ]]; then
+      # Set the number of elements in box file.
+      xyz=$(xyz $i)
+      nex=$( echo $xyz | cut -f 1 -d ' ' )
+      ney=$( echo $xyz | cut -f 2 -d ' ' )
+      nez=$( echo $xyz | cut -f 3 -d ' ' )
 
-    # Set the number of elements in box file.
+      mkdir -p b$i
+      sed "5s/.*/-$nex -$ney -$nez/" b.box > b$i/b$i.box
+      cp b1e.rea b$i
 
-    xyz=$(xyz $i)
-    nex=$( echo $xyz | cut -f 1 -d ' ' )
-    ney=$( echo $xyz | cut -f 2 -d ' ' )
-    nez=$( echo $xyz | cut -f 3 -d ' ' )
-
-    mkdir -p b$i
-    sed "5s/.*/-$nex -$ney -$nez/" b.box > b$i/b$i.box
-    cp b1e.rea b$i
-
-    cd b$i
-    genbb b$i &> log
-    cd ..
-
+      cd b$i
+      genbb b$i &> log
+      cd ..
+    fi
   done
 }
 
-function nekbmpi()
-{
-  echo $1        >  SESSION.NAME
-  echo `pwd`'/' >>  SESSION.NAME
-  touch $1.rea
-  rm -f logfile
-  rm -f ioinfo
-  mv $1.log.$2 $1.log1.$2 2>/dev/null
-  mv $1.sch $1.sch1       2>/dev/null
-  echo "Executing: $mpi_run ./nek5000 > $1.log.$2"
-  echo "In directory: $PWD"
-  $mpi_run ./nek5000 > $1.log.$2
-  # sleep 2
-  ln $1.log.$2 logfile
-}
 
 function configure_tests()
 {
@@ -125,39 +111,52 @@ function build_tests()
 
   for i in `seq $min_order 1 $max_order`
   do
-    mkdir -p lx$i
-    cp -r $BP_ROOT/boxes/b?? $BP_ROOT/bp1/zsin.usr lx$i/
+    if [[ ! -e lx$i ]]; then 
+      mkdir -p lx$i
+      cp -r $BP_ROOT/boxes/b?? $BP_ROOT/bp1/zsin.usr lx$i/
 
-    # Set lx1 in SIZE file
-    sed "s/lx1=[0-9]*/lx1=${i}/" $BP_ROOT/SIZE > lx$i/SIZE
+      # Set lx1 in SIZE file
+      sed "s/lx1=[0-9]*/lx1=${i}/" $BP_ROOT/SIZE > lx$i/SIZE
 
-    # Make the executable and copy it into all the
-    # box directories
-    cd lx$i
-    echo "Building the test in directory $PWD ..."
-    $BP_ROOT/makenek zsin &> buildlog
-    if [[ ! -e nek5000 ]]; then
-      echo "Error building the test, see 'buildlog' for details. Stop."
-      return 1
-    fi
-    for j in `seq $min_elem 1 $max_elem`
-    do
-      cd b$j
-      cp ../nek5000 .
+      # Make the executable and copy it into all the
+      # box directories
+      cd lx$i
+      echo "Building the test in directory $PWD ..."
+      $BP_ROOT/makenek zsin &> buildlog
+      if [[ ! -e nek5000 ]]; then
+        echo "Error building the test, see 'buildlog' for details. Stop."
+        return 1
+      fi
+      for j in `seq $min_elem 1 $max_elem`
+      do
+        cd b$j
+        cp ../nek5000 .
+        cd ..
+      done
+
       cd ..
-    done
-
-    cd ..
+    fi
   done
 
   cd ..
 }
 
+function nekbmpi()
+{
+  cp $BP_ROOT/"submit_${short_config}.sh" .
+  
+  if [[ "$short_config" -eq "vulcan" ]]; then
+    sbatch ./submit_vulcan.sh $1 $2
+  fi
+}
+
 function run_tests()
 {
+  cd "$test_exe_dir"
+
   set_mpi_options
   local mpi_run="${MPIEXEC:-mpirun} $MPIEXEC_OPTS"
-  mpi_run="$mpi_run ${MPIEXEC_NP:--np} $num_proc_run $bind_sh"
+  export mpi_run="$mpi_run ${MPIEXEC_NP:--np} $num_proc_run $bind_sh"
 
   cd sin
 
@@ -202,7 +201,7 @@ function build_and_run_tests()
   echo 'Running the tests ...'
   $dry_run run_tests
   echo 'Postprocessing ...'
-  $dry_run postprocess
+#  $dry_run postprocess
 }
 
 test_required_packages="nek5000"
