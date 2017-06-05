@@ -82,6 +82,7 @@ int main(int argc, char *argv[])
    const char *pc = "lor";
    bool perf = true;
    bool matrix_free = true;
+   int max_iter = 50;
    bool visualization = 1;
 
    OptionsParser args(argc, argv);
@@ -108,6 +109,8 @@ int main(int argc, char *argv[])
                   "ho - high-order (assembled) AMG, none.");
    args.AddOption(&static_cond, "-sc", "--static-condensation", "-no-sc",
                   "--no-static-condensation", "Enable static condensation.");
+   args.AddOption(&max_iter, "-mi", "--max-iter",
+                  "Maximum number of iterations.");
    args.AddOption(&visualization, "-vis", "--visualization", "-no-vis",
                   "--no-visualization",
                   "Enable or disable GLVis visualization.");
@@ -517,7 +520,7 @@ int main(int argc, char *argv[])
    CGSolver *pcg;
    pcg = new CGSolver(MPI_COMM_WORLD);
    pcg->SetRelTol(1e-6);
-   pcg->SetMaxIter(500);
+   pcg->SetMaxIter(max_iter);
    pcg->SetPrintLevel(3);
 
    HypreSolver *amg = NULL;
@@ -527,10 +530,6 @@ int main(int argc, char *argv[])
    {
       amg = new HypreBoomerAMG(A_pc);
       pcg->SetPreconditioner(*amg);
-   }
-   else
-   {
-      pcg->SetMaxIter(50);
    }
 
 #ifdef USE_MPI_WTIME

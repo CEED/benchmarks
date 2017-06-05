@@ -124,6 +124,38 @@ function search_file_list()
 }
 
 
+function add_to_path()
+{
+   local out_var="$1" pos="after" var= item=
+   shift
+   eval var="\${${out_var}}"
+   for item; do
+      [[ -z "$item" ]] && continue
+      case "$item" in
+         *:)
+            pos="${item%:}"
+            continue
+            ;;
+      esac
+      case ":${var}:" in
+         *:"$item":*)
+            ;;
+         ::)
+            var="$item"
+            ;;
+         *)
+            if [[ "$pos" = "after" ]]; then
+               var="${var}:$item"
+            else
+               var="${item}:$var"
+            fi
+            ;;
+      esac
+   done
+   eval "${out_var}=\${var}"
+}
+
+
 function array_union()
 {
    # Append an entry to an array, if it is not already in the array.
@@ -152,7 +184,14 @@ function update_git_package()
    # Used variables: 'pkg', 'pkg_src_dir', 'pkg_git_branch', 'pkg_bld_dir'
    if [[ "$update_packages" = "yes" ]]; then
       echo "Updating $pkg ..."
-      cd "$pkg_src_dir" && \
+      cd "$pkg_src_dir" && {
+         local remote_ref=($(git ls-remote origin $pkg_git_branch))
+         local local_ref="$(git rev-parse $pkg_git_branch)"
+         if [[ "${remote_ref[0]}" = "$local_ref" ]]; then
+            echo "Package $pkg is up to date."
+            return 0
+         fi
+      } && \
       git checkout . && \
       git clean -df && \
       git checkout "$pkg_git_branch" && {
@@ -162,8 +201,27 @@ function update_git_package()
          echo "Error updating $pkg. Stop."
          return 1
       }
-      remove_package
+      cd ..
+      : > "${pkg_src_dir}_updated"
    fi
+}
+
+
+function package_build_is_good()
+{
+   # Used variables: 'pkg_bld_dir', 'pkg_src_dir', 'pkg'
+   if [[ -d "${pkg_bld_dir}" && -e "${pkg_bld_dir}_build_successful" ]]; then
+      if [[ ! -e "$pkg_sources_dir/${pkg_src_dir}_updated" ]] || \
+         [[ "${pkg_bld_dir}_build_successful" -nt \
+            "$pkg_sources_dir/${pkg_src_dir}_updated" ]]; then
+         #
+         return 0
+      else
+         echo "Package $pkg needs to be updated ..."
+         remove_package
+      fi
+   fi
+   return 1
 }
 
 
@@ -192,6 +250,7 @@ function build_packages()
    for _pkg; do
       cd "$root_dir/package-builders"
       if [[ -e "$_pkg.sh" ]]; then
+         unset -f build_package
          source "$_pkg.sh" && build_package || {
             echo "Error building package \"$_pkg\". Stop."
             return 1
@@ -202,6 +261,13 @@ function build_packages()
       fi
    done
    cd "$cur_dir"
+}
+
+
+function compose_mpi_run_command()
+{
+   mpi_run="${MPIEXEC:-mpirun} ${MPIEXEC_OPTS}"
+   mpi_run+=" ${MPIEXEC_NP:--np} ${num_proc_run} $bind_sh"
 }
 
 
@@ -469,6 +535,7 @@ set_build_dirs || $exit_cmd 1
 
 [ -n "$run" ] && {
 
+cd "$cur_dir"
 abspath test_dir "$(dirname "$test_file")" || $exit_cmd 1
 test_basename="$(basename "$test_file")"
 test_file="${test_dir}/${test_basename}"
@@ -501,6 +568,7 @@ test_required_packages=""
 . "$test_file" || $exit_cmd 1
 
 ## Build any packages required by the test
+echo "Packages required by the test: $test_required_packages"
 build_packages $test_required_packages || $exit_cmd 1
 echo
 
@@ -514,6 +582,10 @@ num_proc_node="${num_proc_node_list[$num_proc_idx]}"
 set_num_nodes || $exit_cmd 1
 
 if [[ "$start_shell" = "yes" ]]; then
+   if [[ ! -t 1 ]]; then
+      echo "Standard output is not a terminal. Stop."
+      $exit_cmd 1
+   fi
    echo "Reading shell commands, type 'c' to continue, 'exit' to stop ..."
    echo
    cd "$cur_dir"

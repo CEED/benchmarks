@@ -42,14 +42,14 @@ function metis_download()
 
 function metis_build()
 {
-   if [[ ! -d "$pkg_bld_dir" ]]; then
+   if package_build_is_good; then
+      echo "Using successfully built $pkg from OUT_DIR."
+      return 0
+   elif [[ ! -d "$pkg_bld_dir" ]]; then
       cd "$OUT_DIR" && tar zxf "$METIS_SOURCE_FILE" || {
          echo "Error extracting \"$METIS_SOURCE_FILE\". Stop."
          return 1
       }
-   elif [[ -e "${pkg_bld_dir}_build_successful" ]]; then
-      echo "Using successfully built $pkg from OUT_DIR."
-      return 0
    fi
    echo "Building $pkg, sending output to ${pkg_bld_dir}_build.log ..." && {
       if [[ "$METIS_VERSION" = "4" ]]; then

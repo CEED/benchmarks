@@ -49,11 +49,11 @@ function sundials_download()
 function sundials_build()
 {
    # Use an out-of-source build.
-   if [[ ! -d "$pkg_bld_dir" ]]; then
-      mkdir -p "$pkg_bld_dir" || return 1
-   elif [[ -e "${pkg_bld_dir}_build_successful" ]]; then
+   if package_build_is_good; then
       echo "Using successfully built $pkg from OUT_DIR."
       return 0
+   elif [[ ! -d "$pkg_bld_dir" ]]; then
+      mkdir -p "$pkg_bld_dir" || return 1
    fi
    local HYPRE_CMAKE_OPTS=("-DHYPRE_ENABLE=OFF")
    if [[ -n "$HYPRE_DIR" ]]; then

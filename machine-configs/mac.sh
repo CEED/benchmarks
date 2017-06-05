@@ -80,6 +80,7 @@ function setup_gcc_7a()
 function set_mpi_options()
 {
    num_proc_node=${num_proc_run}
+   compose_mpi_run_command
 }
 
 

@@ -7,3 +7,4 @@ using namespace std;
 
 #include "mass-quad.c"
 #include "mass-hex.c"
+#include "diffusion-quad.c"

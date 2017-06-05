@@ -79,6 +79,7 @@ function set_mpi_options()
    if [[ "$num_proc_node" -gt "16" ]]; then
       MPIEXEC_OPTS+=" --overcommit"
    fi
+   compose_mpi_run_command
 }
 
 

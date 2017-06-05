@@ -38,14 +38,14 @@ function hypre_clone()
 
 function hypre_build()
 {
-   if [[ ! -d "$pkg_bld_dir" ]]; then
+   if package_build_is_good; then
+      echo "Using successfully built $pkg from OUT_DIR."
+      return 0
+   elif [[ ! -d "$pkg_bld_dir" ]]; then
       cd "$OUT_DIR" && git clone "$HYPRE_SOURCE_DIR" || {
          echo "Cloning $HYPRE_SOURCE_DIR to OUT_DIR failed. Stop."
          return 1
       }
-   elif [[ -e "${pkg_bld_dir}_build_successful" ]]; then
-      echo "Using successfully built $pkg from OUT_DIR."
-      return 0
    fi
    echo "Building $pkg, sending output to ${pkg_bld_dir}_build.log ..." && {
       cd "$pkg_bld_dir/src" && \

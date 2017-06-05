@@ -72,8 +72,6 @@ function run_test()
 {
    set_mpi_options
    local test_name_sfx="${test_name}${suffix}"
-   local mpi_run="${MPIEXEC:-mpirun} $MPIEXEC_OPTS"
-   mpi_run="$mpi_run ${MPIEXEC_NP:--np} $num_proc_run $bind_sh"
    local common_args="-no-vis $mesh_opt -rs $ser_ref -rp $par_ref -pc none"
    local num_args="${#args_list[@]}" args= all_args=()
    for ((i = 0; i < num_args; i++)) do
