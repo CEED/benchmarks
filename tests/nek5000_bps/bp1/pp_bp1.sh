@@ -13,8 +13,15 @@ function grep_data()
     done
   done
 
-  
   cd ..
+}
+
+function plot_data()
+{
+  cd sin 
+
+  gnuplot -e "start=$min_order; end=$max_order" \
+     $root_dir"/tests"$test_up_dir/plot.plt || exit 1
 }
 
 function postprocess()
@@ -26,4 +33,7 @@ function postprocess()
   echo 'Postprocessing ...'
   cd $test_exe_dir
   grep_data
+
+  # Plot with gnuplot
+  plot_data
 }

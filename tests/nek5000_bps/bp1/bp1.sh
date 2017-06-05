@@ -143,7 +143,7 @@ function build_tests()
   cd ..
 }
 
-function nekbmpi()
+function nekmpi()
 {
   cp $BP_ROOT/"submit.sh" .
 
@@ -170,7 +170,7 @@ function run_tests()
     for j in `seq $min_elem 1 $max_elem`
     do
       cd b$j
-      nekbmpi b$j $num_proc_run
+      nekmpi b$j $num_proc_run
       cd ..
     done
 
