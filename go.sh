@@ -18,6 +18,7 @@ build_list=""
 update_packages=""
 remove_list=""
 run=""
+post_process=""
 num_proc_build=""
 num_proc_run=""
 num_proc_node=""
@@ -549,9 +550,14 @@ trap - INT
 } ## run is on
 
 ### Post process the results
+
 [[ -n "$post_process" ]] && {
 
 . "$pp_file" || $exit_cmd 1
+
+abspath test_dir "$(dirname "$pp_file")" || $exit_cmd 1
+test_up_dir="${test_dir#$root_dir/tests}"
+test_exe_dir="$OUT_DIR/${test_up_dir#/}"
 
 postprocess
 
