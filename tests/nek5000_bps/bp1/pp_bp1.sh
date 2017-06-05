@@ -6,11 +6,16 @@ function grep_data()
 
   for i in `seq $min_order 1 $max_order`
   do
+    cd lx$i
+    rm sin.vec sin.sca
+
     for j in `seq $min_elem 1 $max_elem`
     do
-      grep "case vec" lx$i/b$j/logfile > sin.vec
-      grep "case sca" lx$i/b$j/logfile > sin.sca
+      grep "case vec" b$j/logfile >> sin.vec
+      grep "case sca" b$j/logfile >> sin.sca
     done
+
+    cd ..
   done
 
   cd ..
@@ -21,7 +26,7 @@ function plot_data()
   cd sin 
 
   gnuplot -e "start=$min_order; end=$max_order" \
-     $root_dir"/tests"$test_up_dir/plot.plt || exit 1
+     $root_dir"/tests"$test_up_dir/plot.gp || exit 1
 }
 
 function postprocess()

@@ -84,10 +84,10 @@ function configure_tests()
 {
   export BP_ROOT="$root_dir"/tests/nek5000_bps
 
-  min_elem=10
+  min_elem=6
   max_elem=12
   min_order=2
-  max_order=2
+  max_order=3
 }
 
 function build_tests()
@@ -115,7 +115,7 @@ function build_tests()
     # already.
     if [[ ! -e lx$i ]]; then 
       mkdir -p lx$i
-      cp -r $BP_ROOT/boxes/b?? $BP_ROOT/bp1/zsin.usr lx$i/
+      cp -r $BP_ROOT/boxes/b?* $BP_ROOT/bp1/zsin.usr lx$i/
 
       # Set lx1 in SIZE file
       sed "s/lx1=[0-9]*/lx1=${i}/" $BP_ROOT/SIZE > lx$i/SIZE
