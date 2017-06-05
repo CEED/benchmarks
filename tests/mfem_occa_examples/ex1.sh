@@ -3,11 +3,11 @@
 
 function build_and_run_tests()
 {
-   local dev_info=
+   local dev_info= occa_verbose_opt=
    $dry_run cd "$MFEM_DIR/examples/occa" && \
    $dry_run make ex1 && {
 
-      $dry_run occa info
+      local occa_verbose="0"
 
       dev_info="mode: 'Serial'"
 
@@ -16,12 +16,21 @@ function build_and_run_tests()
       # dev_info="mode: 'OpenMP'"
       # $dry_run export OMP_NUM_THREADS="$num_proc_run"
 
+      if [[ "$occa_verbose" = "1" ]]; then
+         export OCCA_VERBOSE=1
+         occa_verbose_opt="--occa-verbose"
+      else
+         occa_verbose_opt="--no-occa-verbose"
+      fi
+
+      $dry_run occa info
+
       $dry_run ./ex1 \
          --mesh ../../data/fichera.mesh \
          --order 3 \
          --preconditioner none \
          --device-info "$dev_info" \
-         --no-occa-verbose \
+         "$occa_verbose_opt" \
          --no-visualization
 
    }

@@ -8,10 +8,12 @@ function setup_xlc()
    mpi_info_flag="-qversion=verbose"
 
    CFLAGS="-O3 -qarch=auto -qcache=auto -qhot -qtune=auto"
+   # CFLAGS+=" -qipa=threads"
    TEST_EXTRA_CFLAGS="-O5"
    # TEST_EXTRA_CFLAGS+=" -std=c++11 -qreport"
 
    add_to_path PATH "$cuda_path"
+   CUFLAGS="-O3"
 }
 
 
@@ -28,6 +30,7 @@ function setup_gcc()
    # TEST_EXTRA_CFLAGS+=" -std=c++11 -fdump-tree-optimized-blocks"
 
    add_to_path PATH "$cuda_path"
+   CUFLAGS="-O3"
 }
 
 
@@ -45,6 +48,7 @@ function setup_clang()
    TEST_EXTRA_CFLAGS+=" -ffp-contract=fast"
 
    add_to_path PATH "$cuda_path"
+   CUFLAGS="-O3"
 }
 
 
