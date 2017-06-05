@@ -146,10 +146,10 @@ function build_tests()
 function nekbmpi()
 {
   cp $BP_ROOT/"submit.sh" .
-  
-  if [[ "$short_config" -eq "vulcan" ]]; then
+
+  if [[ "$short_config" = "vulcan" ]]; then
     sbatch ./submit.sh $1 $2
-  elif [[ "$short_config" -eq "linux" || "$short_config" -eq "mac" ]]; then
+  elif [[ "$short_config" = "linux" || "$short_config" = "mac" ]]; then
     ./submit.sh $1 $2 
   fi
 }

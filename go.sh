@@ -549,7 +549,7 @@ trap - INT
 } ## run is on
 
 ### Post process the results
-[[ -n "$post-process" ]] && {
+[[ -n "$post_process" ]] && {
 
 . "$pp_file" || $exit_cmd 1
 
