@@ -7,10 +7,6 @@
 SOURCE_ROOT="$NEK5K_DIR"
 SOURCE_ROOT_GSLIB="$SOURCE_ROOT/3rd_party/gslib/src"
 
-echo "Thilina"
-echo "$CFLAGS"
-sleep 30
-
 # Fortran/C compiler
 F77="$MPIF77"
 CC="$MPICC"

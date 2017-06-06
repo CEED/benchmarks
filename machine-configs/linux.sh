@@ -1,5 +1,14 @@
 # This file is part of CEED. For more details, see exascaleproject.org.
 
+function setup_bigmem()
+{
+   ARCH=$(uname -p)
+   if [[ "$ARCH" == "x86_64" ]]; then
+     CFLAGS+=" -mcmodel=medium"
+   elif [[ "$ARCH" == "ppc64" ]]; then
+     CFLAGS+=" -m64"
+   fi
+}
 
 function setup_mpi()
 {
@@ -25,7 +34,8 @@ function setup_gcc()
 
    setup_mpi
 
-   CFLAGS="-O3 -mcmodel=medium"
+   CFLAGS="-O3"
+   setup_bigmem
    FFLAGS="$CFLAGS"
 
    # The following options assume GCC:
@@ -43,7 +53,8 @@ function setup_clang()
 
    setup_mpi
 
-   CFLAGS="-O3 -mcmodel=medium"
+   CFLAGS="-O3"
+   setup_bigmem
    FFLAGS="$CFLAGS"
 
    TEST_EXTRA_CFLAGS="-march=native -fcolor-diagnostics -fvectorize"
