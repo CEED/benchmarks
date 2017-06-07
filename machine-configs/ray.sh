@@ -12,7 +12,7 @@ function setup_xlc()
    TEST_EXTRA_CFLAGS="-O5"
    # TEST_EXTRA_CFLAGS+=" -std=c++11 -qreport"
 
-   add_to_path PATH "$cuda_path"
+   add_to_path after PATH "$cuda_path"
    CUFLAGS="-O3"
 }
 
@@ -29,7 +29,7 @@ function setup_gcc()
    TEST_EXTRA_CFLAGS=""
    # TEST_EXTRA_CFLAGS+=" -std=c++11 -fdump-tree-optimized-blocks"
 
-   add_to_path PATH "$cuda_path"
+   add_to_path after PATH "$cuda_path"
    CUFLAGS="-O3"
 }
 
@@ -47,7 +47,7 @@ function setup_clang()
    TEST_EXTRA_CFLAGS+=" -fslp-vectorize -fslp-vectorize-aggressive"
    TEST_EXTRA_CFLAGS+=" -ffp-contract=fast"
 
-   add_to_path PATH "$cuda_path"
+   add_to_path after PATH "$cuda_path"
    CUFLAGS="-O3"
 }
 

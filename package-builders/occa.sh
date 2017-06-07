@@ -71,9 +71,9 @@ function build_package()
 {
    occa_clone && occa_build || return 1
 
-   add_to_path PATH "${OCCA_DIR}/bin"
-   add_to_path LD_LIBRARY_PATH "${OCCA_DIR}/lib"
-   add_to_path DYLD_LIBRARY_PATH "${OCCA_DIR}/lib"
+   add_to_path before PATH "${OCCA_DIR}/bin"
+   add_to_path before LD_LIBRARY_PATH "${OCCA_DIR}/lib"
+   add_to_path before DYLD_LIBRARY_PATH "${OCCA_DIR}/lib"
    OCCA_CXX="${OCCA_CXX:-$MPICXX}"
    OCCA_CXXFLAGS="${OCCA_CXXFLAGS:-$CFLAGS}"
    OCCA_CUDA_COMPILER_FLAGS="${CUFLAGS}"

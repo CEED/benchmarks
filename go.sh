@@ -125,8 +125,8 @@ function search_file_list()
 
 function add_to_path()
 {
-   local out_var="$1" pos="after" var= item=
-   shift
+   local out_var="$2" pos="$1" var= item=
+   shift 2
    eval var="\${${out_var}}"
    for item; do
       [[ -z "$item" ]] && continue
