@@ -249,17 +249,17 @@ function build_packages()
    for _pkg; do
       cd "$root_dir/package-builders"
       if [[ -e "$_pkg.sh" ]]; then
+         unset -v pkg_version
          unset -f build_package
          source "$_pkg.sh" && build_package || {
             echo "Error building package \"$_pkg\". Stop."
             return 1
          }
+         echo "$_pkg version: $pkg_version"
       else
          echo "Package \"$_pkg\" does not exist. Stop."
          return 1
       fi
-      unset -v pkg_version
-      echo "$_pkg version: $pkg_version"
    done
    cd "$cur_dir"
 }
