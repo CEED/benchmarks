@@ -23,6 +23,7 @@ METIS_SOURCE_FILE="$pkg_sources_dir/${pkg_src_dir}.tar.gz"
 pkg_bld_dir="$OUT_DIR/$pkg_src_dir"
 METIS_DIR="$pkg_bld_dir"
 pkg="METIS v$METIS_FULL_VERSION"
+pkg_version="$METIS_FULL_VERSION"
 
 
 function metis_download()

@@ -14,6 +14,7 @@ pkg_src_dir="mfem-occa"
 MFEM_SOURCE_DIR="$pkg_sources_dir/$pkg_src_dir"
 pkg_bld_dir="$OUT_DIR/mfem-occa"
 MFEM_DIR="$pkg_bld_dir"
+pkg_version="$(git --git-dir=$MFEM_SOURCE_DIR/.git describe --long --abbrev=10 --tags)"
 pkg="MFEM (occa-dev)"
 
 

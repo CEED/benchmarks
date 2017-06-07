@@ -14,6 +14,7 @@ pkg_src_dir="occa"
 OCCA_SOURCE_DIR="$pkg_sources_dir/$pkg_src_dir"
 pkg_bld_dir="$OUT_DIR/occa"
 OCCA_DIR="$pkg_bld_dir"
+pkg_version="$(git --git-dir=$OCCA_SOURCE_DIR/.git rev-parse HEAD)"
 pkg="OCCA"
 
 

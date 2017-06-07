@@ -258,6 +258,8 @@ function build_packages()
          echo "Package \"$_pkg\" does not exist. Stop."
          return 1
       fi
+      unset -v pkg_version
+      echo "$_pkg version: $pkg_version"
    done
    cd "$cur_dir"
 }
