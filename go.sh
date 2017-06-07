@@ -18,9 +18,9 @@ build_list=""
 update_packages=""
 remove_list=""
 run=""
-num_proc_build=""
-num_proc_run=""
-num_proc_node=""
+num_proc_build=${num_proc_build:-""}
+num_proc_run=${num_proc_run:-""}
+num_proc_node=${num_proc_node:-""}
 dry_run="" # empty string = NO
 start_shell=""
 verbose=""
@@ -396,7 +396,7 @@ case "$1" in
    -n|--num-proc)
       shift
       [ $# -gt 0 ] || {
-      echo "Missing \"list\" in --num_proc \"list\""; $exit_cmd 1; }
+      echo "Missing \"list\" in --num-proc \"list\""; $exit_cmd 1; }
       num_proc_run="$1"
       ;;
    -p|--proc-node)

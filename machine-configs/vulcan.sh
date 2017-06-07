@@ -74,7 +74,7 @@ function set_mpi_options()
 MFEM_EXTRA_CONFIG="MFEM_TIMER_TYPE=0"
 
 valid_compilers="xlc gcc gcc_b clang"
-num_proc_build=16
+num_proc_build=${num_proc_build:-16}
 num_proc_run=${num_proc_run:-16}
 num_proc_node=${num_proc_node:-16}
 memory_per_node=16
