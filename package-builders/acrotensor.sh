@@ -16,7 +16,7 @@ pkg_bld_dir="$OUT_DIR/acrotensor"
 ACROTENSOR_DIR="$pkg_bld_dir"
 CUDA_DIR="/usr/local/cuda"
 # TODO How should compiler/option dependencies be handled?
-ACROTENSOR_CXXFLAGS="-x cu --std=c++11 -DACROTENSOR_HAVE_CUDA --compiler-options=\"-fPIC\""
+ACROTENSOR_CXXFLAGS="-x cu --std=c++11 -DACRO_HAVE_CUDA --compiler-options=\"-fPIC\""
 pkg="acrotensor"
 llnluser=$(whoami)
 
@@ -56,10 +56,9 @@ function acrotensor_build()
       cd "$pkg_bld_dir" && \
       make config && \
       make \
-         CUDA_ROOT=$CUDA_DIR \
-         CXX="CXX" \
+         CXX=nvcc \
          DEBUG=NO \
-         UTILCXX="$CXX" \
+         UTILCXX=nvcc \
          CXX_OPT="$ACROTENSOR_CXXFLAGS" \
          CXX_DEBUG="$ACROTENSOR_CXXFLAGS -g" \
          $ACROTENSOR_EXTRA_CONFIG \
