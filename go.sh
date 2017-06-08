@@ -125,6 +125,8 @@ function search_file_list()
 
 function add_to_path()
 {
+   # Usage: add_to_path POS VAR_NAME ["before:"|"after:"|DIR]...
+   # POS is "before" or "after". DIR cannot contain ":".
    local out_var="$2" pos="$1" var= item=
    shift 2
    eval var="\${${out_var}}"
