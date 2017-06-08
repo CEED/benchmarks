@@ -1,6 +1,6 @@
 # This file is part of CEED. For more details, see exascaleproject.org.
 
-# Clone MFEM and build the serial version without any dependencies.
+# Clone Nek5000.
 
 if [[ -z "$pkg_sources_dir" ]]; then
    echo "This script ($0) should not be called directly. Stop."
@@ -10,17 +10,17 @@ if [[ -z "$OUT_DIR" ]]; then
    echo "The variable 'OUT_DIR' is not set. Stop."
    return 1
 fi
-pkg_src_dir="mfem"
-MFEM_SOURCE_DIR="$pkg_sources_dir/$pkg_src_dir"
-pkg_bld_dir="$OUT_DIR/mfem-serial"
-MFEM_SERIAL_DIR="$pkg_bld_dir"
-pkg="MFEM serial"
 
+pkg_src_dir="Nek5000"
+NEK5K_SOURCE_DIR="$pkg_sources_dir/$pkg_src_dir"
+pkg_bld_dir="$OUT_DIR/$pkg_src_dir"
+NEK5K_DIR="$pkg_bld_dir"
+pkg="Nek5000"
 
-function mfem_clone()
+function nek5k_clone()
 {
-   pkg_repo_list=("git@github.com:mfem/mfem.git"
-                  "https://github.com/mfem/mfem.git")
+   pkg_repo_list=("git@github.com:Nek5000/Nek5000.git"
+                  "https://github.com/Nek5000/Nek5000.git")
    pkg_git_branch="master"
    cd "$pkg_sources_dir" || return 1
    if [[ -d "$pkg_src_dir" ]]; then
@@ -35,23 +35,23 @@ function mfem_clone()
    return 1
 }
 
-
-function mfem_serial_build()
+function nek5k_build()
 {
-   if package_build_is_good; then
+   if [[ ! -d "$pkg_bld_dir" ]]; then
+      cd "$OUT_DIR" && git clone "$NEK5K_SOURCE_DIR" || {
+         echo "Cloning $NEK5K_SOURCE_DIR to OUT_DIR failed. Stop."
+         return 1
+      }
+   elif [[ -e "${pkg_bld_dir}_build_successful" ]]; then
       echo "Using successfully built $pkg from OUT_DIR."
       return 0
-   elif [[ ! -d "$pkg_bld_dir" ]]; then
-      mkdir -p "$pkg_bld_dir"
    fi
+
    echo "Building $pkg, sending output to ${pkg_bld_dir}_build.log ..." && {
-      cd "$pkg_bld_dir" && \
-      make config \
-         -f "$MFEM_SOURCE_DIR/makefile" \
-         $MFEM_EXTRA_CONFIG \
-         CXX="$MPICXX" \
-         CXXFLAGS="$CFLAGS" && \
-      make -j $num_proc_build
+      ## Just build the requited tools: genbox and genmap
+      cd "$pkg_bld_dir/tools" && \
+      ./maketools genmap && \
+      ./maketools genbox
    } &> "${pkg_bld_dir}_build.log" || {
       echo " ... building $pkg FAILED, see log for details."
       return 1
@@ -60,8 +60,7 @@ function mfem_serial_build()
    : > "${pkg_bld_dir}_build_successful"
 }
 
-
 function build_package()
 {
-   mfem_clone && get_package_git_version && mfem_serial_build
+   nek5k_clone && nek5k_build
 }

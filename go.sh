@@ -18,6 +18,7 @@ build_list=""
 update_packages=""
 remove_list=""
 run=""
+post_process=""
 num_proc_build=${num_proc_build:-""}
 num_proc_run=${num_proc_run:-""}
 num_proc_node=${num_proc_node:-""}
@@ -63,6 +64,7 @@ Options:
    -r|--run <name>       run the tests in the script <name>
    -n|--num-proc \"list\"  total number of MPI tasks to use in the tests
    -p|--proc-node \"list\" number of MPI tasks per node to use in the tests
+  -pp|--post-process <name> post process the results using script <name>
    -d|--dry-run          show (but do not run) the commands for the tests
    -s|--shell            execute bash shell commands before running the test
    -v|--verbose          print additional messages
@@ -420,6 +422,15 @@ case "$1" in
       echo "Missing \"list\" in --proc-node \"list\""; $exit_cmd 1; }
       num_proc_node="$1"
       ;;
+   -pp|--post-process)
+      post_process=on
+      shift
+      [ $# -gt 0 ] || { echo "Missing <name> in --post-process <name>"; $exit_cmd 1; }
+      pp_file="$1"
+      [[ -r "$pp_file" ]] || {
+         echo "Post process script not found: '$1'"; $exit_cmd 1
+      }
+      ;;
    -d|--dry-run)
       dry_run="quoted_echo"
       ;;
@@ -559,9 +570,9 @@ test_file="${test_dir}/${test_basename}"
    echo
 }
 
-test_up_dir="$(basename "$test_dir")"
-test_exe_dir="$OUT_DIR/$test_up_dir"
-echo "Creating test executables directory: OUT_DIR/$test_up_dir"
+test_up_dir="${test_dir#$root_dir/tests}"
+test_exe_dir="$OUT_DIR/${test_up_dir#/}"
+echo "Creating test executables directory: OUT_DIR/${test_up_dir#/}"
 $dry_run mkdir -p "$test_exe_dir" || $exit_cmd 1
 
 trap 'printf "\nScript interrupted.\n"; '$exit_cmd' 33' INT
@@ -624,6 +635,20 @@ done ## End of loop over processor numbers
 trap - INT
 
 } ## run is on
+
+### Post process the results
+
+[[ -n "$post_process" ]] && {
+
+. "$pp_file" || $exit_cmd 1
+
+abspath test_dir "$(dirname "$pp_file")" || $exit_cmd 1
+test_up_dir="${test_dir#$root_dir/tests}"
+test_exe_dir="$OUT_DIR/${test_up_dir#/}"
+
+postprocess
+
+} ## post-process on 
 
 ) || $exit_cmd 1
 done ## Loop over $compiler_list

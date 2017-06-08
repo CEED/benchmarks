@@ -5,10 +5,14 @@ function setup_xlc()
 {
    MPICC=mpixlc
    MPICXX=mpixlC
+   MPIF77=mpixlf
    mpi_info_flag="-qversion=verbose"
 
    CFLAGS="-O3 -qarch=auto -qcache=auto -qhot -qtune=auto"
    # CFLAGS+=" -qipa=threads"
+   
+   FFLAGS="$CFLAGS"
+   
    TEST_EXTRA_CFLAGS="-O5"
    # TEST_EXTRA_CFLAGS+=" -std=c++11 -qreport"
 
@@ -23,9 +27,11 @@ function setup_gcc()
 
    MPICC=mpigcc
    MPICXX=mpig++
+   MPIF77=mpigfortran
    mpi_info_flag="--version"
 
    CFLAGS="-O3 -mcpu=native -mtune=native"
+   FFLAGS="$CFLAGS"
    TEST_EXTRA_CFLAGS=""
    # TEST_EXTRA_CFLAGS+=" -std=c++11 -fdump-tree-optimized-blocks"
 
@@ -40,9 +46,11 @@ function setup_clang()
 
    MPICC=mpiclang
    MPICXX=mpiclang++
+   # MPIF77=?
    mpi_info_flag="--version"
 
    CFLAGS="-O3 -mcpu=native -mtune=native"
+   # FFLAGS=?
    TEST_EXTRA_CFLAGS="-fcolor-diagnostics -fvectorize"
    TEST_EXTRA_CFLAGS+=" -fslp-vectorize -fslp-vectorize-aggressive"
    TEST_EXTRA_CFLAGS+=" -ffp-contract=fast"
