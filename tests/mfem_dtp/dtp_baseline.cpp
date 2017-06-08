@@ -45,8 +45,10 @@ using namespace mfem;
 int main(int argc, char *argv[])
 {
    // 1. Parse command-line options.
-   const char *mesh_file = "../data/star.mesh";
-   int order = 1;
+   const char *mesh_file = "../../fichera.mesh";
+   int order = 3;
+   int ref_levels = 0;
+   const char *basis_type = "G"; // Gauss-Lobatto
    bool static_cond = false;
    bool visualization = 1;
 
@@ -56,6 +58,10 @@ int main(int argc, char *argv[])
    args.AddOption(&order, "-o", "--order",
                   "Finite element order (polynomial degree) or -1 for"
                   " isoparametric space.");
+   args.AddOption(&ref_levels, "-r", "--ref-levels",
+                  "Number of uniform refinements");
+   args.AddOption(&basis_type, "-b", "--basis-type",
+                  "Basis: G - Gauss-Lobatto, P - Positive, U - Uniform");
    args.AddOption(&static_cond, "-sc", "--static-condensation", "-no-sc",
                   "--no-static-condensation", "Enable static condensation.");
    args.AddOption(&visualization, "-vis", "--visualization", "-no-vis",
@@ -69,6 +75,10 @@ int main(int argc, char *argv[])
    }
    args.PrintOptions(cout);
 
+   // See class BasisType in fem/fe_coll.hpp for available basis types
+   int basis = BasisType::GetType(basis_type[0]);
+   cout << "Using " << BasisType::Name(basis) << " basis ..." << endl;
+
    // 2. Read the mesh from the given mesh file. We can handle triangular,
    //    quadrilateral, tetrahedral, hexahedral, surface and volume meshes with
    //    the same code.
@@ -79,13 +89,9 @@ int main(int argc, char *argv[])
    //    'ref_levels' of uniform refinement. We choose 'ref_levels' to be the
    //    largest number that gives a final mesh with no more than 50,000
    //    elements.
+   for (int l = 0; l < ref_levels; l++)
    {
-      int ref_levels =
-         (int)floor(log(50000./mesh->GetNE())/log(2.)/dim);
-      for (int l = 0; l < ref_levels; l++)
-      {
-         mesh->UniformRefinement();
-      }
+      mesh->UniformRefinement();
    }
 
    // 4. Define a finite element space on the mesh. Here we use continuous
@@ -94,7 +100,7 @@ int main(int argc, char *argv[])
    FiniteElementCollection *fec;
    if (order > 0)
    {
-      fec = new H1_FECollection(order, dim);
+     fec = new H1_FECollection(order, dim, basis);
    }
    else if (mesh->GetNodes())
    {
@@ -103,11 +109,12 @@ int main(int argc, char *argv[])
    }
    else
    {
-      fec = new H1_FECollection(order = 1, dim);
+      fec = new H1_FECollection(order = 1, dim, basis);
    }
    FiniteElementSpace *fespace = new FiniteElementSpace(mesh, fec);
+   const int size = fespace->GetTrueVSize();
    cout << "Number of finite element unknowns: "
-        << fespace->GetTrueVSize() << endl;
+        << size << endl;
 
    // 5. Determine the list of true (i.e. conforming) essential boundary dofs.
    //    In this example, the boundary conditions are defined by marking all
@@ -138,6 +145,9 @@ int main(int argc, char *argv[])
    // 8. Set up the bilinear form a(.,.) on the finite element space
    //    corresponding to the Laplacian operator -Delta, by adding the Diffusion
    //    domain integrator.
+   cout << "Assembling the bilinear form ..." << flush;
+   tic_toc.Clear();
+   tic_toc.Start();
    BilinearForm *a = new BilinearForm(fespace);
    a->AddDomainIntegrator(new DiffusionIntegrator(one));
 
@@ -147,6 +157,11 @@ int main(int argc, char *argv[])
    //    static condensation, etc.
    if (static_cond) { a->EnableStaticCondensation(); }
    a->Assemble();
+   a->Assemble();
+   tic_toc.Stop();
+   const double rt_assemb = tic_toc.RealTime();
+   cout << " done, " << rt_assemb << "s." << endl;
+   cout << "\n\"DOFs/sec\" in assembly: " << 1e-6*size/rt_assemb << " million.\n" << endl;
 
    SparseMatrix A;
    Vector B, X;
@@ -154,11 +169,15 @@ int main(int argc, char *argv[])
 
    cout << "Size of linear system: " << A.Height() << endl;
 
+   cout << "Running " << "CG" << " ...\n" << flush;
+   tic_toc.Clear();
+   tic_toc.Start();
+
 #ifndef MFEM_USE_SUITESPARSE
    // 10. Define a simple symmetric Gauss-Seidel preconditioner and use it to
    //     solve the system A X = B with PCG.
    GSSmoother M(A);
-   CG(A, B, X, 1, 500, 1e-12, 0.0);
+   CG(A, B, X, 0, 100, 0.0, 0.0);
 #else
    // 10. If MFEM was compiled with SuiteSparse, use UMFPACK to solve the system.
    UMFPackSolver umf_solver;
@@ -166,6 +185,11 @@ int main(int argc, char *argv[])
    umf_solver.SetOperator(A);
    umf_solver.Mult(B, X);
 #endif
+
+   tic_toc.Stop();
+   const double rt_solve = tic_toc.RealTime();
+   cout << " done, " << rt_solve << "s." << endl;
+   cout << "\n\"DOFs/sec\" in CG: " << 1e-6*size*100/rt_solve << " million.\n" << endl;
 
    // 11. Recover the solution as a finite element grid function.
    a->RecoverFEMSolution(X, *b, x);

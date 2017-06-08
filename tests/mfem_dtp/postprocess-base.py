@@ -68,7 +68,6 @@ while True:
          data['test']=test
          data['num-procs']=num_procs
          data['num-procs-node']=num_procs_node
-         data['mesh-order']=mesh_p
          # out.write('\n'+lnfmt%i+': %s'%line)
          # out.write('*'*len(lnfmt%i)+':    --mesh-p %i\n'%mesh_p)
          state=2
@@ -91,7 +90,7 @@ while True:
          # out.write(lnfmt%i+': %s'%line)
          state=2
          opt=line[5:].strip().split(' ',1)
-         if opt[0] in ('refine-serial', 'refine-parallel', 'order'):
+         if opt[0] in ('refine-serial', 'refine-parallel', 'order', 'ref-levels'):
             data[opt[0]]=int(opt[1])
          elif opt[0] in ('mesh', 'basis-type', 'preconditioner'):
             data[opt[0]]=opt[1]

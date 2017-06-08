@@ -171,7 +171,7 @@ int main(int argc, char *argv[])
 
   OccaFiniteElementSpace *ofespace = new OccaFiniteElementSpace(mesh, fec);
   FiniteElementSpace *fespace = ofespace->GetFESpace();
-  int size = fespace->GetTrueVSize();
+  const int size = fespace->GetTrueVSize();
 
   cout << "Number of finite element unknowns: " << size << endl;
 
@@ -241,7 +241,9 @@ int main(int argc, char *argv[])
   //    static condensation, etc.
   a->Assemble();
   tic_toc.Stop();
-  cout << " done, " << tic_toc.RealTime() << "s." << endl;
+  const double rt_assemb = tic_toc.RealTime();
+  cout << " done, " << rt_assemb << "s." << endl;
+  cout << "\n\"DOFs/sec\" in assembly: " << 1e-6*size/rt_assemb << " million.\n" << endl;
 
   Operator *A;
   OccaVector B, X;
@@ -266,7 +268,7 @@ int main(int argc, char *argv[])
   tic_toc.Stop();
   cout << " done, " << tic_toc.RealTime() << "s." << endl;
 
-  CG(*A, B, X, 1, 5, 0.0, 0.0);
+  CG(*A, B, X, 0, 5, 0.0, 0.0);
 
   cout << "Running " << (pc_choice == NONE ? "CG" : "PCG")
        << " ...\n" << flush;
@@ -275,18 +277,15 @@ int main(int argc, char *argv[])
   // Solve with CG or PCG, depending if the matrix A_pc is available
   if (pc_choice != NONE) {
     GSSmoother M(A_pc);
-    PCG(*A, M, B, X, 1, 100, 0.0, 0.0);
+    PCG(*A, M, B, X, 0, 100, 0.0, 0.0);
   } else {
-    CG(*A, B, X, 1, 100, 0.0, 0.0);
+    CG(*A, B, X, 0, 100, 0.0, 0.0);
   }
   occa::finish();
   tic_toc.Stop();
-  double rt = tic_toc.RealTime();
-  cout << " done, " << rt << "s." << endl;
-
-  cout << "\n\"DOFs/sec\" in CG: " << 1e-6*size*100/rt
-       << " million." << endl;
-
+  const double rt_solve = tic_toc.RealTime();
+  cout << " done, " << rt_solve << "s." << endl;
+  cout << "\n\"DOFs/sec\" in CG: " << 1e-6*size*100/rt_solve << " million.\n" << endl;
 
   // 11. Recover the solution as a finite element grid function.
   a->RecoverFEMSolution(X, b, x);

@@ -24,3 +24,18 @@ function setup_occa_test()
     }
     $dry_run cp $MFEM_DIR/data/fichera.mesh $test_exe_dir/
 }
+
+function setup_baseline_test()
+{
+    # This test name
+    local test_name=dtp_baseline
+
+    # configuration from dtp.sh.inl
+    configure_tests
+
+    # Build the executable
+    $dry_run cd "$test_dir"
+
+    $dry_run make "$test_exe_dir/$test_name" "MFEM_DIR=$MFEM_DIR" "BLD=$test_exe_dir/"
+    $dry_run cp $MFEM_DIR/data/fichera.mesh $test_exe_dir/
+}

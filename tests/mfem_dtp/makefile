@@ -26,7 +26,7 @@ EXTRA_CXXFLAGS =
 # Add any EXTRA_CXXFLAGS to MFEM_CXXFLAGS, which is part of MFEM_FLAGS.
 MFEM_CXXFLAGS += $(EXTRA_CXXFLAGS)
 
-DTP = dtp_asm
+DTP = dtp_baseline
 ifeq ($(MFEM_USE_OCCA),YES)
 DTP += dtp_occa
 endif
