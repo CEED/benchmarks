@@ -91,7 +91,7 @@ search_file_list LAPACK_LIB \
 LAPACK_LIB="-framework Accelerate"
 
 valid_compilers="clang gcc_6 gcc_7 gcc_7a"
-num_proc_build=4
+num_proc_build=${num_proc_build:-4}
 num_proc_run=${num_proc_run:-2}
 num_proc_node=${num_proc_run}
 memory_per_node=8

@@ -16,7 +16,7 @@ function setup_xlc()
    TEST_EXTRA_CFLAGS="-O5"
    # TEST_EXTRA_CFLAGS+=" -std=c++11 -qreport"
 
-   add_to_path PATH "$cuda_path"
+   add_to_path after PATH "$cuda_path"
    CUFLAGS="-O3"
 }
 
@@ -35,7 +35,7 @@ function setup_gcc()
    TEST_EXTRA_CFLAGS=""
    # TEST_EXTRA_CFLAGS+=" -std=c++11 -fdump-tree-optimized-blocks"
 
-   add_to_path PATH "$cuda_path"
+   add_to_path after PATH "$cuda_path"
    CUFLAGS="-O3"
 }
 
@@ -55,7 +55,7 @@ function setup_clang()
    TEST_EXTRA_CFLAGS+=" -fslp-vectorize -fslp-vectorize-aggressive"
    TEST_EXTRA_CFLAGS+=" -ffp-contract=fast"
 
-   add_to_path PATH "$cuda_path"
+   add_to_path after PATH "$cuda_path"
    CUFLAGS="-O3"
 }
 
@@ -78,7 +78,7 @@ function set_mpi_options()
 
 
 valid_compilers="xlc gcc clang"
-num_proc_build=10
+num_proc_build=${num_proc_build:-10}
 num_proc_run=${num_proc_run:-20}
 num_proc_node=${num_proc_node:-20}
 memory_per_node=256

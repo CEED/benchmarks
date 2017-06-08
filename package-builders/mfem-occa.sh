@@ -14,6 +14,7 @@ pkg_src_dir="mfem-occa"
 MFEM_SOURCE_DIR="$pkg_sources_dir/$pkg_src_dir"
 pkg_bld_dir="$OUT_DIR/mfem-occa"
 MFEM_DIR="$pkg_bld_dir"
+pkg_version="$(git --git-dir=$MFEM_SOURCE_DIR/.git describe --long --abbrev=10 --tags)"
 pkg="MFEM (occa-dev)"
 
 
@@ -69,6 +70,17 @@ function mfem_occa_build()
    else
       echo "${magenta}Warning: Building $pkg without SUNDIALS ...${none}"
    fi
+   local ACROTENSOR_MAKE_OPTS=()
+   if [[ -n "$ACROTENSOR_DIR" ]]; then
+      ACROTENSOR_MAKE_OPTS=(
+          "MFEM_USE_ACROTENSOR=YES"
+          "ACROTENSOR_DIR=$ACROTENSOR_DIR"
+          "CUDA_DIR=$CUDA_DIR"
+          "ACROTENSOR_OPT=-I$ACROTENSOR_DIR/inc -I$CUDA_DIR/include -std=c++11 -DACRO_HAVE_CUDA"
+          "ACROTENSOR_LIB=-L$ACROTENSOR_DIR/lib -L$CUDA_DIR/lib64 -lacrotensor -lcuda -lcudart -lnvrtc")
+   else
+      echo "${magenta}Warning: Building $pkg without SUNDIALS ...${none}"
+   fi
    echo "Building $pkg, sending output to ${pkg_bld_dir}_build.log ..." && {
       local num_nodes=1  # for 'make check' or 'make test'
       set_mpi_options    # for 'make check' or 'make test'
@@ -85,6 +97,7 @@ function mfem_occa_build()
          MFEM_USE_METIS_5="$METIS_5" \
          OCCA_DIR="$OCCA_DIR" \
          "${SUNDIALS_MAKE_OPTS[@]}" \
+         "${ACROTENSOR_MAKE_OPTS[@]}" \
          LDFLAGS="${LDFLAGS[*]}" \
          MFEM_MPIEXEC="${MPIEXEC:-mpirun}" \
          MFEM_MPIEXEC_NP="${MPIEXEC_OPTS} ${MPIEXEC_NP:--np}" && \

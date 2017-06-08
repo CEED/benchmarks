@@ -14,6 +14,7 @@ pkg_src_dir="occa"
 OCCA_SOURCE_DIR="$pkg_sources_dir/$pkg_src_dir"
 pkg_bld_dir="$OUT_DIR/occa"
 OCCA_DIR="$pkg_bld_dir"
+pkg_version="$(git --git-dir=$OCCA_SOURCE_DIR/.git rev-parse HEAD)"
 pkg="OCCA"
 
 
@@ -70,9 +71,9 @@ function build_package()
 {
    occa_clone && occa_build || return 1
 
-   add_to_path PATH "${OCCA_DIR}/bin"
-   add_to_path LD_LIBRARY_PATH "${OCCA_DIR}/lib"
-   add_to_path DYLD_LIBRARY_PATH "${OCCA_DIR}/lib"
+   add_to_path before PATH "${OCCA_DIR}/bin"
+   add_to_path before LD_LIBRARY_PATH "${OCCA_DIR}/lib"
+   add_to_path before DYLD_LIBRARY_PATH "${OCCA_DIR}/lib"
    OCCA_CXX="${OCCA_CXX:-$MPICXX}"
    OCCA_CXXFLAGS="${OCCA_CXXFLAGS:-$CFLAGS}"
    OCCA_CUDA_COMPILER_FLAGS="${CUFLAGS}"

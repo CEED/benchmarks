@@ -19,9 +19,9 @@ update_packages=""
 remove_list=""
 run=""
 post_process=""
-num_proc_build=""
-num_proc_run=""
-num_proc_node=""
+num_proc_build=${num_proc_build:-""}
+num_proc_run=${num_proc_run:-""}
+num_proc_node=${num_proc_node:-""}
 dry_run="" # empty string = NO
 start_shell=""
 verbose=""
@@ -127,8 +127,8 @@ function search_file_list()
 
 function add_to_path()
 {
-   local out_var="$1" pos="after" var= item=
-   shift
+   local out_var="$2" pos="$1" var= item=
+   shift 2
    eval var="\${${out_var}}"
    for item; do
       [[ -z "$item" ]] && continue
@@ -251,11 +251,13 @@ function build_packages()
    for _pkg; do
       cd "$root_dir/package-builders"
       if [[ -e "$_pkg.sh" ]]; then
+         unset -v pkg_version
          unset -f build_package
          source "$_pkg.sh" && build_package || {
             echo "Error building package \"$_pkg\". Stop."
             return 1
          }
+         echo "$_pkg version: $pkg_version"
       else
          echo "Package \"$_pkg\" does not exist. Stop."
          return 1
@@ -398,7 +400,7 @@ case "$1" in
    -n|--num-proc)
       shift
       [ $# -gt 0 ] || {
-      echo "Missing \"list\" in --num_proc \"list\""; $exit_cmd 1; }
+      echo "Missing \"list\" in --num-proc \"list\""; $exit_cmd 1; }
       num_proc_run="$1"
       ;;
    -p|--proc-node)

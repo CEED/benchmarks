@@ -21,6 +21,7 @@ MFEM_SOURCE_DIR="$pkg_sources_dir/$pkg_src_dir"
 pkg_bld_subdir="mfem-patched-$mfem_patch_name"
 pkg_bld_dir="$OUT_DIR/$pkg_bld_subdir"
 MFEM_DIR="$pkg_bld_dir"
+pkg_version="$(git --git-dir=$MFEM_SOURCE_DIR/.git describe --long --abbrev=10 --tags)-patched"
 pkg="MFEM (patched, $mfem_patch_name)"
 
 

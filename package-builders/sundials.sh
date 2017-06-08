@@ -19,6 +19,7 @@ SUNDIALS_SOURCE_DIR="$pkg_sources_dir/$pkg_src_dir"
 SUNDIALS_SOURCE_FILE="$pkg_sources_dir/$pkg_src_file"
 pkg_bld_dir="$OUT_DIR/$pkg_src_dir"
 SUNDIALS_DIR="$pkg_bld_dir"
+pkg_version="$SUNDIALS_VERSION"
 pkg="SUNDIALS v$SUNDIALS_VERSION"
 
 
