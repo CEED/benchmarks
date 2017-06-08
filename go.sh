@@ -206,6 +206,17 @@ function update_git_package()
 }
 
 
+function get_package_git_version()
+{
+   # Used variables: 'pkg_src_dir'
+   # Defines the variable: 'pkg_version'
+   pkg_version="$(cd "$pkg_sources_dir/$pkg_src_dir" &&
+      git describe --long --abbrev=10 --tags 2> /dev/null ||
+      git rev-parse HEAD 2> /dev/null)"
+   pkg_version="${pkg_version:-(not a git repo?)}"
+}
+
+
 function package_build_is_good()
 {
    # Used variables: 'pkg_bld_dir', 'pkg_src_dir', 'pkg'

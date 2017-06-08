@@ -15,7 +15,6 @@ HYPRE_SOURCE_DIR="$pkg_sources_dir/$pkg_src_dir"
 pkg_bld_dir="$OUT_DIR/hypre"
 HYPRE_DIR="$pkg_bld_dir"
 pkg="hypre"
-pkg_version="$(git --git-dir=$HYPRE_SOURCE_DIR/.git describe --long --abbrev=10 --tags)"
 
 
 function hypre_clone()
@@ -73,5 +72,5 @@ function hypre_build()
 
 function build_package()
 {
-   hypre_clone && hypre_build
+   hypre_clone && get_package_git_version && hypre_build
 }

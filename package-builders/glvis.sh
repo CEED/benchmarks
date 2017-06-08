@@ -15,7 +15,6 @@ GLVIS_SOURCE_DIR="$pkg_sources_dir/$pkg_src_dir"
 pkg_bld_dir="$OUT_DIR/glvis"
 GLVIS_DIR="$pkg_bld_dir"
 pkg="GLVis"
-pkg_version="$(git --git-dir=$GLVIS_SOURCE_DIR/.git describe --long --abbrev=10 --tags)"
 
 
 function glvis_clone()
@@ -69,5 +68,5 @@ function glvis_build()
 
 function build_package()
 {
-   glvis_clone && glvis_build
+   glvis_clone && get_package_git_version && glvis_build
 }

@@ -22,7 +22,9 @@ llnluser=$(whoami)
 
 function acrotensor_clone()
 {
-   pkg_repo_list=("https://${llnluser}@lc.llnl.gov/bitbucket/scm/~fisher47/acrotensor.git")
+   pkg_repo_list=(
+      "https://${llnluser}@lc.llnl.gov/bitbucket/scm/~fisher47/acrotensor.git"
+      "ssh://git@cz-bitbucket.llnl.gov:7999/~fisher47/acrotensor.git")
    pkg_git_branch="master"
    cd "$pkg_sources_dir" || return 1
    if [[ -d "$pkg_src_dir" ]]; then
@@ -74,5 +76,5 @@ function acrotensor_build()
 
 function build_package()
 {
-   acrotensor_clone && acrotensor_build
+   acrotensor_clone && get_package_git_version && acrotensor_build
 }

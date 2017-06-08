@@ -14,7 +14,6 @@ pkg_src_dir="mfem-occa"
 MFEM_SOURCE_DIR="$pkg_sources_dir/$pkg_src_dir"
 pkg_bld_dir="$OUT_DIR/mfem-occa"
 MFEM_DIR="$pkg_bld_dir"
-pkg_version="$(git --git-dir=$MFEM_SOURCE_DIR/.git describe --long --abbrev=10 --tags)"
 pkg="MFEM (occa-dev)"
 
 
@@ -79,7 +78,7 @@ function mfem_occa_build()
           "ACROTENSOR_OPT=-I$ACROTENSOR_DIR/inc -I$CUDA_DIR/include -std=c++11 -DACRO_HAVE_CUDA"
           "ACROTENSOR_LIB=-L$ACROTENSOR_DIR/lib -L$CUDA_DIR/lib64 -lacrotensor -lcuda -lcudart -lnvrtc")
    else
-      echo "${magenta}Warning: Building $pkg without SUNDIALS ...${none}"
+      echo "${magenta}Warning: Building $pkg without Acrotensor ...${none}"
    fi
    echo "Building $pkg, sending output to ${pkg_bld_dir}_build.log ..." && {
       local num_nodes=1  # for 'make check' or 'make test'
@@ -113,5 +112,5 @@ function mfem_occa_build()
 
 function build_package()
 {
-   mfem_occa_clone && mfem_occa_build
+   mfem_occa_clone && get_package_git_version && mfem_occa_build
 }

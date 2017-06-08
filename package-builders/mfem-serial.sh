@@ -14,7 +14,6 @@ pkg_src_dir="mfem"
 MFEM_SOURCE_DIR="$pkg_sources_dir/$pkg_src_dir"
 pkg_bld_dir="$OUT_DIR/mfem-serial"
 MFEM_SERIAL_DIR="$pkg_bld_dir"
-pkg_version="$(git --git-dir=$MFEM_SOURCE_DIR/.git describe --long --abbrev=10 --tags)"
 pkg="MFEM serial"
 
 
@@ -64,5 +63,5 @@ function mfem_serial_build()
 
 function build_package()
 {
-   mfem_clone && mfem_serial_build
+   mfem_clone && get_package_git_version && mfem_serial_build
 }
