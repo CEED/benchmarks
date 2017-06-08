@@ -90,6 +90,7 @@ num_proc_build=16
 num_proc_run=${num_proc_run:-16}
 num_proc_node=${num_proc_node:-16}
 memory_per_node=16
+node_virt_mem_lim=16
 
 # Optional (default): MPIEXEC (mpirun), MPIEXEC_OPTS (), MPIEXEC_NP (-np)
 MPIEXEC=srun

@@ -103,8 +103,9 @@ function build_tests()
   cd sin
 
   # Export variables needed by the 'makenek' script.
-  # CFLAGS="${CFLAGS//:/\\:}"
-  # FFLAGS="${FFLAGS//:/\\:}"
+  local CFLAGS_orig="$CFLAGS" FFLAGS_orig="$FFLAGS"
+  CFLAGS="${CFLAGS//:/\\:}"
+  FFLAGS="${FFLAGS//:/\\:}"
   PPLIST="$NEK5K_EXTRA_PPLIST"
   # export NEK5K_DIR CFLAGS FFLAGS MPIF77 MPICC PPLIST
   export NEK5K_DIR MPIF77 MPICC PPLIST CFLAGS FFLAGS
@@ -113,7 +114,7 @@ function build_tests()
   do
     # Only build nek5000 if it is not built
     # already.
-    if [[ ! -e lx$i ]]; then 
+    if [[ ! -e lx$i ]]; then
       mkdir -p lx$i
       cp -r $BP_ROOT/boxes/b?* $BP_ROOT/bp1/zsin.usr lx$i/
 
@@ -127,6 +128,8 @@ function build_tests()
       $BP_ROOT/makenek zsin &> buildlog
       if [[ ! -e nek5000 ]]; then
         echo "Error building the test, see 'buildlog' for details. Stop."
+        CFLAGS="${CFLAGS_orig}"
+        FFLAGS="${FFLAGS_orig}"
         return 1
       fi
       for j in `seq $min_elem 1 $max_elem`
@@ -139,17 +142,26 @@ function build_tests()
   done
 
   cd ..
+  CFLAGS="${CFLAGS_orig}"
+  FFLAGS="${FFLAGS_orig}"
 }
 
 function nekmpi()
 {
   cp $BP_ROOT/"submit.sh" .
 
-  if [[ "$short_config" = "vulcan" ]]; then
-    sbatch ./submit.sh $1 $2
-  elif [[ "$short_config" = "linux" || "$short_config" = "mac" ]]; then
-    ./submit.sh $1 $2 
+  # This next check is important only for machines without virtual memory like
+  # Blue Gene/Q.
+  local size_out=($(size ./nek5000))
+  local proc_size=${size_out[9]}
+  if [[ -n "$node_virt_mem_lim" ]] && \
+     (( proc_size * num_proc_node > node_virt_mem_lim * 1024*1024*1024 )); then
+     echo "The total section size in ./nek5000 is too big: $proc_size ..."
+     echo " ... in directory: $PWD"
+     return 1
   fi
+
+  ./submit.sh $1 $2
 }
 
 function run_tests()
