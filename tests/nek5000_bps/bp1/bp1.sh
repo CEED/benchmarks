@@ -89,11 +89,6 @@ function configure_tests()
   max_elem=21
   min_order=3
   max_order=12
-
-  if [[ "$short_config" == "vulcan" ]]; then
-    num_proc_run=${num_proc_run:-16384}
-    num_proc_node=${num_proc_node:-32}
-  fi
 }
 
 function build_tests()
@@ -145,31 +140,33 @@ function build_tests()
 
   cd ..
 
-  cp -r $1 $2
-  cd $2
+  if [[ "$2" != "" ]]; then
+    cp -r $1 $2
+    cd $2
 
-  for i in `seq $min_order 1 $max_order`
-  do
-    cp -r $BP_ROOT/bp1/$2.usr lx$i/
-    cd lx$i
-    rm nek5000 $1.usr
-
-    echo "Building the $2 tests in directory $PWD ..."
-    $BP_ROOT/makenek $2 &> buildlog
-    if [[ ! -e nek5000 ]]; then
-      echo "Error building the test, see 'buildlog' for details. Stop."
-      CFLAGS="${CFLAGS_orig}"
-      FFLAGS="${FFLAGS_orig}"
-      return 1
-    fi
-
-    for j in `seq $min_elem 1 $max_elem`
+    for i in `seq $min_order 1 $max_order`
     do
-      cp ./nek5000 b$j/
-    done
+      cp -r $BP_ROOT/bp1/$2.usr lx$i/
+      cd lx$i
+      rm nek5000 $1.usr
 
-    cd ..
-  done
+      echo "Building the $2 tests in directory $PWD ..."
+      $BP_ROOT/makenek $2 &> buildlog
+      if [[ ! -e nek5000 ]]; then
+        echo "Error building the test, see 'buildlog' for details. Stop."
+        CFLAGS="${CFLAGS_orig}"
+        FFLAGS="${FFLAGS_orig}"
+        return 1
+      fi
+
+      for j in `seq $min_elem 1 $max_elem`
+      do
+        cp ./nek5000 b$j/
+      done
+
+      cd ..
+    done
+  fi
 
   CFLAGS="${CFLAGS_orig}"
   FFLAGS="${FFLAGS_orig}"
@@ -226,11 +223,14 @@ function build_and_run_tests()
   echo "Generating the box meshes ..."
   $dry_run generate_boxes
   echo 'Buiding the sin and w tests ...'
-  $dry_run build_tests zsin zw || return 1
+  $dry_run build_tests zsin || return 1
+#  $dry_run build_tests zsin zw || return 1
   echo 'Running the sin tests ...'
   $dry_run run_tests zsin
-  echo 'Running the w tests ...'
-  $dry_run run_tests zw
+  # W tests are commented as there is no diskquota
+  # in vulcan to run both the tests
+#  echo 'Running the w tests ...'
+#  $dry_run run_tests zw
 }
 
 test_required_packages="nek5000"

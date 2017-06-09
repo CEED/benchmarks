@@ -71,11 +71,13 @@ function postprocess()
   echo 'Postprocessing ...'
   cd $test_exe_dir
   grep_data zsin
-  grep_data zw 
+  # w tests are not run by default
+#  grep_data zw 
  
   echo 'Plotting with gnuplot ...'
   plot_data zsin vec 
   plot_data zsin sca
-  plot_data zw vec
-  plot_data zw sca
+  # w tests are not run by default
+#  plot_data zw vec
+#  plot_data zw sca
 }
