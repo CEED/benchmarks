@@ -33,19 +33,24 @@ function plot_data()
   else
     printf "set title \"Nek5000 - BP1 - %s - scalar\" font \",16\"\n" "$1" >> plot.gp
   fi 
-  printf "plot \"lx%d/%s.%s\" using 7:11 title 'lx%d' with linespoints,\\" "$min_order" "$1" "$2"  "$min_order"  >> plot.gp
-  printf "\n" >> plot.gp
 
-  start=$(( $min_order + 1 ))
-  endt=$(( $max_order - 1 ))
-  for i in `seq $start 1 $end`
-  do
-    printf "     \"lx%d/%s.%s\" using 7:11 title 'lx%d' with linespoints,\\" "$i" "$1" "$2" "$i"  >> plot.gp
+  if [[ "$min_order" != "$max_order" ]]; then
+    printf "plot \"lx%d/%s.%s\" using 7:11 title 'lx%d' with linespoints,\\" "$min_order" "$1" "$2"  "$min_order"  >> plot.gp
     printf "\n" >> plot.gp
-  done
 
-  printf "     \"lx%d/%s.%s\" using 7:11 title 'lx%d' with linespoints" "$max_order" "$1" "$2" "$max_order"  >> plot.gp
- 
+    start=$(( $min_order + 1 ))
+    endt=$(( $max_order - 1 ))
+    for i in `seq $start 1 $end`
+    do
+      printf "     \"lx%d/%s.%s\" using 7:11 title 'lx%d' with linespoints,\\" "$i" "$1" "$2" "$i"  >> plot.gp
+      printf "\n" >> plot.gp
+    done
+
+    printf "     \"lx%d/%s.%s\" using 7:11 title 'lx%d' with linespoints" "$max_order" "$1" "$2" "$max_order"  >> plot.gp
+  else
+    printf "plot \"lx%d/%s.%s\" using 7:11 title 'lx%d' with linespoints" "$min_order" "$1" "$2"  "$min_order"  >> plot.gp
+  fi
+
   gnuplot plot.gp
 
   cd ..

@@ -86,7 +86,7 @@ function configure_tests()
   export BP_ROOT="$root_dir"/tests/nek5000_bps
 
   min_elem=6
-  max_elem=12
+  max_elem=122
   min_order=3
   max_order=4
 }
