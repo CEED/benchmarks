@@ -945,7 +945,7 @@ c-----------------------------------------------------------------------
       common /vcrnz/ z1(lt),z2(lt),z3(lt)
       common /vcrvh/ h1(lt),h2(ld),pap(3)
       logical ifh3
-      real*8 ndof
+      integer*8 ndof
 
       call geodat1n  ! Set up gf() arrays
 
@@ -1040,7 +1040,7 @@ c-----------------------------------------------------------------------
       if (nid.eq.0) write(6,1) 'case vector:'
      $ ,np,nx,nelt,nelgt,ndof,nppp,maxitv,telapv,dofpsv,titerv,tppp_v
 
-    1 format(a12,i7,i3,i5,i10,i12,i7,i4,1p4e13.5)
+    1 format(a12,i7,i3,i5,i10,i14,i7,i4,1p4e13.5)
 
 
       call exitti('quit after cggov$',nx)
