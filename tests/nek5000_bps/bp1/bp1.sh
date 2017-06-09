@@ -85,10 +85,15 @@ function configure_tests()
 {
   export BP_ROOT="$root_dir"/tests/nek5000_bps
 
-  min_elem=6
-  max_elem=12
+  min_elem=14
+  max_elem=21
   min_order=3
-  max_order=4
+  max_order=12
+
+  if [[ "$short_config" == "vulcan" ]]; then
+    num_proc_run=${num_proc_run:-16384}
+    num_proc_node=${num_proc_node:-32}
+  fi
 }
 
 function build_tests()
