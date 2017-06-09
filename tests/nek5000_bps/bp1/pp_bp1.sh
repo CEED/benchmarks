@@ -25,33 +25,39 @@ function plot_data()
 {
   cd $1 
 
-  cp $root_dir"/tests"$test_up_dir"/plot.gp" . 
+  rm plot_$2.gp
 
-  printf "set output \"%s_%s.png\"\n" "$1" "$2" >> plot.gp
+  printf "set xlabel \"DOFS\" font \",14\"\n" >> plot_$2.gp
+  printf "set ylabel \"DOFS/s\" font \",14\"\n" >> plot_$2.gp
+  printf "set logscale y\n" >> plot_$2.gp
+  printf "set logscale x\n" >> plot_$2.gp
+  printf "set term png\n\n" >> plot_$2.gp
+
+  printf "set output \"%s_%s.png\"\n" "$1" "$2" >> plot_$2.gp
   if [[ "$2" == "vec" ]]; then
-    printf "set title \"Nek5000 - BP1 - %s - vector\" font \",16\"\n" "$1" >> plot.gp
+    printf "set title \"Nek5000 - BP1 - %s - vector\" font \",16\"\n" "$1" >> plot_$2.gp
   else
-    printf "set title \"Nek5000 - BP1 - %s - scalar\" font \",16\"\n" "$1" >> plot.gp
+    printf "set title \"Nek5000 - BP1 - %s - scalar\" font \",16\"\n" "$1" >> plot_$2.gp
   fi 
 
   if [[ "$min_order" != "$max_order" ]]; then
-    printf "plot \"lx%d/%s.%s\" using 7:11 title 'lx%d' with linespoints,\\" "$min_order" "$1" "$2"  "$min_order"  >> plot.gp
-    printf "\n" >> plot.gp
+    printf "plot \"lx%d/%s.%s\" using 7:11 title 'lx%d' with linespoints,\\" "$min_order" "$1" "$2"  "$min_order"  >> plot_$2.gp
+    printf "\n" >> plot_$2.gp
 
     start=$(( $min_order + 1 ))
     endt=$(( $max_order - 1 ))
     for i in `seq $start 1 $end`
     do
-      printf "     \"lx%d/%s.%s\" using 7:11 title 'lx%d' with linespoints,\\" "$i" "$1" "$2" "$i"  >> plot.gp
-      printf "\n" >> plot.gp
+      printf "     \"lx%d/%s.%s\" using 7:11 title 'lx%d' with linespoints,\\" "$i" "$1" "$2" "$i"  >> plot_$2.gp
+      printf "\n" >> plot_$2.gp
     done
 
-    printf "     \"lx%d/%s.%s\" using 7:11 title 'lx%d' with linespoints" "$max_order" "$1" "$2" "$max_order"  >> plot.gp
+    printf "     \"lx%d/%s.%s\" using 7:11 title 'lx%d' with linespoints" "$max_order" "$1" "$2" "$max_order"  >> plot_$2.gp
   else
-    printf "plot \"lx%d/%s.%s\" using 7:11 title 'lx%d' with linespoints" "$min_order" "$1" "$2"  "$min_order"  >> plot.gp
+    printf "plot \"lx%d/%s.%s\" using 7:11 title 'lx%d' with linespoints" "$min_order" "$1" "$2"  "$min_order"  >> plot_$2.gp
   fi
 
-  gnuplot plot.gp
+  gnuplot plot_$2.gp
 
   cd ..
 }
