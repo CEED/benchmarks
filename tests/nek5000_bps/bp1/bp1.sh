@@ -44,14 +44,18 @@ function genbb()
   $NEK5K_DIR/bin/genbox <<EOF
 ttt.box
 EOF
-$NEK5K_DIR/bin/genmap << EOF
+  $NEK5K_DIR/bin/genmap << EOF
 box
 .1
 EOF
-  $NEK5K_DIR/bin/mvn box $1
-
+  $NEK5K_DIR/bin/reatore2 << EOF
+box
+$1
+EOF
   rm ttt.box
-  mv box.rea $1.rea
+  rm box.rea
+  rm box.tmp
+  mv box.map $1.map
 }
 
 function generate_boxes()
