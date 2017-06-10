@@ -92,7 +92,7 @@ function configure_tests()
   min_elem=14
   max_elem=21
   min_order=3
-  max_order=12
+  max_order=9
 }
 
 function build_tests()
