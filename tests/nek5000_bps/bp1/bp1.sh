@@ -1,34 +1,20 @@
 #!/bin/bash
 
 # Helper functions
-function log2()
-{
-    local x=0
-    for (( y=$1-1 ; $y > 0; y >>= 1 )) ; do
-        let x=$x+1
-    done
-    echo $x
-}
-
 function xyz()
 {
   prod=$1
+  split=$((prod/3))
 
-  if [ $((prod%3)) -eq 0 ]
-  then
-    nez=$((prod/3))
-    ney=$((prod/3))
-    nex=$((prod/3))
-  elif [ $((prod%3)) -eq 1 ]
-  then
-    nez=$((prod/3 +1))
-    ney=$((prod/3))
-    nex=$((prod/3))
-  elif [ $((prod%3)) -eq 2 ]
-  then
-    nez=$((prod/3 +1))
-    ney=$((prod/3 +1))
-    nex=$((prod/3))
+  nex=$split
+  nez=$split
+  ney=$split
+
+  if [[ $((prod%3)) -ne 0 ]]; then
+    nez=$((split + 1))
+  fi
+  if [[ $((prod%3)) -eq 2 ]]; then
+    ney=$((split + 1))
   fi
 
   nex=$((2**nex))
