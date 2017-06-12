@@ -1,34 +1,20 @@
 #!/bin/bash
 
 # Helper functions
-function log2()
-{
-    local x=0
-    for (( y=$1-1 ; $y > 0; y >>= 1 )) ; do
-        let x=$x+1
-    done
-    echo $x
-}
-
 function xyz()
 {
   prod=$1
+  split=$((prod/3))
 
-  if [ $((prod%3)) -eq 0 ]
-  then
-    nez=$((prod/3))
-    ney=$((prod/3))
-    nex=$((prod/3))
-  elif [ $((prod%3)) -eq 1 ]
-  then
-    nez=$((prod/3 +1))
-    ney=$((prod/3))
-    nex=$((prod/3))
-  elif [ $((prod%3)) -eq 2 ]
-  then
-    nez=$((prod/3 +1))
-    ney=$((prod/3 +1))
-    nex=$((prod/3))
+  nex=$split
+  nez=$split
+  ney=$split
+
+  if [[ $((prod%3)) -ne 0 ]]; then
+    nez=$((split + 1))
+  fi
+  if [[ $((prod%3)) -eq 2 ]]; then
+    ney=$((split + 1))
   fi
 
   nex=$((2**nex))
@@ -44,18 +30,23 @@ function genbb()
   $NEK5K_DIR/bin/genbox <<EOF
 ttt.box
 EOF
-$NEK5K_DIR/bin/genmap << EOF
+  $NEK5K_DIR/bin/genmap << EOF
 box
 .1
 EOF
-  $NEK5K_DIR/bin/mvn box $1
-
+  $NEK5K_DIR/bin/reatore2 << EOF
+box
+$1
+EOF
   rm ttt.box
-  mv box.rea $1.rea
+  rm box.rea
+  rm box.tmp
+  mv box.map $1.map
 }
 
 function generate_boxes()
 {
+  cd $BP_ROOT/boxes
   # Run thorugh the box sizes
   for i in `seq $min_elem 1 $max_elem`
   do
@@ -84,23 +75,19 @@ function configure_tests()
 {
   export BP_ROOT="$root_dir"/tests/nek5000_bps
 
-  min_elem=6
-  max_elem=12
+  min_elem=14
+  max_elem=18
   min_order=3
-  max_order=4
+  max_order=9
 }
 
 function build_tests()
 {
-  # Generate the boxes
-  cd $BP_ROOT/boxes
-  echo "Generating the box meshes ..."
-  generate_boxes
   cd "$test_exe_dir"
 
   # Setup the sin version of the bp
-  mkdir -p sin
-  cd sin
+  mkdir -p $1 
+  cd $1 
 
   # Export variables needed by the 'makenek' script.
   local CFLAGS_orig="$CFLAGS" FFLAGS_orig="$FFLAGS"
@@ -116,7 +103,7 @@ function build_tests()
     # already.
     if [[ ! -e lx$i ]]; then
       mkdir -p lx$i
-      cp -r $BP_ROOT/boxes/b?* $BP_ROOT/bp1/zsin.usr lx$i/
+      cp -r $BP_ROOT/boxes/b?* $BP_ROOT/bp1/$1.usr lx$i/
 
       # Set lx1 in SIZE file
       sed "s/lx1=[0-9]*/lx1=${i}/" $BP_ROOT/SIZE > lx$i/SIZE
@@ -124,8 +111,8 @@ function build_tests()
       # Make the executable and copy it into all the
       # box directories
       cd lx$i
-      echo "Building the test in directory $PWD ..."
-      $BP_ROOT/makenek zsin &> buildlog
+      echo "Building the $1 tests in directory $PWD ..."
+      $BP_ROOT/makenek $1 &> buildlog
       if [[ ! -e nek5000 ]]; then
         echo "Error building the test, see 'buildlog' for details. Stop."
         CFLAGS="${CFLAGS_orig}"
@@ -142,6 +129,35 @@ function build_tests()
   done
 
   cd ..
+
+  if [[ "$2" != "" ]]; then
+    cp -r $1 $2
+    cd $2
+
+    for i in `seq $min_order 1 $max_order`
+    do
+      cp -r $BP_ROOT/bp1/$2.usr lx$i/
+      cd lx$i
+      rm nek5000 $1.usr
+
+      echo "Building the $2 tests in directory $PWD ..."
+      $BP_ROOT/makenek $2 &> buildlog
+      if [[ ! -e nek5000 ]]; then
+        echo "Error building the test, see 'buildlog' for details. Stop."
+        CFLAGS="${CFLAGS_orig}"
+        FFLAGS="${FFLAGS_orig}"
+        return 1
+      fi
+
+      for j in `seq $min_elem 1 $max_elem`
+      do
+        cp ./nek5000 b$j/
+      done
+
+      cd ..
+    done
+  fi
+
   CFLAGS="${CFLAGS_orig}"
   FFLAGS="${FFLAGS_orig}"
 }
@@ -172,7 +188,7 @@ function run_tests()
   local mpi_run="${MPIEXEC:-mpirun} $MPIEXEC_OPTS"
   export mpi_run="$mpi_run ${MPIEXEC_NP:--np} $num_proc_run $bind_sh"
 
-  cd sin
+  cd $1 
 
   for i in `seq $min_order 1 $max_order`
   do
@@ -194,10 +210,17 @@ function build_and_run_tests()
 {
   echo 'Setting up the tests ...'
   $dry_run configure_tests
-  echo 'Buiding the tests ...'
-  $dry_run build_tests || return 1
-  echo 'Running the tests ...'
-  $dry_run run_tests
+  echo "Generating the box meshes ..."
+  $dry_run generate_boxes
+  echo 'Buiding the sin and w tests ...'
+  $dry_run build_tests zsin || return 1
+#  $dry_run build_tests zsin zw || return 1
+  echo 'Running the sin tests ...'
+  $dry_run run_tests zsin
+  # W tests are commented as there is no diskquota
+  # in vulcan to run both the tests
+#  echo 'Running the w tests ...'
+#  $dry_run run_tests zw
 }
 
 test_required_packages="nek5000"
