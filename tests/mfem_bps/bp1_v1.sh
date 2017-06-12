@@ -127,7 +127,10 @@ while (( n >=2 )); do
    ((n=n/2))
 done
 (( num_proc_run == 2**proc_t )) || {
-   echo "Invalid number of processors: $num_proc_run"; return 1; }
+   echo "Invalid number of processors: $num_proc_run"
+   echo "The number of processors must be a power of 2."
+   return 1
+}
 split3_power2 proc_nxyz $proc_t
 test_extra_args=(-c "${proc_nxyz[*]}")
 
