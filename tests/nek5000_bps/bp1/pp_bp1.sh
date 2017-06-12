@@ -45,7 +45,7 @@ function plot_data()
     printf "\n" >> plot_$2.gp
 
     start=$(( $min_order + 1 ))
-    endt=$(( $max_order - 1 ))
+    end=$(( $max_order - 1 ))
     for i in `seq $start 1 $end`
     do
       printf "     \"lx%d/%s.%s\" using 7:11 title 'lx%d' with linespoints,\\" "$i" "$1" "$2" "$i"  >> plot_$2.gp
