@@ -20,7 +20,8 @@ First, save the output of the run to a file:
 ```sh
 ../../go.sh -c linux -m gcc -r bp1_v1.sh -n 16 -p 16 > run_001.txt
 ```
-and then use one of the `postprocess-plot-*.py` scripts, e.g.:
+and then use one of the `postprocess-plot-*.py` scripts (which require
+the python package matplotlib) or the `postprocess-table.py` script, e.g.:
 ```sh
 python postprocess-plot-1.py run_001.txt
 ```
