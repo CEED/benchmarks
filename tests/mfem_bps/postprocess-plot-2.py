@@ -13,14 +13,18 @@ rcParams['font.sans-serif'].insert(1,'Open Sans')
 rcParams['figure.figsize']=[10, 8] # default: 8 x 6
 
 cm=get_cmap('Set1') # 'Accent', 'Dark2', 'Set1', 'Set2', 'Set3'
-cm_size=len(cm.__dict__['_segmentdata']['red'])
+if '_segmentdata' in cm.__dict__:
+   cm_size=len(cm.__dict__['_segmentdata']['red'])
+elif 'colors' in cm.__dict__:
+   cm_size=len(cm.__dict__['colors'])
 colors=[cm(1.*i/(cm_size-1)) for i in range(cm_size)]
 
 # colors=['blue','green','crimson','turquoise','m','gold','cornflowerblue',
 #         'darkorange']
 
 sel_runs=runs
-action_type='matrix-free'
+action_type=sel_runs[0]['action-type']
+print 'Using action-type:', action_type
 sel_runs=[run for run in sel_runs if run['action-type']==action_type]
 
 configs=list(set([run['config'] for run in sel_runs]))
@@ -82,7 +86,7 @@ for plt in pl_set:
       plot(d[:,0],d[:,2],'o-',color=colors[i],label='p=%i, q=p+2'%sol_p)
       if list(d[:,1]) != list(d[:,2]):
          plot(d[:,0],d[:,1],'o-',color=colors[i])
-         fill_between(d[:,0],d[:,1],d[:,2],facecolor=colors[i],alpha=0.1)
+         fill_between(d[:,0],d[:,1],d[:,2],facecolor=colors[i],alpha=0.2)
       ##
       d=[[run['order'],run['num-elem'],1.*run['num-unknowns']/num_nodes,
           run['cg-iteration-dps']/num_nodes]
@@ -110,17 +114,18 @@ for plt in pl_set:
    plot(y/slope1,y,'k--',label='%g iter/s'%slope1)
    plot(y/slope2,y,'k-',label='%g iter/s'%slope2)
 
-   title('Config: %s (%i node%s, %i tasks/node), %s, %s, PA'%(
+   title('Config: %s (%i node%s, %i tasks/node), %s, %s, %s'%(
          config_short,num_nodes,'' if num_nodes==1 else 's',
-         num_procs_node,compiler,test_short))
+         num_procs_node,compiler,test_short,
+         'PA' if action_type=='matrix-free' else 'TA'))
    xscale('log') # subsx=[2,4,6,8]
    yscale('log')
    # rng=arange(1e7,1.02e8,1e7)
    # yticks(rng,['%i'%int(v/1e6) for v in rng])
    # ylim(min(rng),max(rng))
    # xlim(0.5,max([run['order'] for run in pl_runs])+0.5)
-   grid('on', color='gray')
-   grid('on', axis='both', which='minor', color='gray')
+   grid('on', color='#a0a0a0', ls='dashed')
+   grid('on', axis='both', which='minor', ls='dashed', color='#a0a0a0')
    gca().set_axisbelow(True)
    xlabel('DOFs per compute node')
    ylabel('[DOFs x CG iterations] / [compute nodes x seconds]')

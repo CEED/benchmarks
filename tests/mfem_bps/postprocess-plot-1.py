@@ -14,7 +14,10 @@ rcParams['figure.figsize']=[10, 8] # default: 8 x 6
 rcParams['legend.fontsize']='medium' # default: 'large'
 
 cm=get_cmap('Set1') # 'Accent', 'Dark2', 'Set1', 'Set2', 'Set3'
-cm_size=len(cm.__dict__['_segmentdata']['red'])
+if '_segmentdata' in cm.__dict__:
+   cm_size=len(cm.__dict__['_segmentdata']['red'])
+elif 'colors' in cm.__dict__:
+   cm_size=len(cm.__dict__['colors'])
 colors=[cm(1.*i/(cm_size-1)) for i in range(cm_size)]
 
 # Down-select from all runs:
@@ -38,7 +41,8 @@ print 'Using test:', test
 test_short=test.rsplit('/',1)[-1].rsplit('.sh',1)[0]
 sel_runs=[run for run in sel_runs if run['test']==test]
 
-action_type='matrix-free'
+action_type=sel_runs[0]['action-type']
+print 'Using action-type:', action_type
 sel_runs=[run for run in sel_runs if run['action-type']==action_type]
 
 pl_set=[run['num-procs']/run['num-procs-node'] for run in sel_runs]
@@ -103,15 +107,16 @@ for plt in pl_set:
          fill_between(d[:,0],d[:,1],d[:,2],facecolor=colors[i],alpha=0.1)
       i=i+1
 
-   title('Config: %s (%i node%s), %s, PA'%(
-         config_short,num_nodes,'' if num_nodes==1 else 's',test_short))
+   title('Config: %s (%i node%s), %s, %s'%(
+         config_short,num_nodes,'' if num_nodes==1 else 's',test_short,
+         'PA' if action_type=='matrix-free' else 'TA'))
    yscale('log')
    # rng=arange(1e7,1.02e8,1e7)
    # yticks(rng,['%i'%int(v/1e6) for v in rng])
    # ylim(min(rng),max(rng))
    xlim(0.5,max([run['order'] for run in pl_runs])+0.5)
-   grid('on', color='gray')
-   grid('on', axis='y', which='minor', color='gray')
+   grid('on', color='#a0a0a0', ls='dashed')
+   grid('on', axis='y', which='minor', color='#a0a0a0', ls='dashed')
    gca().set_axisbelow(True)
    xlabel('Order, p')
    ylabel('[DOFs x CG iterations] / [compute nodes x seconds]')
