@@ -21,6 +21,7 @@ MFEM_SOURCE_DIR="$pkg_sources_dir/$pkg_src_dir"
 pkg_bld_subdir="mfem-patched-$mfem_patch_name"
 pkg_bld_dir="$OUT_DIR/$pkg_bld_subdir"
 MFEM_DIR="$pkg_bld_dir"
+pkg_var_prefix="mfem_patched_${mfem_patch_name}_"
 pkg="MFEM (patched, $mfem_patch_name)"
 
 
@@ -46,6 +47,7 @@ function mfem_clone()
 function mfem_build()
 {
    if [[ "$mfem_patch_file" -nt "${pkg_bld_dir}_build_successful" ]]; then
+      echo "Package $pkg needs to be updated (newer patch) ..."
       remove_package
    fi
    if package_build_is_good; then
@@ -92,7 +94,9 @@ function mfem_build()
       return 1
    }
    echo "Build successful."
-   : > "${pkg_bld_dir}_build_successful"
+   print_variables "$pkg_var_prefix" \
+      HYPRE_DIR METIS_DIR METIS_VERSION OCCA_DIR SUNDIALS_DIR ACROTENSOR_DIR \
+      > "${pkg_bld_dir}_build_successful"
 }
 
 

@@ -14,6 +14,7 @@ pkg_src_dir="mfem-occa"
 MFEM_SOURCE_DIR="$pkg_sources_dir/$pkg_src_dir"
 pkg_bld_dir="$OUT_DIR/mfem-occa"
 MFEM_DIR="$pkg_bld_dir"
+pkg_var_prefix="mfem_occa_"
 pkg="MFEM (occa-dev)"
 
 
@@ -106,7 +107,9 @@ function mfem_occa_build()
       return 1
    }
    echo "Build successful."
-   : > "${pkg_bld_dir}_build_successful"
+   print_variables "$pkg_var_prefix" \
+      HYPRE_DIR METIS_DIR METIS_VERSION OCCA_DIR SUNDIALS_DIR ACROTENSOR_DIR \
+      > "${pkg_bld_dir}_build_successful"
 }
 
 

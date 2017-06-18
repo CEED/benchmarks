@@ -182,6 +182,22 @@ function remove_package()
 }
 
 
+function print_variables()
+{
+   # Write the variable definitions so that they can be sourced from a file.
+   # Usage: print_variables PREFIX [VAR_NAME]...
+   local pfx="$1" var_name= var_val= var_list=()
+   shift
+   for var_name; do
+      var_list=("${var_list[@]}" "${pfx}${var_name}")
+      eval var_val=\$${var_name}
+      var_val=${var_val//\'/"'\\''"}
+      printf "${pfx}${var_name}='%s'\n" "$var_val"
+   done
+   printf "${pfx}VAR_LIST=(%s)\n" "${var_list[*]}"
+}
+
+
 function update_git_package()
 {
    # Used variables: 'pkg', 'pkg_src_dir', 'pkg_git_branch', 'pkg_bld_dir'
@@ -223,16 +239,46 @@ function get_package_git_version()
 
 function package_build_is_good()
 {
-   # Used variables: 'pkg_bld_dir', 'pkg_src_dir', 'pkg'
+   # Used variables: 'pkg_bld_dir', 'pkg_src_dir', 'pkg', 'pkg_var_prefix'
+   local var_name= var_val= cur_var_val= var_list=()
    if [[ -d "${pkg_bld_dir}" && -e "${pkg_bld_dir}_build_successful" ]]; then
-      if [[ ! -e "$pkg_sources_dir/${pkg_src_dir}_updated" ]] || \
-         [[ "${pkg_bld_dir}_build_successful" -nt \
-            "$pkg_sources_dir/${pkg_src_dir}_updated" ]]; then
+      if [[ -e "$pkg_sources_dir/${pkg_src_dir}_updated" ]] && \
+         [[ "$pkg_sources_dir/${pkg_src_dir}_updated" -nt \
+            "${pkg_bld_dir}_build_successful" ]]; then
          #
+         echo "Package $pkg needs to be updated (newer source) ..."
+         remove_package
+      elif [[ -n "$pkg_var_prefix" ]]; then
+         source "${pkg_bld_dir}_build_successful" || {
+            echo "Error reading ${pkg_bld_dir}_build_successful ..."
+            echo "Package $pkg needs to be updated (read error) ..."
+            remove_package
+            return 1
+         }
+         eval "var_list=(\"\${${pkg_var_prefix}VAR_LIST[@]}\")"
+         for var_name in "${var_list[@]}"; do
+            eval "var_val=\"\${$var_name}\""
+            var_name="${var_name#${pkg_var_prefix}}"
+            eval "cur_var_val=\"\${$var_name}\""
+            [[ -n "$cur_var_val" ]] || cur_var_val="$var_val"
+            if [[ "$cur_var_val" != "$var_val" ]]; then
+               echo "Package $pkg needs to be updated (modified $var_name) ..."
+               remove_package
+               return 1
+            elif [[ -n "$var_val" && -d "$var_val" && \
+                    -e "${var_val}_build_successful" && \
+                    "${var_val}_build_successful" -nt \
+                    "${pkg_bld_dir}_build_successful" ]]; then
+               #
+               printf "Package $pkg needs to be updated "
+               echo "(newer $(basename "$var_val")) ..."
+               remove_package
+               return 1
+            fi
+         done
          return 0
       else
-         echo "Package $pkg needs to be updated ..."
-         remove_package
+         return 0
       fi
    fi
    return 1
@@ -265,6 +311,7 @@ function build_packages()
       cd "$root_dir/package-builders"
       if [[ -e "$_pkg.sh" ]]; then
          unset -v pkg_version
+         unset -v pkg_var_prefix
          unset -f build_package
          source "$_pkg.sh" && build_package || {
             echo "Error building package \"$_pkg\". Stop."

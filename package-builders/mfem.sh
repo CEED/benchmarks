@@ -14,6 +14,7 @@ pkg_src_dir="mfem"
 MFEM_SOURCE_DIR="$pkg_sources_dir/$pkg_src_dir"
 pkg_bld_dir="$OUT_DIR/mfem"
 MFEM_DIR="$pkg_bld_dir"
+pkg_var_prefix="mfem_"
 pkg="MFEM"
 
 
@@ -85,7 +86,9 @@ function mfem_build()
       return 1
    }
    echo "Build successful."
-   : > "${pkg_bld_dir}_build_successful"
+   print_variables "$pkg_var_prefix" \
+      HYPRE_DIR METIS_DIR METIS_VERSION SUNDIALS_DIR \
+      > "${pkg_bld_dir}_build_successful"
 }
 
 
