@@ -95,7 +95,7 @@ function mfem_build()
    }
    echo "Build successful."
    print_variables "$pkg_var_prefix" \
-      HYPRE_DIR METIS_DIR METIS_VERSION OCCA_DIR SUNDIALS_DIR ACROTENSOR_DIR \
+      HYPRE_DIR METIS_DIR METIS_VERSION \
       > "${pkg_bld_dir}_build_successful"
 }
 
