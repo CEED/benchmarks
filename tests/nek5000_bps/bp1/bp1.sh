@@ -59,14 +59,15 @@ function generate_boxes()
       ney=$( echo $xyz | cut -f 2 -d ' ' )
       nez=$( echo $xyz | cut -f 3 -d ' ' )
 
-      mkdir -p b$i
-      sed "5s/.*/-$nex -$ney -$nez/" b.box > b$i/b$i.box
-      cp b1e.rea b$i
+      if [[ ! -e b$i ]]; then
+         mkdir -p b$i
+         sed "5s/.*/-$nex -$ney -$nez/" b.box > b$i/b$i.box
+         cp b1e.rea b$i
 
-      cd b$i
-      echo "Generating box b$i ... "
-      genbb b$i &> log
-      cd ..
+         cd b$i
+         genbb b$i &> log
+         cd ..
+      fi
     fi
   done
 }
