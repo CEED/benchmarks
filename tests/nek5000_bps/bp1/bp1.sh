@@ -59,13 +59,15 @@ function generate_boxes()
       ney=$( echo $xyz | cut -f 2 -d ' ' )
       nez=$( echo $xyz | cut -f 3 -d ' ' )
 
-      mkdir -p b$i
-      sed "5s/.*/-$nex -$ney -$nez/" b.box > b$i/b$i.box
-      cp b1e.rea b$i
+      if [[ ! -e b$i ]]; then
+         mkdir -p b$i
+         sed "5s/.*/-$nex -$ney -$nez/" b.box > b$i/b$i.box
+         cp b1e.rea b$i
 
-      cd b$i
-      genbb b$i &> log
-      cd ..
+         cd b$i
+         genbb b$i &> log
+         cd ..
+      fi
     fi
   done
 }
@@ -75,10 +77,11 @@ function configure_tests()
 {
   export BP_ROOT="$root_dir"/tests/nek5000_bps
 
-  min_elem=14
+  min_elem=3
   max_elem=18
   min_order=3
-  max_order=9
+  max_order=5
+  # max_order=9
 }
 
 function build_tests()
@@ -101,16 +104,17 @@ function build_tests()
   do
     # Only build nek5000 if it is not built
     # already.
-    if [[ ! -e lx$i ]]; then
-      mkdir -p lx$i
-      cp -r $BP_ROOT/boxes/b?* $BP_ROOT/bp1/$1.usr lx$i/
+    mkdir -p lx$i
+    cp -fr $BP_ROOT/boxes/b?* $BP_ROOT/bp1/$1.usr lx$i/
 
-      # Set lx1 in SIZE file
-      sed "s/lx1=[0-9]*/lx1=${i}/" $BP_ROOT/SIZE > lx$i/SIZE
+    # Set lx1 in SIZE file
+    sed "s/lx1=[0-9]*/lx1=${i}/" $BP_ROOT/SIZE > lx$i/SIZE
+    cd lx$i
+
+    if [[ ! -e ./nek5000 ]]; then
 
       # Make the executable and copy it into all the
       # box directories
-      cd lx$i
       echo "Building the $1 tests in directory $PWD ..."
       $BP_ROOT/makenek $1 &> buildlog
       if [[ ! -e nek5000 ]]; then
@@ -119,13 +123,13 @@ function build_tests()
         FFLAGS="${FFLAGS_orig}"
         return 1
       fi
-      for j in `seq $min_elem 1 $max_elem`
-      do
-        cp ./nek5000 b$j/
-      done
-
-      cd ..
     fi
+
+    for j in `seq $min_elem 1 $max_elem`
+    do
+      cp ./nek5000 b$j/
+    done
+    cd ..
   done
 
   cd ..

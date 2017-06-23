@@ -1054,7 +1054,7 @@ c     call dsavg(e1)
       if (nid.eq.0) write(6,1) 'case vector:'
      $ ,np,nx,nelt,nelgt,ndof,nppp,maxitv,telapv,dofpsv,titerv,tppp_v
 
-    1 format(a12,i7,i3,i5,i10,i14,i7,i4,1p4e13.5)
+    1 format(a12,i7,i3,i7,i10,i14,i10,i4,1p4e13.5)
 
       call exitti('quit after cggov$',nx)
 
