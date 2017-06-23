@@ -64,6 +64,7 @@ function generate_boxes()
       cp b1e.rea b$i
 
       cd b$i
+      echo "Generating box b$i ... "
       genbb b$i &> log
       cd ..
     fi
@@ -76,9 +77,13 @@ function configure_tests()
   export BP_ROOT="$root_dir"/tests/nek5000_bps
 
   min_elem=14
-  max_elem=18
+  max_elem=16
   min_order=3
   max_order=9
+
+  local i=$(( 2**(max_elem)/num_proc_run ))
+  mv $BP_ROOT/SIZE $BP_ROOT/SIZE.orig && \
+  sed -e "s/lelt=[0-9]*/lelt=${i}/" $BP_ROOT/SIZE.orig > $BP_ROOT/SIZE
 }
 
 function build_tests()
@@ -101,31 +106,50 @@ function build_tests()
   do
     # Only build nek5000 if it is not built
     # already.
-    if [[ ! -e lx$i ]]; then
+    newbuild=false
+    if [[ ! -e "lx$i" ]]; then
       mkdir -p lx$i
-      cp -r $BP_ROOT/boxes/b?* $BP_ROOT/bp1/$1.usr lx$i/
-
-      # Set lx1 in SIZE file
-      sed "s/lx1=[0-9]*/lx1=${i}/" $BP_ROOT/SIZE > lx$i/SIZE
-
-      # Make the executable and copy it into all the
-      # box directories
-      cd lx$i
-      echo "Building the $1 tests in directory $PWD ..."
-      $BP_ROOT/makenek $1 &> buildlog
-      if [[ ! -e nek5000 ]]; then
-        echo "Error building the test, see 'buildlog' for details. Stop."
-        CFLAGS="${CFLAGS_orig}"
-        FFLAGS="${FFLAGS_orig}"
-        return 1
-      fi
-      for j in `seq $min_elem 1 $max_elem`
-      do
-        cp ./nek5000 b$j/
-      done
-
-      cd ..
+      newbuild=true
     fi
+
+    cp -r $BP_ROOT/boxes/b?* $BP_ROOT/bp1/$1.usr lx$i/
+
+    # Set lx1 in SIZE file
+    sed "s/lx1=[0-9]*/lx1=${i}/" $BP_ROOT/SIZE > lx$i/SIZE.new
+    if [[ "$newbuild" == "true" ]]; then
+      mv "lx$i"/SIZE.new "lx$i"/SIZE 
+    elif [[ ! -f "lx$i"/SIZE ]]; then
+      mv "lx$i"/SIZE.new "lx$i"/SIZE 
+      newbuild=true
+    else 
+      if ! cmp -s "lx$i"/SIZE "lx$i"/SIZE.new; then
+        newbuild=true
+        rm "lx$i"/SIZE
+        mv "lx$i"/SIZE.new "lx$i"/SIZE
+      fi
+    fi
+    
+    # Make the executable and copy it into all the
+    # box directories
+    cd lx$i
+    echo "Building the $1 tests in directory $PWD ..."
+    if [[ "$newbuild" = false ]]; then
+      echo "Reusing the existing build ..."
+    fi
+    $BP_ROOT/makenek $1 &> buildlog
+    if [[ ! -e nek5000 ]]; then
+      echo "Error building the test, see 'buildlog' for details. Stop."
+      CFLAGS="${CFLAGS_orig}"
+      FFLAGS="${FFLAGS_orig}"
+      return 1
+    fi
+
+    for j in `seq $min_elem 1 $max_elem`
+    do
+      cp ./nek5000 b$j/
+    done
+
+    cd .. ## lx$i
   done
 
   cd ..
@@ -138,7 +162,7 @@ function build_tests()
     do
       cp -r $BP_ROOT/bp1/$2.usr lx$i/
       cd lx$i
-      rm nek5000 $1.usr
+      rm nek5000 $1.usr > /dev/null 2>&1
 
       echo "Building the $2 tests in directory $PWD ..."
       $BP_ROOT/makenek $2 &> buildlog
