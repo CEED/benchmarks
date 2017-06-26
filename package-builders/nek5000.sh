@@ -48,9 +48,9 @@ function nek5k_build()
    fi
 
    echo "Building $pkg, sending output to ${pkg_bld_dir}_build.log ..." && {
-      ## Just build the requited tools: genbox and genmap
+      ## Just build the requited tools: genbox, genmap, and reatore2.
       cd "$pkg_bld_dir/tools"
-      if [[ "$config" -ne "mac" ]]; then
+      if [[ "$NEK5K_BIGMEM" != "no" ]]; then
         cp -p maketools maketools.orig && \
         sed -e 's/#BIGMEM/BIGMEM/' maketools.orig > maketools
       fi
