@@ -36,7 +36,7 @@ Once the tools are built, you can run Nek5000 benchmarksd using the
 following command:
 
 ```sh
-../../go.sh --config vulcan --compiler gcc --run tests/nek5000_bps/bp1/bp1.sh -n 16 -p 16
+../../go.sh --config vulcan --compiler gcc --run bp1/bp1.sh -n 16 -p 16
 ```
 
 or the equivalent shorter version:
