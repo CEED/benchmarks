@@ -21,7 +21,7 @@ the following command:
 or the equivalent shorter version:
 
 ```sh
-../../go.sh --c vulcan --m gcc --build "nek5000"
+../../go.sh -c vulcan -m gcc -b "nek5000"
 ```
 
 To see a list of the available configs use `./go.sh` or generally use
