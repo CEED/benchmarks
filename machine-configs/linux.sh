@@ -2,7 +2,7 @@
 
 function setup_bigmem()
 {
-   ARCH=$(uname -p)
+   ARCH=$(uname -m)
    if [[ "$ARCH" == "x86_64" ]]; then
      CFLAGS+=" -mcmodel=medium"
    elif [[ "$ARCH" == "ppc64" ]]; then

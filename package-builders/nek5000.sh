@@ -49,11 +49,13 @@ function nek5k_build()
 
    echo "Building $pkg, sending output to ${pkg_bld_dir}_build.log ..." && {
       ## Just build the requited tools: genbox and genmap
-      cd "$pkg_bld_dir/tools" && \
-      cp -p maketools maketools.orig && \
-      sed -e 's/#BIGMEM/BIGMEM/' maketools.orig > maketools && \
+      cd "$pkg_bld_dir/tools"
+      if [[ "$config" -ne "mac" ]]; then
+        cp -p maketools maketools.orig && \
+        sed -e 's/#BIGMEM/BIGMEM/' maketools.orig > maketools
+      fi
       mv genbox/SIZE genbox/SIZE.orig && \
-      sed "3s/30/120/" genbox/SIZE.orig > genbox/SIZE && \
+      sed "3s/30/20/" genbox/SIZE.orig > genbox/SIZE && \
       ./maketools genbox && \
       mv genmap/SIZE genmap/SIZE.orig && \
       sed "2s/500 000/2 100 000/" genmap/SIZE.orig > genmap/SIZE && \

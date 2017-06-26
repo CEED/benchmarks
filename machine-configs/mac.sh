@@ -1,6 +1,5 @@
 # This file is part of CEED. For more details, see exascaleproject.org.
 
-
 function setup_openmpi()
 {
    MPICC=mpicc
