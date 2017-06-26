@@ -77,14 +77,16 @@ function configure_tests()
 {
   export BP_ROOT="$root_dir"/tests/nek5000_bps
 
-  min_elem=14
+  min_elem=5
   max_elem=16
-  min_order=3
+  min_order=2
   max_order=9
 
   local i=$(( 2**(max_elem)/num_proc_run ))
   mv $BP_ROOT/SIZE $BP_ROOT/SIZE.orig && \
   sed -e "s/lelt=[0-9]*/lelt=${i}/" $BP_ROOT/SIZE.orig > $BP_ROOT/SIZE
+  mv $BP_ROOT/SIZE $BP_ROOT/SIZE.orig && \
+  sed -e "s/lp=[0-9]*/lp=${num_proc_run}/" $BP_ROOT/SIZE.orig > $BP_ROOT/SIZE
 }
 
 function build_tests()
