@@ -17,6 +17,13 @@ and modifying one of the existing `machine-configs/*.sh` files.
 ./go.sh --config vulcan --compiler gcc --run tests/mfem_bps/bp1_v1.sh
 ```
 
+Equivalent short version:
+
+```sh
+./go.sh -c vulcan -m gcc -b "metis hypre mfem"
+./go.sh -c vulcan -m gcc -r tests/mfem_bps/bp1_v1.sh
+```
+
 To see a list of the available configs use `./go.sh` or generally use
 `./go.sh --help` for help. These configs correspond to the scripts
 `machine-configs/<name>.sh`.
