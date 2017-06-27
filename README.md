@@ -57,7 +57,7 @@ To see the available compilers for a config use `./go.sh --config <name>`.
 
 ## Copyright
 
-The following copyright applies to each file in the MFEM distribution, unless
+The following copyright applies to each file in the CEED software suite, unless
 otherwise stated in the file:
 
 Copyright (c) 2017, Lawrence Livermore National Security, LLC. Produced at the
