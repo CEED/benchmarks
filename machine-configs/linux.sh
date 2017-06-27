@@ -10,6 +10,22 @@ function setup_bigmem()
    fi
 }
 
+function setup_intelmpi()
+{
+   MPICC=mpiicc
+   MPICXX=mpiicpc
+   MPIFC=mpiifort
+   MPIF77=mpiifort
+   # OpenMPI
+   export OMPI_CC="$CC"
+   export OMPI_CXX="$CXX"
+   export OMPI_FC="$FC"
+   # or MPICH
+   export MPICH_CC="$CC"
+   export MPICH_CXX="$CXX"
+   export MPICH_FC="$FC"
+}
+
 function setup_mpi()
 {
    MPICC=mpicc
@@ -24,6 +40,23 @@ function setup_mpi()
    export MPICH_CC="$CC"
    export MPICH_CXX="$CXX"
    export MPICH_FC="$FC"
+}
+
+function setup_intel()
+{
+   CC=icc
+   CXX=icpc
+   FC=ifort
+
+   setup_intelmpi
+
+   CFLAGS="-O3"
+   setup_bigmem
+   FFLAGS="$CFLAGS"
+
+   # The following options assume GCC:
+   TEST_EXTRA_CFLAGS="-march=native --param max-completely-peel-times=3"
+   # "-std=c++11 -pedantic -Wall -fdump-tree-optimized-blocks"
 }
 
 function setup_gcc()
@@ -74,7 +107,7 @@ function set_mpi_options()
 search_file_list LAPACK_LIB \
    "/usr/lib64/atlas/libsatlas.so" "/usr/lib64/libopenblas.so"
 
-valid_compilers="gcc clang"
+valid_compilers="gcc clang intel"
 # Number of processors to use for building packages and tests:
 num_proc_build=8
 # Default number of processors and processors per node for running tests:
