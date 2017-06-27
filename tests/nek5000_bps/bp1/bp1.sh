@@ -243,17 +243,16 @@ function nekmpi()
 
 function run_tests()
 {
-  cd "$test_exe_dir"
+  [[ -z "$dry_run" ]] && cd "$test_exe_dir"
 
   set_mpi_options
-  local mpi_run="${MPIEXEC:-mpirun} $MPIEXEC_OPTS"
-  export mpi_run="$mpi_run ${MPIEXEC_NP:--np} $num_proc_run $bind_sh"
+  export mpi_run
 
-  cd $1
+  [[ -z "$dry_run" ]] && cd $1
 
   for i in `seq $min_order 1 $max_order`
   do
-    cd lx$i
+    [[ -z "$dry_run" ]] && cd lx$i
     set_max_elem_order "$i"
     for j in `seq $min_elem 1 $max_elem_order`
     do
@@ -262,15 +261,15 @@ function run_tests()
       printf "Running order $((i-1)), with number of elements 2^$j;"
       echo " number of points is $npts."
 
-      cd b$j
+      [[ -z "$dry_run" ]] && cd b$j
       $dry_run nekmpi b$j $num_proc_run
-      cd ..
+      [[ -z "$dry_run" ]] && cd ..
     done
 
-    cd ..
+    [[ -z "$dry_run" ]] && cd ..
   done
 
-  cd ..
+  [[ -z "$dry_run" ]] && cd ..
 }
 
 function build_and_run_tests()
