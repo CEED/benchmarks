@@ -1,12 +1,39 @@
-// This file is part of CEED. For more details, see exascaleproject.org.
+// Copyright (c) 2017, Lawrence Livermore National Security, LLC. Produced at
+// the Lawrence Livermore National Laboratory. LLNL-CODE-XXXXXX. All Rights
+// reserved. See file LICENSE for details.
 //
-//                    MFEM Bake-off problem 1, version 1
+// This file is part of CEED, a collection of benchmarks, miniapps, software
+// libraries and APIs for efficient high-order finite element and spectral
+// element discretizations for exascale applications. For more information and
+// source code availability see http://github.com/ceed.
 //
-// Compile with: ...
+// The CEED research is supported by the Exascale Computing Project (17-SC-20-SC)
+// a collaborative effort of two U.S. Department of Energy organizations (Office
+// of Science and the National Nuclear Security Administration) responsible for
+// the planning and preparation of a capable exascale ecosystem, including
+// software, applications, hardware, advanced system engineering and early
+// testbed platforms, in support of the nation’s exascale computing imperative.
+
+
+//==============================================================================
+//                    MFEM Bake-off Problems 1/3, version 1
 //
-// Sample runs:  ...
+// Compile with: make mass
 //
-// Description:  ... based on mfem/miniapps/performance/ex1p.cpp ...
+// Sample runs:  ./mass2d.sh
+//               ./mass3d.sh
+//               ./diff2d.sh
+//
+// Description:  These benchmarks (CEED Bake-off Problems BP1 and BP3) test the
+//               performance of high-order mass (BP1) and stiffness (BP3) matrix
+//               operator evaluation with "partial assembly" algorithms.
+//
+//               Code is based on MFEM's HPC ex1, http://mfem.org/performance.
+//
+//               More details about CEED's bake-off problems can be found at
+//               http://ceed.exascaleproject.org/bps.
+//==============================================================================
+
 
 // Comment/uncomment to disable/enable the use of add_mult_mass_{quad,hex}(...):
 #define MFEM_EXPERIMENT_1

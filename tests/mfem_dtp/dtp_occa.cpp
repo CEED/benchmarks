@@ -1,23 +1,26 @@
-//                                MFEM Example 1
+// Copyright (c) 2017, Lawrence Livermore National Security, LLC. Produced at
+// the Lawrence Livermore National Laboratory. LLNL-CODE-XXXXXX. All Rights
+// reserved. See file LICENSE for details.
 //
-// Compile with: make ex1
+// This file is part of CEED, a collection of benchmarks, miniapps, software
+// libraries and APIs for efficient high-order finite element and spectral
+// element discretizations for exascale applications. For more information and
+// source code availability see http://github.com/ceed.
 //
-// Sample runs:  ex1 -m ../data/square-disc.mesh
-//               ex1 -m ../data/star.mesh
-//               ex1 -m ../data/escher.mesh
-//               ex1 -m ../data/fichera.mesh
-//               ex1 -m ../data/square-disc-p2.vtk
-//               ex1 -m ../data/square-disc-p3.mesh
-//               ex1 -m ../data/square-disc-nurbs.mesh
-//               ex1 -m ../data/disc-nurbs.mesh
-//               ex1 -m ../data/pipe-nurbs.mesh
-//               ex1 -m ../data/star-surf.mesh
-//               ex1 -m ../data/square-disc-surf.mesh
-//               ex1 -m ../data/inline-segment.mesh
-//               ex1 -m ../data/amr-quad.mesh
-//               ex1 -m ../data/amr-hex.mesh
-//               ex1 -m ../data/fichera-amr.mesh
-//               ex1 -m ../data/mobius-strip.mesh
+// The CEED research is supported by the Exascale Computing Project (17-SC-20-SC)
+// a collaborative effort of two U.S. Department of Energy organizations (Office
+// of Science and the National Nuclear Security Administration) responsible for
+// the planning and preparation of a capable exascale ecosystem, including
+// software, applications, hardware, advanced system engineering and early
+// testbed platforms, in support of the nation’s exascale computing imperative.
+
+//==============================================================================
+//            MFEM Example 1 - OCCA/Acrotensor version for CEED BP3
+//
+// Compile with: make dtp_occa
+//
+// Sample runs:  ./dtp_occa.sh
+//               ./dtp_acro.sh
 //
 // Description:  This example code demonstrates the use of MFEM to define a
 //               simple finite element discretization of the Laplace problem
@@ -33,6 +36,7 @@
 //               discrete linear system. We also cover the explicit elimination
 //               of essential boundary conditions, static condensation, and the
 //               optional connection to the GLVis tool for visualization.
+//==============================================================================
 
 /*
   Missing 3D Surface

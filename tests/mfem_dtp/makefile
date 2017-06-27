@@ -1,13 +1,18 @@
-# Copyright (c) 2010, Lawrence Livermore National Security, LLC. Produced at the
-# Lawrence Livermore National Laboratory. LLNL-CODE-443211. All Rights reserved.
-# See file COPYRIGHT for details.
+# Copyright (c) 2017, Lawrence Livermore National Security, LLC. Produced at
+# the Lawrence Livermore National Laboratory. LLNL-CODE-XXXXXX. All Rights
+# reserved. See file LICENSE for details.
 #
-# This file is part of the MFEM library. For more information and source code
-# availability see http://mfem.org.
+# This file is part of CEED, a collection of benchmarks, miniapps, software
+# libraries and APIs for efficient high-order finite element and spectral
+# element discretizations for exascale applications. For more information and
+# source code availability see http://github.com/ceed.
 #
-# MFEM is free software; you can redistribute it and/or modify it under the
-# terms of the GNU Lesser General Public License (as published by the Free
-# Software Foundation) version 2.1 dated February 1999.
+# The CEED research is supported by the Exascale Computing Project (17-SC-20-SC)
+# a collaborative effort of two U.S. Department of Energy organizations (Office
+# of Science and the National Nuclear Security Administration) responsible for
+# the planning and preparation of a capable exascale ecosystem, including
+# software, applications, hardware, advanced system engineering and early
+# testbed platforms, in support of the nation’s exascale computing imperative.
 
 # Use the MFEM build directory
 MFEM_DIR = ../../mfem
@@ -40,22 +45,22 @@ endif
 
 # Replace the default implicit rule for *.cpp files
 %: $(SRC)%.cpp $(MFEM_LIB_FILE) $(CONFIG_MK)
-	$(MFEM_CXX) $(MFEM_FLAGS) $< -o $@ $(MFEM_LIBS)
+        $(MFEM_CXX) $(MFEM_FLAGS) $< -o $@ $(MFEM_LIBS)
 
 all: $(DTP)
 
 $(BLD)dtp_%: $(SRC)dtp_%.cpp $(MFEM_LIB_FILE) $(CONFIG_MK)
-	$(MFEM_CXX) $(MFEM_FLAGS) $< -o $@ $(MFEM_LIBS)
+        $(MFEM_CXX) $(MFEM_FLAGS) $< -o $@ $(MFEM_LIBS)
 
 # Generate an error message if the MFEM library is not built and exit
 $(MFEM_LIB_FILE):
-	$(error The MFEM library is not built)
+        $(error The MFEM library is not built)
 
 clean: clean-build clean-exec
 
 clean-build:
-	rm -f *.o *~ $(SEQ_EXAMPLES) $(PAR_EXAMPLES)
-	rm -rf *.dSYM *.TVD.*breakpoints
+        rm -f *.o *~ $(SEQ_EXAMPLES) $(PAR_EXAMPLES)
+        rm -rf *.dSYM *.TVD.*breakpoints
 
 #---[ OCCA ]----------------------------
 ifeq ($(MFEM_USE_OCCA),YES)
@@ -75,14 +80,14 @@ clear-kernels: clear-mfem-kernels $(OKL_CACHED_KERNELS)
 
 .PHONY: clear-cache
 clear-mfem-kernels:
-	@echo y | occa clear -l mfem
+        @echo y | occa clear -l mfem
 
 $(OCCA_LIB_CACHE_DIR)/mfem/fem/%.okl: $(MFEM_REAL_DIR)/fem/kernels/%.okl
-	@echo "Caching: $(subst $(MFEM_REAL_DIR)/,,$<)"
-	@occa cache mfem/$(subst $(OCCA_LIB_CACHE_DIR)/mfem/,,$(dir $@)) $<
+        @echo "Caching: $(subst $(MFEM_REAL_DIR)/,,$<)"
+        @occa cache mfem/$(subst $(OCCA_LIB_CACHE_DIR)/mfem/,,$(dir $@)) $<
 
 $(OCCA_LIB_CACHE_DIR)/mfem/linalg/%.okl: $(MFEM_REAL_DIR)/linalg/kernels/%.okl
-	@echo "Caching: $(subst $(MFEM_REAL_DIR)/,,$<)"
-	@occa cache mfem/$(subst $(OCCA_LIB_CACHE_DIR)/mfem/,,$(dir $@)) $<
+        @echo "Caching: $(subst $(MFEM_REAL_DIR)/,,$<)"
+        @occa cache mfem/$(subst $(OCCA_LIB_CACHE_DIR)/mfem/,,$(dir $@)) $<
 endif
 #=======================================
