@@ -1,14 +1,15 @@
 # CEED Benchmarks
 
 This repository contains bake-off/benchmark problems and other tests for
-perfomance evaluation of high-order kernels on HPC architectures developed in
-the ECP co-design Center for Efficient Exascale Discretizations (CEED).
+performance evaluation of high-order kernels on HPC architectures developed in
+the ECP co-design [Center for Efficient Exascale Discretizations
+(CEED)](http://ceed.exascaleproject.org).
 
-The repository is part of the [CEED](http://ceed.exascaleproject.org) software
-suite, a collection of software benchmarks, miniapps, libraries and APIs for
-efficient exascale discretizations based on high-order finite element and
-spectral element methods.
-See http://github.com/ceed for more information and source code availability.
+The repository is part of the [CEED software
+suite](http://ceed.exascaleproject.org/software/), a collection of software
+benchmarks, miniapps, libraries and APIs for efficient exascale discretizations
+based on high-order finite element and spectral element methods.  See
+http://github.com/ceed for more information and source code availability.
 
 The CEED research is supported by the [Exascale Computing
 Project](https://exascaleproject.org/exascale-computing-project) (17-SC-20-SC),
