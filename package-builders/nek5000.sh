@@ -55,7 +55,7 @@ function nek5k_build()
         sed -e 's/#BIGMEM/BIGMEM/' maketools.orig > maketools
       fi
       mv genbox/SIZE genbox/SIZE.orig && \
-      sed "3s/30/20/" genbox/SIZE.orig > genbox/SIZE && \
+      sed "3s/30/120/" genbox/SIZE.orig > genbox/SIZE && \
       ./maketools genbox && \
       mv genmap/SIZE genmap/SIZE.orig && \
       sed "2s/500 000/2 100 000/" genmap/SIZE.orig > genmap/SIZE && \
