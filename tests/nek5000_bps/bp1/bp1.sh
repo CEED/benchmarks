@@ -77,16 +77,41 @@ function configure_tests()
 {
   export BP_ROOT="$root_dir"/tests/nek5000_bps
 
-  min_elem=5
-  max_elem=16
+  # Settings for 1 node:
+
+  # {min,max}_elem are the exponents for the number of elements, base is 2
+  min_elem=1
+  max_elem=18
+  # the "order" here is actually number of 1D points, i.e. p+1, not p
   min_order=2
   max_order=9
+  # the number of points is computed as num_elements*(p+1)**3
+  max_points=3000000
 
-  local i=$(( 2**(max_elem)/num_proc_run ))
-  mv $BP_ROOT/SIZE $BP_ROOT/SIZE.orig && \
-  sed -e "s/lelt=[0-9]*/lelt=${i}/" $BP_ROOT/SIZE.orig > $BP_ROOT/SIZE
-  mv $BP_ROOT/SIZE $BP_ROOT/SIZE.orig && \
-  sed -e "s/lp=[0-9]*/lp=${num_proc_run}/" $BP_ROOT/SIZE.orig > $BP_ROOT/SIZE
+  while (( 2**min_elem < num_proc_node )); do
+     ((min_elem=min_elem+1))
+  done
+
+  # Settings for more than 1 node:
+
+  local n=$num_nodes
+  while (( n >= 2 )); do
+     ((min_elem=min_elem+1))
+     ((max_elem=max_elem+1))
+     ((max_points=2*max_points))
+     ((n=n/2))
+  done
+}
+
+function set_max_elem_order()
+{
+  max_elem_order="$min_elem"
+  local pp1="$1" s=
+  for ((s = min_elem; s <= max_elem; s++)); do
+    local npts=$(( 2**s * (pp1-1)**3 ))
+    (( npts > max_points )) && break
+    max_elem_order="$s"
+  done
 }
 
 function build_tests()
@@ -115,10 +140,17 @@ function build_tests()
       newbuild=true
     fi
 
+    set_max_elem_order "$i"
+
+    local lelt=$(( (2**max_elem_order)/num_proc_run ))
+    sed -e "s/lelt=[0-9]*/lelt=${lelt}/" \
+        -e "s/lp=[0-9]*/lp=${num_proc_run}/" \
+        $BP_ROOT/SIZE > SIZE
+
     cp -r $BP_ROOT/boxes/b?* $BP_ROOT/bp1/$1.usr lx$i/
 
     # Set lx1 in SIZE file
-    sed "s/lx1=[0-9]*/lx1=${i}/" $BP_ROOT/SIZE > lx$i/SIZE.new
+    sed "s/lx1=[0-9]*/lx1=${i}/" SIZE > lx$i/SIZE.new
     if [[ "$newbuild" == "true" ]]; then
       mv "lx$i"/SIZE.new "lx$i"/SIZE 
     elif [[ ! -f "lx$i"/SIZE ]]; then
@@ -147,7 +179,7 @@ function build_tests()
       return 1
     fi
 
-    for j in `seq $min_elem 1 $max_elem`
+    for j in `seq $min_elem 1 $max_elem_order`
     do
       cp ./nek5000 b$j/
     done
@@ -176,7 +208,9 @@ function build_tests()
         return 1
       fi
 
-      for j in `seq $min_elem 1 $max_elem`
+      set_max_elem_order "$i"
+
+      for j in `seq $min_elem 1 $max_elem_order`
       do
         cp ./nek5000 b$j/
       done
@@ -215,15 +249,21 @@ function run_tests()
   local mpi_run="${MPIEXEC:-mpirun} $MPIEXEC_OPTS"
   export mpi_run="$mpi_run ${MPIEXEC_NP:--np} $num_proc_run $bind_sh"
 
-  cd $1 
+  cd $1
 
   for i in `seq $min_order 1 $max_order`
   do
     cd lx$i
-    for j in `seq $min_elem 1 $max_elem`
+    set_max_elem_order "$i"
+    for j in `seq $min_elem 1 $max_elem_order`
     do
+      local npts=$(( ((i-1)**3) * (2**j) ))
+      echo
+      printf "Running order $((i-1)), with number of elements 2^$j;"
+      echo " number of points is $npts."
+
       cd b$j
-      nekmpi b$j $num_proc_run
+      $dry_run nekmpi b$j $num_proc_run
       cd ..
     done
 
@@ -236,14 +276,14 @@ function run_tests()
 function build_and_run_tests()
 {
   echo 'Setting up the tests ...'
-  $dry_run configure_tests
+  configure_tests
   echo "Generating the box meshes ..."
   $dry_run generate_boxes
   echo 'Buiding the sin and w tests ...'
   $dry_run build_tests zsin || return 1
 #  $dry_run build_tests zsin zw || return 1
   echo 'Running the sin tests ...'
-  $dry_run run_tests zsin
+  run_tests zsin
   # W tests are commented as there is no diskquota
   # in vulcan to run both the tests
 #  echo 'Running the w tests ...'
