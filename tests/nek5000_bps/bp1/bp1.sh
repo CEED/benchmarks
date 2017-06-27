@@ -15,7 +15,7 @@
 # testbed platforms, in support of the nation’s exascale computing imperative.
 
 
-source ../make-boxes.sh
+source "$root_dir"/tests/nek5000_bps/make-boxes.sh
 
 
 function configure_tests()
