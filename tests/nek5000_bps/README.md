@@ -42,7 +42,7 @@ following command:
 or the equivalent shorter version:
 
 ```sh
-../../go.sh -c linux -m gcc -r bp1/bp1.sh -n 16 -p 16
+../../go.sh -c vulcan -m gcc -r bp1/bp1.sh -n 16 -p 16
 ```
 
 where `-n 16` is the total number of processors and `-p 16` is the 
@@ -51,7 +51,7 @@ number of processors per node.
 Multiple processor configurations can be run with:
 
 ```sh
-../../go.sh -c linux -m gcc -r bp1/bp1.sh -n "16 32 64" -p "16 32 64"
+../../go.sh -c vulcan -m gcc -r bp1/bp1.sh -n "16 32 64" -p "16 32 64"
 ```
 
 ## Postprocessing the results
@@ -59,7 +59,7 @@ Multiple processor configurations can be run with:
 First, save the output of the run to a file:
 
 ```sh
-../../go.sh -c linux -m gcc -r bp1/bp1.sh -n 16 -p 16 > run_001.txt
+../../go.sh -c vulcan -m gcc -r bp1/bp1.sh -n 16 -p 16 > run_001.txt
 ```
 
 and then use one of the `postprocess-plot-*.py` scripts (which require
