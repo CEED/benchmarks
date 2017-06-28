@@ -18,7 +18,7 @@ Science and the National Nuclear Security Administration) responsible for the
 planning and preparation of a [capable exascale
 ecosystem](https://exascaleproject.org/what-is-exascale/), including software,
 applications, hardware, advanced system engineering and early testbed platforms,
-in support of the nation’s [exascale computing
+in support of the nation's [exascale computing
 imperative](https://obamawhitehouse.archives.gov/the-press-office/2015/07/29/executive-order-creating-national-strategic-computing-initiative).
 
 For more details on the CEED benchmarks see http://ceed.exascaleproject.org/bps/
