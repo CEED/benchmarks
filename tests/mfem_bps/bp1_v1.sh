@@ -41,6 +41,14 @@ function build_tests()
    esac
    local make_extra=("geom=$geom" "mesh_p=$mesh_p" "sol_p=${sol_p_lst:1}")
    make_extra=("${make_extra[@]}" "problem=$problem")
+   if (( vdim > 1 )); then
+      make_extra=("${make_extra[@]}" "vdim=$vdim")
+      if [[ "$vec_layout" = "Ordering::byNODES" ]]; then
+         make_extra=("${make_extra[@]}" "vec_layout=Ordering::byNODES")
+      else
+         make_extra=("${make_extra[@]}" "vec_layout=Ordering::byVDIM")
+      fi
+   fi
    make_extra=("${make_extra[@]}" "use_mpi_wtime=$use_mpi_wtime")
    make_extra=("${make_extra[@]}" "ir_order=${ir_order_lst:1}")
    make_extra=("${make_extra[@]}" "exe_suffix=${exe_sfx_lst:1}")
@@ -120,6 +128,8 @@ test_name=bp1_v1
 problem=${problem:-1}
 geom=Geometry::CUBE
 mesh_p=1
+vdim=${vdim:-1}
+vec_layout=${vec_layout:-}
 # test id:     0   1   2   3   4   5   6   7   8   9
 sol_p_list=(   1   2   3   4   5   6   7   8   1   2)
 ir_order_list=(0   0   0   0   0   0   0   0   3   5)
@@ -204,6 +214,11 @@ function set_test_params()
    suffix=_${geom#Geometry::}_p${sol_p}_m${mesh_p}
    (( ir_order != 0 )) && suffix+="_i${ir_order}"
    (( problem != 0 )) && suffix="_Mass$suffix"
+   (( vdim != 1 )) && {
+      [[ "$vec_layout" = "Ordering::byNODES" ]] && \
+         suffix="_VN$suffix" || \
+         suffix="_VV$suffix"
+   }
    split3_power2 mesh_nxyz $mesh_s
    make_mesh_file
    mesh_opt="-m $mesh_file"

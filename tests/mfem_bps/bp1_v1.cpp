@@ -16,12 +16,12 @@
 
 
 //==============================================================================
-//                    MFEM Bake-off Problems 1/3, version 1
+//                  MFEM Bake-off Problems 1, 2, 3, and 4
+//                                Version 1
 //
-// Compile with: make mass
+// Compile with: see README.md
 //
-// Sample runs:  ./bp1_v1.sh
-//               ./bp3_v1.sh
+// Sample runs:  see README.md
 //
 // Description:  These benchmarks (CEED Bake-off Problems BP1 and BP3) test the
 //               performance of high-order mass (BP1) and stiffness (BP3) matrix
@@ -60,6 +60,16 @@ using namespace mfem;
 #define PROBLEM 0
 #endif
 
+#ifndef VDIM
+#define VDIM 1
+#endif
+
+// This vector layout is used for the solution space only.
+#ifndef VEC_LAYOUT
+#define VEC_LAYOUT Ordering::byVDIM
+#endif
+
+
 // Define template parameters for optimized build.
 const Geometry::Type geom     = GEOM;      // mesh elements  (default: hex)
 const int            mesh_p   = MESH_P;    // mesh curvature (default: 3)
@@ -84,9 +94,15 @@ typedef TIntegrator<coeff_t,TDiffusionKernel> integ_t;
 #else
 typedef TIntegrator<coeff_t,TMassKernel> integ_t;
 #endif
+#if (VDIM == 1)
+typedef ScalarLayout                          vec_layout_t;
+#else
+typedef VectorLayout<VEC_LAYOUT,VDIM>         vec_layout_t;
+#endif
 
 // Static bilinear form type, combining the above types
-typedef TBilinearForm<mesh_t,sol_fes_t,int_rule_t,integ_t> HPCBilinearForm;
+typedef TBilinearForm<mesh_t,sol_fes_t,int_rule_t,integ_t,
+        vec_layout_t> HPCBilinearForm;
 
 int main(int argc, char *argv[])
 {
@@ -95,6 +111,9 @@ int main(int argc, char *argv[])
    MPI_Init(&argc, &argv);
    MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
    MPI_Comm_rank(MPI_COMM_WORLD, &myid);
+
+   const int            vdim     = VDIM;
+   const Ordering::Type ordering = VEC_LAYOUT; // for solution space only
 
    // 2. Parse command-line options.
    const char *mesh_file = "../../data/fichera.mesh";
@@ -308,7 +327,8 @@ int main(int argc, char *argv[])
    {
       fec = new H1_FECollection(order = 1, dim, basis);
    }
-   ParFiniteElementSpace *fespace = new ParFiniteElementSpace(pmesh, fec);
+   ParFiniteElementSpace *fespace = new ParFiniteElementSpace(pmesh, fec,
+                                                              vdim, ordering);
    HYPRE_Int size = fespace->GlobalTrueVSize();
    if (myid == 0)
    {
@@ -324,7 +344,8 @@ int main(int argc, char *argv[])
       if (basis == BasisType::Positive) { basis_lor=BasisType::ClosedUniform; }
       pmesh_lor = new ParMesh(pmesh, order, basis_lor);
       fec_lor = new H1_FECollection(1, dim);
-      fespace_lor = new ParFiniteElementSpace(pmesh_lor, fec_lor);
+      fespace_lor = new ParFiniteElementSpace(pmesh_lor, fec_lor,
+                                              vdim, ordering);
    }
 
    // 8. Check if the optimized version matches the given space
@@ -359,7 +380,21 @@ int main(int argc, char *argv[])
    //     (1,phi_i) where phi_i are the basis functions in fespace.
    ParLinearForm *b = new ParLinearForm(fespace);
    ConstantCoefficient one(1.0);
-   b->AddDomainIntegrator(new DomainLFIntegrator(one));
+   Vector uvec(vdim);
+   for (int i = 0; i < vdim; i++)
+   {
+      uvec(i) = i + 1.0;
+   }
+   uvec /= uvec.Norml2();
+   VectorConstantCoefficient unit_vec(uvec);
+   if (vdim == 1)
+   {
+      b->AddDomainIntegrator(new DomainLFIntegrator(one));
+   }
+   else
+   {
+      b->AddDomainIntegrator(new VectorDomainLFIntegrator(unit_vec));
+   }
    b->Assemble();
 
    // 11. Define the solution vector x as a parallel finite element grid
@@ -406,7 +441,14 @@ int main(int argc, char *argv[])
    if (!perf)
    {
       // Standard assembly using a diffusion domain integrator
-      a->AddDomainIntegrator(new DiffusionIntegrator(one));
+      if (vdim == 1)
+      {
+         a->AddDomainIntegrator(new DiffusionIntegrator(one));
+      }
+      else
+      {
+         a->AddDomainIntegrator(new VectorDiffusionIntegrator(one));
+      }
       a->Assemble();
    }
    else
@@ -510,7 +552,14 @@ int main(int argc, char *argv[])
    if (pc_choice == LOR)
    {
       // TODO: assemble the LOR matrix using the performance code
-      a_pc->AddDomainIntegrator(new DiffusionIntegrator(one));
+      if (vdim == 1)
+      {
+         a_pc->AddDomainIntegrator(new DiffusionIntegrator(one));
+      }
+      else
+      {
+         a_pc->AddDomainIntegrator(new VectorDiffusionIntegrator(one));
+      }
       a_pc->UsePrecomputedSparsity();
       a_pc->Assemble();
       a_pc->FormSystemMatrix(ess_tdof_list, A_pc);
@@ -553,7 +602,12 @@ int main(int argc, char *argv[])
    pcg->SetOperator(*a_oper);
    if (pc_choice != NONE)
    {
-      amg = new HypreBoomerAMG(A_pc);
+      HypreBoomerAMG *bamg = new HypreBoomerAMG(A_pc);
+      if (vdim > 1 && ordering == Ordering::byVDIM)
+      {
+         bamg->SetSystemsOptions(vdim);
+      }
+      amg = bamg;
       pcg->SetPreconditioner(*amg);
    }
 

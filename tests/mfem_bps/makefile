@@ -53,6 +53,8 @@ all: $(BPS)
 bp1_v1_DEF := $(if $(problem),-DPROBLEM=$(problem),)
 bp1_v1_DEF += $(if $(geom),-DGEOM=$(geom),)
 bp1_v1_DEF += $(if $(mesh_p),-DMESH_P=$(mesh_p),)
+bp1_v1_DEF += $(if $(vdim),-DVDIM=$(vdim),)
+bp1_v1_DEF += $(if $(vec_layout),-DVEC_LAYOUT=$(vec_layout),)
 bp1_v1_DEF += $(if $(use_mpi_wtime),-DUSE_MPI_WTIME,)
 bp1_v1_DEF := $(strip $(bp1_v1_DEF))
 define make_bp1_v1_rule
