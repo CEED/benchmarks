@@ -69,7 +69,7 @@ function nek5k_build()
         sed -e 's/#BIGMEM/BIGMEM/' maketools.orig > maketools
       fi
       mv genbox/SIZE genbox/SIZE.orig && \
-      sed "3s/30/120/" genbox/SIZE.orig > genbox/SIZE && \
+      sed "3s/30/150/" genbox/SIZE.orig > genbox/SIZE && \
       ./maketools genbox && \
       mv genmap/SIZE genmap/SIZE.orig && \
       sed "2s/500 000/2 100 000/" genmap/SIZE.orig > genmap/SIZE && \
@@ -87,5 +87,5 @@ function nek5k_build()
 
 function build_package()
 {
-   nek5k_clone && nek5k_build
+   nek5k_clone && get_package_git_version && nek5k_build
 }
