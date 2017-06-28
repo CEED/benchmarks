@@ -87,7 +87,6 @@ function generate_boxes()
   done
 }
 
-
 function build_and_run_tests()
 {
   BP_ROOT="$root_dir"/tests/nek5000_bps

@@ -26,7 +26,7 @@ function configure_tests()
 
   # {min,max}_elem are the exponents for the number of elements, base is 2
   min_elem=1
-  max_elem=24
+  max_elem=21
   # the "order" here is actually number of 1D points, i.e. p+1, not p
   min_order=2
   max_order=9

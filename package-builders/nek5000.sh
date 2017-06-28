@@ -62,6 +62,13 @@ function nek5k_build()
    fi
 
    echo "Building $pkg, sending output to ${pkg_bld_dir}_build.log ..." && {
+      ## Enable box sizes upto 2^21 to run normally
+      cd "$pkg_bld_dir/core"
+      mv subs1.f subs1.f.orig && \
+      sed "s/nelgt.gt.350000/nelgt.gt.2100000/" subs1.f.orig > subs1.f &&
+      mv navier8.f navier8.f.orig && \
+      sed "s/nelgt.gt.350000/nelgt.gt.2100000/" navier8.f.orig > navier8.f &&
+
       ## Just build the requited tools: genbox, genmap, and reatore2.
       cd "$pkg_bld_dir/tools"
       if [[ "$NEK5K_BIGMEM" != "no" ]]; then

@@ -657,7 +657,7 @@ c-----------------------------------------------------------------------
       real w(lxyz),u(lxyz),g(lg,lxyz),h1(lxyz),h2(lxyz),b(lxyz)
       real ju(lxyz),us(lxyz),ut(lxyz)
 
-      nxq = nx1+2 ! Number of quadrature points
+      nxq = nx1+1 ! Number of quadrature points
 
       lxyzq = nxq**ldim
 
@@ -695,7 +695,7 @@ c     Helmholtz equations
 
       pap=0
 
-      nxq = nx1+2
+      nxq = nx1+1
 
       k=1
       do e=1,nelt
@@ -741,7 +741,7 @@ c     Helmholtz equations
       pap(3)=0
 
       k=1
-      nxq = nx1+2
+      nxq = nx1+1
 
       do e=1,nelt
 
@@ -989,7 +989,7 @@ c     call dsavg(e1)
       call copy       (e3,e1,n)
       call xmask      (e1,e2,e3,nelt)
 
-      nxq = nx1+2
+      nxq = nx1+1
       call set_h2_as_rhoJac_GL (h2,nxq)
       call copy                (h1,e1,n)  ! Save exact soln in h1
 
