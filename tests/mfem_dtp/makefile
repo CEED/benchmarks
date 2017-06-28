@@ -45,22 +45,22 @@ endif
 
 # Replace the default implicit rule for *.cpp files
 %: $(SRC)%.cpp $(MFEM_LIB_FILE) $(CONFIG_MK)
-        $(MFEM_CXX) $(MFEM_FLAGS) $< -o $@ $(MFEM_LIBS)
+	$(MFEM_CXX) $(MFEM_FLAGS) $< -o $@ $(MFEM_LIBS)
 
 all: $(DTP)
 
 $(BLD)dtp_%: $(SRC)dtp_%.cpp $(MFEM_LIB_FILE) $(CONFIG_MK)
-        $(MFEM_CXX) $(MFEM_FLAGS) $< -o $@ $(MFEM_LIBS)
+	$(MFEM_CXX) $(MFEM_FLAGS) $< -o $@ $(MFEM_LIBS)
 
 # Generate an error message if the MFEM library is not built and exit
 $(MFEM_LIB_FILE):
-        $(error The MFEM library is not built)
+	$(error The MFEM library is not built)
 
 clean: clean-build clean-exec
 
 clean-build:
-        rm -f *.o *~ $(SEQ_EXAMPLES) $(PAR_EXAMPLES)
-        rm -rf *.dSYM *.TVD.*breakpoints
+	rm -f *.o *~ $(SEQ_EXAMPLES) $(PAR_EXAMPLES)
+	rm -rf *.dSYM *.TVD.*breakpoints
 
 #---[ OCCA ]----------------------------
 ifeq ($(MFEM_USE_OCCA),YES)
@@ -80,14 +80,14 @@ clear-kernels: clear-mfem-kernels $(OKL_CACHED_KERNELS)
 
 .PHONY: clear-cache
 clear-mfem-kernels:
-        @echo y | occa clear -l mfem
+	@echo y | occa clear -l mfem
 
 $(OCCA_LIB_CACHE_DIR)/mfem/fem/%.okl: $(MFEM_REAL_DIR)/fem/kernels/%.okl
-        @echo "Caching: $(subst $(MFEM_REAL_DIR)/,,$<)"
-        @occa cache mfem/$(subst $(OCCA_LIB_CACHE_DIR)/mfem/,,$(dir $@)) $<
+	@echo "Caching: $(subst $(MFEM_REAL_DIR)/,,$<)"
+	@occa cache mfem/$(subst $(OCCA_LIB_CACHE_DIR)/mfem/,,$(dir $@)) $<
 
 $(OCCA_LIB_CACHE_DIR)/mfem/linalg/%.okl: $(MFEM_REAL_DIR)/linalg/kernels/%.okl
-        @echo "Caching: $(subst $(MFEM_REAL_DIR)/,,$<)"
-        @occa cache mfem/$(subst $(OCCA_LIB_CACHE_DIR)/mfem/,,$(dir $@)) $<
+	@echo "Caching: $(subst $(MFEM_REAL_DIR)/,,$<)"
+	@occa cache mfem/$(subst $(OCCA_LIB_CACHE_DIR)/mfem/,,$(dir $@)) $<
 endif
 #=======================================

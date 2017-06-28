@@ -45,7 +45,7 @@ endif
 
 # Replace the default implicit rule for *.cpp files
 $(BLD)%: $(SRC)%.cpp $(MFEM_LIB_FILE) $(CONFIG_MK)
-        $(MFEM_CXX) $(MFEM_FLAGS) $< -o $@ $(MFEM_LIBS)
+	$(MFEM_CXX) $(MFEM_FLAGS) $< -o $@ $(MFEM_LIBS)
 
 all: $(BPS)
 
@@ -57,10 +57,10 @@ bp1_v1_DEF += $(if $(use_mpi_wtime),-DUSE_MPI_WTIME,)
 bp1_v1_DEF := $(strip $(bp1_v1_DEF))
 define make_bp1_v1_rule
 $(BLD)bp1_v1$(3): $(SRC)bp1_v1.cpp $(MFEM_LIB_FILE) $(CONFIG_MK)
-        cp -fp $(SRC)bp1_v1.cpp $(BLD)bp1_v1$(3).cpp
-        $(MFEM_CXX) $(bp1_v1_DEF) $(if $(1),-DSOL_P=$(1),) \
-        $(if $(2),-DIR_ORDER=$(2),) $(MFEM_FLAGS) \
-        $(BLD)bp1_v1$(3).cpp -o $(BLD)bp1_v1$(3) $(MFEM_LIBS)
+	cp -fp $(SRC)bp1_v1.cpp $(BLD)bp1_v1$(3).cpp
+	$(MFEM_CXX) $(bp1_v1_DEF) $(if $(1),-DSOL_P=$(1),) \
+	$(if $(2),-DIR_ORDER=$(2),) $(MFEM_FLAGS) \
+	$(BLD)bp1_v1$(3).cpp -o $(BLD)bp1_v1$(3) $(MFEM_LIBS)
 endef
 ir_ord := $(wordlist 1,$(words $(sol_p)),$(ir_order))
 exe_sfx := $(wordlist 1,$(words $(sol_p)),$(exe_suffix))
@@ -76,13 +76,13 @@ $(if $(exe_sfx),$(eval bp1_v1$(colon) $(addprefix $(BLD)bp1_v1,$(exe_sfx))))
 
 # Generate an error message if the MFEM library is not built and exit
 $(MFEM_LIB_FILE):
-        $(error The MFEM library is not built)
+	$(error The MFEM library is not built)
 
 clean: clean-build clean-exec
 
 clean-build:
-        rm -f *.o *~ $(BPS)
-        rm -rf *.dSYM *.TVD.*breakpoints
+	rm -f *.o *~ $(BPS)
+	rm -rf *.dSYM *.TVD.*breakpoints
 
 clean-exec:
-        @rm -f refined.mesh mesh.* sol.*
+	@rm -f refined.mesh mesh.* sol.*
