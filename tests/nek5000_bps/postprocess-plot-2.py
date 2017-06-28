@@ -166,8 +166,8 @@ for plt in pl_set:
    ylabel('[DOFs x CG iterations] / [compute nodes x seconds]')
    legend(ncol=2, loc='best')
 
-   savefig('test_%s_%s_%s_N%03i_pn%i.pdf'%(
-           test_short,config_short,compiler,num_nodes,num_procs_node),
+   savefig('%s_%s_%s_%s_N%03i_pn%i.pdf'%(
+           code,test_short,config_short,compiler,num_nodes,num_procs_node),
            format='pdf', bbox_inches='tight')
 
 show()
