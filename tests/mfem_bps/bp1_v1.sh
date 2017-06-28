@@ -7,12 +7,13 @@
 # element discretizations for exascale applications. For more information and
 # source code availability see http://github.com/ceed.
 #
-# The CEED research is supported by the Exascale Computing Project (17-SC-20-SC)
-# a collaborative effort of two U.S. Department of Energy organizations (Office
-# of Science and the National Nuclear Security Administration) responsible for
-# the planning and preparation of a capable exascale ecosystem, including
-# software, applications, hardware, advanced system engineering and early
-# testbed platforms, in support of the nation’s exascale computing imperative.
+# The CEED research is supported by the Exascale Computing Project
+# (17-SC-20-SC), a collaborative effort of two U.S. Department of Energy
+# organizations (Office of Science and the National Nuclear Security
+# Administration) responsible for the planning and preparation of a capable
+# exascale ecosystem, including software, applications, hardware, advanced
+# system engineering and early testbed platforms, in support of the nation's
+# exascale computing imperative.
 
 
 function build_tests()
@@ -20,7 +21,13 @@ function build_tests()
    local num_tests="${#sol_p_list[@]}"
    local test_id= sol_p_lst= ir_order_lst= exe_sfx_lst=" " exe_lst=
    for test_id; do
-      set_test_params $test_id || continue
+      local sft= need_to_build=0
+      for ((sft = mesh_s_reduction_base;
+            sft <= mesh_s_reduction_limit; sft++ )); do
+         (( mesh_s_shift = -sft ))
+         set_test_params $test_id && { need_to_build=1; break; }
+      done
+      (( need_to_build == 0 )) && continue
       # check if suffix is already in the list
       if [[ -n "${exe_sfx_lst##* $suffix *}" ]]; then
          sol_p_lst+=" $sol_p"
@@ -55,7 +62,8 @@ function build_tests()
    make_extra=("${make_extra[@]}" "EXTRA_CXXFLAGS=$TEST_EXTRA_CFLAGS")
    make_extra=("${make_extra[@]}" "MFEM_DIR=$MFEM_DIR")
    make_extra=("${make_extra[@]}" "BLD=$test_exe_dir/")
-   $dry_run make -j $num_proc_build $test_name "${make_extra[@]}" || exit 1
+   quoted_echo make -j $num_proc_build $test_name "${make_extra[@]}"
+   [[ -n "$dry_run" ]] || make -j $num_proc_build $test_name "${make_extra[@]}"
 }
 
 
@@ -136,6 +144,7 @@ ir_order_list=(0   0   0   0   0   0   0   0   3   5)
 mesh_s_list=( 15  15  16  15  14  13  13  12  15  15)
 par_ref_list=( 2   1   0   0   0   0   0   0   2   1) # set below
 enabled_tests="0   1   2   3   4   5   6   7   8   9"
+# enabled_tests="1   2   3   4   5   6   7   8"   # for bp3 on vulcan + xlc
 # enabled_tests="0"
 ser_ref=0
 mesh_s_reduction_base=0     # used in run_tests_if_enabled()
@@ -250,7 +259,7 @@ function build_and_run_tests()
 $dry_run cd "$test_dir"
 configure_tests || return 1
 
-build_tests $enabled_tests
+build_tests $enabled_tests || return 1
 echo
 
 $dry_run cd "$test_exe_dir"
