@@ -1,6 +1,20 @@
 #!/bin/bash
 
-# This file is part of CEED. For more details, see exascaleproject.org.
+# Copyright (c) 2017, Lawrence Livermore National Security, LLC. Produced at
+# the Lawrence Livermore National Laboratory. LLNL-CODE-XXXXXX. All Rights
+# reserved. See file LICENSE for details.
+#
+# This file is part of CEED, a collection of benchmarks, miniapps, software
+# libraries and APIs for efficient high-order finite element and spectral
+# element discretizations for exascale applications. For more information and
+# source code availability see http://github.com/ceed.
+#
+# The CEED research is supported by the Exascale Computing Project (17-SC-20-SC)
+# a collaborative effort of two U.S. Department of Energy organizations (Office
+# of Science and the National Nuclear Security Administration) responsible for
+# the planning and preparation of a capable exascale ecosystem, including
+# software, applications, hardware, advanced system engineering and early
+# testbed platforms, in support of the nation’s exascale computing imperative.
 
 this_file="${BASH_SOURCE[0]}"
 if [[ "${#BASH_ARGV[@]}" -ne "$#" ]]; then
@@ -55,20 +69,20 @@ help_msg="
 $this_file [options]
 
 Options:
-   -h|--help             print this usage information and exit
-   -c|--config <name>    choose a configuration file
-   -m|--compiler \"list\"  choose a compiler, or a list of compilers to use
-   -b|--build \"list\"     download and build the listed packages
-   -u|--update           update the package sources before (re)building
-  -rm|--remove \"list\"    remove packages from the build dir (before building)
-   -r|--run <name>       run the tests in the script <name>
-   -n|--num-proc \"list\"  total number of MPI tasks to use in the tests
-   -p|--proc-node \"list\" number of MPI tasks per node to use in the tests
+   -h|--help                print this usage information and exit
+   -c|--config <name>       choose a configuration file
+   -m|--compiler \"list\"     choose a compiler, or a list of compilers to use
+   -b|--build \"list\"        download and build the listed packages
+   -u|--update              update the package sources before (re)building
+  -rm|--remove \"list\"       remove packages from the build dir (before building)
+   -r|--run <name>          run the tests in the script <name>
+   -n|--num-proc \"list\"     total number of MPI tasks to use in the tests
+   -p|--proc-node \"list\"    number of MPI tasks per node to use in the tests
   -pp|--post-process <name> post process the results using script <name>
-   -d|--dry-run          show (but do not run) the commands for the tests
-   -s|--shell            execute bash shell commands before running the test
-   -v|--verbose          print additional messages
-   -x                    enable script tracing with 'set -x'
+   -d|--dry-run             show (but do not run) the commands for the tests
+   -s|--shell               execute bash shell commands before running the test
+   -v|--verbose             print additional messages
+   -x                       enable script tracing with 'set -x'
 
 This script builds and/or runs a set of tests using specified configuration
 and compiler.
@@ -695,7 +709,7 @@ test_exe_dir="$OUT_DIR/${test_up_dir#/}"
 
 postprocess
 
-} ## post-process on 
+} ## post-process on
 
 ) || $exit_cmd 1
 done ## Loop over $compiler_list

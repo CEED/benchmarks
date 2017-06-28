@@ -1,4 +1,18 @@
-# This file is part of CEED. For more details, see exascaleproject.org.
+# Copyright (c) 2017, Lawrence Livermore National Security, LLC. Produced at
+# the Lawrence Livermore National Laboratory. LLNL-CODE-XXXXXX. All Rights
+# reserved. See file LICENSE for details.
+#
+# This file is part of CEED, a collection of benchmarks, miniapps, software
+# libraries and APIs for efficient high-order finite element and spectral
+# element discretizations for exascale applications. For more information and
+# source code availability see http://github.com/ceed.
+#
+# The CEED research is supported by the Exascale Computing Project (17-SC-20-SC)
+# a collaborative effort of two U.S. Department of Energy organizations (Office
+# of Science and the National Nuclear Security Administration) responsible for
+# the planning and preparation of a capable exascale ecosystem, including
+# software, applications, hardware, advanced system engineering and early
+# testbed platforms, in support of the nation’s exascale computing imperative.
 
 # Clone Nek5000.
 
@@ -48,6 +62,13 @@ function nek5k_build()
    fi
 
    echo "Building $pkg, sending output to ${pkg_bld_dir}_build.log ..." && {
+      ## Enable box sizes upto 2^21 to run normally
+      cd "$pkg_bld_dir/core"
+      mv subs1.f subs1.f.orig && \
+      sed "s/nelgt.gt.350000/nelgt.gt.2100000/" subs1.f.orig > subs1.f &&
+      mv navier8.f navier8.f.orig && \
+      sed "s/nelgt.gt.350000/nelgt.gt.2100000/" navier8.f.orig > navier8.f &&
+
       ## Just build the requited tools: genbox, genmap, and reatore2.
       cd "$pkg_bld_dir/tools"
       if [[ "$NEK5K_BIGMEM" != "no" ]]; then
@@ -55,7 +76,7 @@ function nek5k_build()
         sed -e 's/#BIGMEM/BIGMEM/' maketools.orig > maketools
       fi
       mv genbox/SIZE genbox/SIZE.orig && \
-      sed "3s/30/20/" genbox/SIZE.orig > genbox/SIZE && \
+      sed "3s/30/150/" genbox/SIZE.orig > genbox/SIZE && \
       ./maketools genbox && \
       mv genmap/SIZE genmap/SIZE.orig && \
       sed "2s/500 000/2 100 000/" genmap/SIZE.orig > genmap/SIZE && \
@@ -73,5 +94,5 @@ function nek5k_build()
 
 function build_package()
 {
-   nek5k_clone && nek5k_build
+   nek5k_clone && get_package_git_version && nek5k_build
 }

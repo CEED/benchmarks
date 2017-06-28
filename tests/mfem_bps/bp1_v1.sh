@@ -1,4 +1,19 @@
-# This file is part of CEED. For more details, see exascaleproject.org.
+# Copyright (c) 2017, Lawrence Livermore National Security, LLC. Produced at
+# the Lawrence Livermore National Laboratory. LLNL-CODE-XXXXXX. All Rights
+# reserved. See file LICENSE for details.
+#
+# This file is part of CEED, a collection of benchmarks, miniapps, software
+# libraries and APIs for efficient high-order finite element and spectral
+# element discretizations for exascale applications. For more information and
+# source code availability see http://github.com/ceed.
+#
+# The CEED research is supported by the Exascale Computing Project
+# (17-SC-20-SC), a collaborative effort of two U.S. Department of Energy
+# organizations (Office of Science and the National Nuclear Security
+# Administration) responsible for the planning and preparation of a capable
+# exascale ecosystem, including software, applications, hardware, advanced
+# system engineering and early testbed platforms, in support of the nation's
+# exascale computing imperative.
 
 
 function build_tests()
@@ -6,7 +21,13 @@ function build_tests()
    local num_tests="${#sol_p_list[@]}"
    local test_id= sol_p_lst= ir_order_lst= exe_sfx_lst=" " exe_lst=
    for test_id; do
-      set_test_params $test_id || continue
+      local sft= need_to_build=0
+      for ((sft = mesh_s_reduction_base;
+            sft <= mesh_s_reduction_limit; sft++ )); do
+         (( mesh_s_shift = -sft ))
+         set_test_params $test_id && { need_to_build=1; break; }
+      done
+      (( need_to_build == 0 )) && continue
       # check if suffix is already in the list
       if [[ -n "${exe_sfx_lst##* $suffix *}" ]]; then
          sol_p_lst+=" $sol_p"
@@ -27,13 +48,22 @@ function build_tests()
    esac
    local make_extra=("geom=$geom" "mesh_p=$mesh_p" "sol_p=${sol_p_lst:1}")
    make_extra=("${make_extra[@]}" "problem=$problem")
+   if (( vdim > 1 )); then
+      make_extra=("${make_extra[@]}" "vdim=$vdim")
+      if [[ "$vec_layout" = "Ordering::byNODES" ]]; then
+         make_extra=("${make_extra[@]}" "vec_layout=Ordering::byNODES")
+      else
+         make_extra=("${make_extra[@]}" "vec_layout=Ordering::byVDIM")
+      fi
+   fi
    make_extra=("${make_extra[@]}" "use_mpi_wtime=$use_mpi_wtime")
    make_extra=("${make_extra[@]}" "ir_order=${ir_order_lst:1}")
    make_extra=("${make_extra[@]}" "exe_suffix=${exe_sfx_lst:1}")
    make_extra=("${make_extra[@]}" "EXTRA_CXXFLAGS=$TEST_EXTRA_CFLAGS")
    make_extra=("${make_extra[@]}" "MFEM_DIR=$MFEM_DIR")
    make_extra=("${make_extra[@]}" "BLD=$test_exe_dir/")
-   $dry_run make -j $num_proc_build $test_name "${make_extra[@]}" || exit 1
+   quoted_echo make -j $num_proc_build $test_name "${make_extra[@]}"
+   [[ -n "$dry_run" ]] || make -j $num_proc_build $test_name "${make_extra[@]}"
 }
 
 
@@ -106,12 +136,15 @@ test_name=bp1_v1
 problem=${problem:-1}
 geom=Geometry::CUBE
 mesh_p=1
+vdim=${vdim:-1}
+vec_layout=${vec_layout:-}
 # test id:     0   1   2   3   4   5   6   7   8   9
 sol_p_list=(   1   2   3   4   5   6   7   8   1   2)
 ir_order_list=(0   0   0   0   0   0   0   0   3   5)
 mesh_s_list=( 15  15  16  15  14  13  13  12  15  15)
 par_ref_list=( 2   1   0   0   0   0   0   0   2   1) # set below
 enabled_tests="0   1   2   3   4   5   6   7   8   9"
+# enabled_tests="1   2   3   4   5   6   7   8"   # for bp3 on vulcan + xlc
 # enabled_tests="0"
 ser_ref=0
 mesh_s_reduction_base=0     # used in run_tests_if_enabled()
@@ -190,6 +223,11 @@ function set_test_params()
    suffix=_${geom#Geometry::}_p${sol_p}_m${mesh_p}
    (( ir_order != 0 )) && suffix+="_i${ir_order}"
    (( problem != 0 )) && suffix="_Mass$suffix"
+   (( vdim != 1 )) && {
+      [[ "$vec_layout" = "Ordering::byNODES" ]] && \
+         suffix="_VN$suffix" || \
+         suffix="_VV$suffix"
+   }
    split3_power2 mesh_nxyz $mesh_s
    make_mesh_file
    mesh_opt="-m $mesh_file"
@@ -221,7 +259,7 @@ function build_and_run_tests()
 $dry_run cd "$test_dir"
 configure_tests || return 1
 
-build_tests $enabled_tests
+build_tests $enabled_tests || return 1
 echo
 
 $dry_run cd "$test_exe_dir"

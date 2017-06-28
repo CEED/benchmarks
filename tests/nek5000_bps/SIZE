@@ -1,9 +1,25 @@
+C Copyright (c) 2017, Lawrence Livermore National Security, LLC. Produced at
+C the Lawrence Livermore National Laboratory. LLNL-CODE-XXXXXX. All Rights
+C reserved. See file LICENSE for details.
+C
+C This file is part of CEED, a collection of benchmarks, miniapps, software
+C libraries and APIs for efficient high-order finite element and spectral
+C element discretizations for exascale applications. For more information and
+C source code availability see http://github.com/ceed.
+C
+C The CEED research is supported by the Exascale Computing Project (17-SC-20-SC)
+C a collaborative effort of two U.S. Department of Energy organizations (Office
+C of Science and the National Nuclear Security Administration) responsible for
+C the planning and preparation of a capable exascale ecosystem, including
+C software, applications, hardware, advanced system engineering and early
+C testbed platforms, in support of the nation’s exascale computing imperative.
+
 C     Dimension file to be included
 C
 C     HCUBE array dimensions
 C
       parameter (lx1=1)
-      parameter (lelg = 2 200 000, lelt=2048)
+      parameter (lelg = 2 100 000, lelt=2048)
 
       parameter (ldim=3)
       parameter (lp=32)

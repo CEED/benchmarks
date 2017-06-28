@@ -1,4 +1,3 @@
-
 ## Running the scripts
 
 Example:
@@ -14,7 +13,7 @@ Multiple processor configuration can be run with:
 ../../go.sh -c linux -m gcc -r bp1_v1.sh -n "16 32 64" -p "16 32 64"
 ```
 
-## Postprocessing the results
+## Post-processing the results
 
 First, save the output of the run to a file:
 ```sh

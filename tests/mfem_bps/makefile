@@ -1,4 +1,19 @@
-# This file is part of CEED. For more details, see exascaleproject.org.
+# Copyright (c) 2017, Lawrence Livermore National Security, LLC. Produced at
+# the Lawrence Livermore National Laboratory. LLNL-CODE-XXXXXX. All Rights
+# reserved. See file LICENSE for details.
+#
+# This file is part of CEED, a collection of benchmarks, miniapps, software
+# libraries and APIs for efficient high-order finite element and spectral
+# element discretizations for exascale applications. For more information and
+# source code availability see http://github.com/ceed.
+#
+# The CEED research is supported by the Exascale Computing Project
+# (17-SC-20-SC), a collaborative effort of two U.S. Department of Energy
+# organizations (Office of Science and the National Nuclear Security
+# Administration) responsible for the planning and preparation of a capable
+# exascale ecosystem, including software, applications, hardware, advanced
+# system engineering and early testbed platforms, in support of the nation's
+# exascale computing imperative.
 
 # Use the MFEM build directory
 MFEM_DIR = ../../mfem
@@ -39,6 +54,8 @@ all: $(BPS)
 bp1_v1_DEF := $(if $(problem),-DPROBLEM=$(problem),)
 bp1_v1_DEF += $(if $(geom),-DGEOM=$(geom),)
 bp1_v1_DEF += $(if $(mesh_p),-DMESH_P=$(mesh_p),)
+bp1_v1_DEF += $(if $(vdim),-DVDIM=$(vdim),)
+bp1_v1_DEF += $(if $(vec_layout),-DVEC_LAYOUT=$(vec_layout),)
 bp1_v1_DEF += $(if $(use_mpi_wtime),-DUSE_MPI_WTIME,)
 bp1_v1_DEF := $(strip $(bp1_v1_DEF))
 define make_bp1_v1_rule

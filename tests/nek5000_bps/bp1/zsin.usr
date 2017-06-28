@@ -1,3 +1,19 @@
+C Copyright (c) 2017, Lawrence Livermore National Security, LLC. Produced at
+C the Lawrence Livermore National Laboratory. LLNL-CODE-XXXXXX. All Rights
+C reserved. See file LICENSE for details.
+C
+C This file is part of CEED, a collection of benchmarks, miniapps, software
+C libraries and APIs for efficient high-order finite element and spectral
+C element discretizations for exascale applications. For more information and
+C source code availability see http://github.com/ceed.
+C
+C The CEED research is supported by the Exascale Computing Project (17-SC-20-SC)
+C a collaborative effort of two U.S. Department of Energy organizations (Office
+C of Science and the National Nuclear Security Administration) responsible for
+C the planning and preparation of a capable exascale ecosystem, including
+C software, applications, hardware, advanced system engineering and early
+C testbed platforms, in support of the nation’s exascale computing imperative.
+
 C-----------------------------------------------------------------------
       subroutine uservp(ix,iy,iz,eg) ! set variable properties
       include 'SIZE'
@@ -641,7 +657,7 @@ c-----------------------------------------------------------------------
       real w(lxyz),u(lxyz),g(lg,lxyz),h1(lxyz),h2(lxyz),b(lxyz)
       real ju(lxyz),us(lxyz),ut(lxyz)
 
-      nxq = nx1+2 ! Number of quadrature points
+      nxq = nx1+1 ! Number of quadrature points
 
       lxyzq = nxq**ldim
 
@@ -679,7 +695,7 @@ c     Helmholtz equations
 
       pap=0
 
-      nxq = nx1+2
+      nxq = nx1+1
 
       k=1
       do e=1,nelt
@@ -725,7 +741,7 @@ c     Helmholtz equations
       pap(3)=0
 
       k=1
-      nxq = nx1+2
+      nxq = nx1+1
 
       do e=1,nelt
 
@@ -973,7 +989,7 @@ c     call dsavg(e1)
       call copy       (e3,e1,n)
       call xmask      (e1,e2,e3,nelt)
 
-      nxq = nx1+2
+      nxq = nx1+1
       call set_h2_as_rhoJac_GL (h2,nxq)
       call copy                (h1,e1,n)  ! Save exact soln in h1
 

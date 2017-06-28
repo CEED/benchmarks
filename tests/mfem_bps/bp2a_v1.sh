@@ -7,7 +7,7 @@
 # element discretizations for exascale applications. For more information and
 # source code availability see http://github.com/ceed.
 #
-# The CEED research is supported by the Exascale Computing Project
+# The CEED research was supported by the Exascale Computing Project
 # (17-SC-20-SC), a collaborative effort of two U.S. Department of Energy
 # organizations (Office of Science and the National Nuclear Security
 # Administration) responsible for the planning and preparation of a capable
@@ -22,5 +22,8 @@ if [[ -z "$root_dir" ]]; then
 fi
 
 # problem: 0 - diffusion, 1 - mass
-problem=0
+problem=1
+vdim=3
+# Ordering::byVDIM or Ordering::byNODES
+vec_layout="Ordering::byVDIM"
 source ${root_dir}/tests/mfem_bps/bp1_v1.sh
