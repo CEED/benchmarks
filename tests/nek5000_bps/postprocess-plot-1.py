@@ -5,7 +5,8 @@ execfile('postprocess-base.py')
 
 #####   Sample plot output
 
-
+import matplotlib
+matplotlib.use('Agg')
 from pylab import *
 
 rcParams['font.sans-serif'].insert(0,'Noto Sans')
@@ -143,7 +144,7 @@ for plt in pl_set:
    ylabel('[DOFs x CG iterations] / [compute nodes x seconds]')
    legend(ncol=2, loc='best')
 
-   # savefig('test_%s_%s_N%03i.pdf'%(test_short,config_short,num_nodes),
-   #         format='pdf', bbox_inches='tight')
+   savefig('test_%s_%s_N%03i.pdf'%(test_short,config_short,num_nodes),
+           format='pdf', bbox_inches='tight')
 
 show()
