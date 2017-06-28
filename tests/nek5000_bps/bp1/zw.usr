@@ -12,7 +12,7 @@ C a collaborative effort of two U.S. Department of Energy organizations (Office
 C of Science and the National Nuclear Security Administration) responsible for
 C the planning and preparation of a capable exascale ecosystem, including
 C software, applications, hardware, advanced system engineering and early
-C testbed platforms, in support of the nation’s exascale computing imperative.
+C testbed platforms, in support of the nation's exascale computing imperative.
 
 C-----------------------------------------------------------------------
       subroutine uservp(ix,iy,iz,eg) ! set variable properties
