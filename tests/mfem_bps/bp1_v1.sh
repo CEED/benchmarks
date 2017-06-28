@@ -150,6 +150,7 @@ ser_ref=0
 mesh_s_reduction_base=0     # used in run_tests_if_enabled()
 mesh_s_reduction_limit=30   # used in run_tests_if_enabled()
 mesh_s_max=29 # s=30 causes overflow in number of faces/edges
+max_approx_dofs=$((3*(2**20)*num_nodes))
 use_mpi_wtime=yes # leave empty for 'no'
 rebuild_tests=no
 
@@ -206,6 +207,11 @@ function set_test_params()
    fi
    if (( mesh_s + 3*(ser_ref+par_ref) > mesh_s_max )); then
       # too many elements
+      return 1
+   fi
+   local approx_dofs=$(( 2**(mesh_s+3*(ser_ref+par_ref))*(sol_p**3)*vdim ))
+   if (( approx_dofs > max_approx_dofs )); then
+      # too many dofs
       return 1
    fi
    # adjust mesh_s as needed:
