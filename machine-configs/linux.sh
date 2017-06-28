@@ -69,7 +69,7 @@ function setup_intel()
    FFLAGS="$CFLAGS"
 
    # The following options assume GCC:
-   TEST_EXTRA_CFLAGS="-march=native --param max-completely-peel-times=3"
+   # TEST_EXTRA_CFLAGS="-march=native --param max-completely-peel-times=3"
    # "-std=c++11 -pedantic -Wall -fdump-tree-optimized-blocks"
 }
 
