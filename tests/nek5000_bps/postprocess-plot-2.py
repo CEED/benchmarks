@@ -20,7 +20,8 @@ execfile('postprocess-base.py')
 
 #####   Sample plot output
 
-
+import matplotlib
+matplotlib.use('Agg')
 from pylab import *
 
 rcParams['font.sans-serif'].insert(0,'Noto Sans')
@@ -67,6 +68,9 @@ pl_set=[(run['compiler'],run['num-procs'],run['num-procs-node'])
 pl_set=sorted(set(pl_set))
 print
 pprint.pprint(pl_set)
+
+codes = list(set([run['code'] for run in sel_runs]))
+code  = codes[0]
 
 for plt in pl_set:
    compiler=plt[0]
@@ -145,8 +149,8 @@ for plt in pl_set:
    plot(y/slope1,y,'k--',label='%g iter/s'%slope1)
    plot(y/slope2,y,'k-',label='%g iter/s'%slope2)
 
-   title('Config: %s (%i node%s, %i tasks/node), %s, %s, %s'%(
-         config_short,num_nodes,'' if num_nodes==1 else 's',
+   title('Config: %s %s (%i node%s, %i tasks/node), %s, %s, %s'%(
+         code,config_short,num_nodes,'' if num_nodes==1 else 's',
          num_procs_node,compiler,test_short,
          'PA' if action_type=='matrix-free' else 'TA'))
    xscale('log') # subsx=[2,4,6,8]
@@ -162,8 +166,8 @@ for plt in pl_set:
    ylabel('[DOFs x CG iterations] / [compute nodes x seconds]')
    legend(ncol=2, loc='best')
 
-   # savefig('test_%s_%s_%s_N%03i_pn%i.pdf'%(
-   #         test_short,config_short,compiler,num_nodes,num_procs_node),
-   #         format='pdf', bbox_inches='tight')
+   savefig('%s_%s_%s_%s_N%03i_pn%i.pdf'%(
+           code,test_short,config_short,compiler,num_nodes,num_procs_node),
+           format='pdf', bbox_inches='tight')
 
 show()

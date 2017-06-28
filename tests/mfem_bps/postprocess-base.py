@@ -85,6 +85,7 @@ while True:
          data['num-procs']=num_procs
          data['num-procs-node']=num_procs_node
          data['mesh-order']=mesh_p
+         data['code']="MFEM"
          # out.write('\n'+lnfmt%i+': %s'%line)
          # out.write('*'*len(lnfmt%i)+':    --mesh-p %i\n'%mesh_p)
          state=2
