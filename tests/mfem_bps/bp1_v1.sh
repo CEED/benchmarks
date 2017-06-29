@@ -143,9 +143,10 @@ sol_p_list=(   1   2   3   4   5   6   7   8   1   2)
 ir_order_list=(0   0   0   0   0   0   0   0   3   5)
 mesh_s_list=( 15  15  16  15  14  13  13  12  15  15)
 par_ref_list=( 2   1   0   0   0   0   0   0   2   1) # set below
-enabled_tests="0   1   2   3   4   5   6   7   8   9"
-# enabled_tests="1   2   3   4   5   6   7   8"   # for bp3 on vulcan + xlc
-# enabled_tests="0"
+enabled_tests_def="0   1   2   3   4   5   6   7   8   9"
+# enabled_tests_def="1   2   3   4   5   6   7   8"   # for bp3 on vulcan + xlc
+# enabled_tests_def="0"
+enabled_tests="${enabled_tests:-$enabled_tests_def}"
 ser_ref=0
 mesh_s_reduction_base=0     # used in run_tests_if_enabled()
 mesh_s_reduction_limit=30   # used in run_tests_if_enabled()
@@ -265,8 +266,11 @@ function build_and_run_tests()
 $dry_run cd "$test_dir"
 configure_tests || return 1
 
+echo "Enabled tests: $enabled_tests"
 build_tests $enabled_tests || return 1
 echo
+
+[[ -n "$build_only" ]] && return
 
 $dry_run cd "$test_exe_dir"
 args_list=('-perf -mf')
