@@ -49,6 +49,11 @@ function configure_tests()
      ((max_points=2*max_points))
      ((n=n/2))
   done
+
+  # Make sure that we do not exceed 2^21 limit
+  if [[ "$max_elem" -gt 21 ]]; then
+    max_elem=21
+  fi
 }
 
 function set_max_elem_order()
@@ -56,7 +61,7 @@ function set_max_elem_order()
   max_elem_order="$min_elem"
   local pp1="$1" s=
   for ((s = min_elem; s <= max_elem; s++)); do
-    local npts=$(( 2**s * (pp1-1)**3 ))
+    local npts=$(( 2**s * (pp1)**3 ))
     (( npts > max_points )) && break
     max_elem_order="$s"
   done
