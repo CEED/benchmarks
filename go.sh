@@ -83,6 +83,7 @@ Options:
    -s|--shell               execute bash shell commands before running the test
    -v|--verbose             print additional messages
    -x                       enable script tracing with 'set -x'
+   var=value                define shell variables; evaluated with 'eval'
 
 This script builds and/or runs a set of tests using specified configuration
 and compiler.
@@ -503,6 +504,9 @@ case "$1" in
       ;;
    -x)
       set -x
+      ;;
+   *=*)
+      eval "$1" || { echo "Error evaluating argument: $1"; $exit_cmd 1; }
       ;;
    *)
       echo "Unknown option: '$1'"
