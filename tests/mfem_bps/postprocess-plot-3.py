@@ -22,8 +22,6 @@ execfile('postprocess-base.py')
 
 #####   Sample plot output
 
-import matplotlib
-matplotlib.use('Agg')
 from pylab import *
 
 rcParams['font.sans-serif'].insert(0,'Noto Sans')
@@ -69,6 +67,10 @@ if 'case' in sel_runs[0]:
    case=cases[0]
    print 'Using case:', case
    sel_runs=[run for run in sel_runs if run['case']==case]
+
+codes = list(set([run['code'] for run in sel_runs]))
+code  = codes[0]
+sel_runs=[run for run in sel_runs if run['code']==code]
 
 pl_set=[(run['order'],
          run['quadrature-pts'],
@@ -141,8 +143,10 @@ for plt in pl_set:
    ylabel('[DOFs x CG iterations] / [compute nodes x seconds]')
    legend(ncol=2, loc='best')
 
-   savefig('test_%s_%s_N%03i_p%i_q%i.pdf'%(test_short,config_short,
-           num_nodes,sol_p,sol_p+(1 if qpts==(sol_p+1)**3 else 2)),
-           format='pdf', bbox_inches='tight')
+   if 1: # write .pdf file?
+      savefig('plot3_%s_%s_%s_N%03i_p%i_q%i.pdf'%(code,test_short,config_short,
+              num_nodes,sol_p,int(qpts**(1./3)+0.5)),
+              format='pdf', bbox_inches='tight')
 
-show()
+if 1: # show the figures?
+   show()

@@ -7,12 +7,14 @@
 # element discretizations for exascale applications. For more information and
 # source code availability see http://github.com/ceed.
 #
-# The CEED research is supported by the Exascale Computing Project (17-SC-20-SC)
-# a collaborative effort of two U.S. Department of Energy organizations (Office
-# of Science and the National Nuclear Security Administration) responsible for
-# the planning and preparation of a capable exascale ecosystem, including
-# software, applications, hardware, advanced system engineering and early
-# testbed platforms, in support of the nation's exascale computing imperative.
+# The CEED research is supported by the Exascale Computing Project
+# (17-SC-20-SC), a collaborative effort of two U.S. Department of Energy
+# organizations (Office of Science and the National Nuclear Security
+# Administration) responsible for the planning and preparation of a capable
+# exascale ecosystem, including software, applications, hardware, advanced
+# system engineering and early testbed platforms, in support of the nation's
+# exascale computing imperative.
+
 
 #####   Load the data
 execfile('postprocess-base.py')
@@ -20,8 +22,6 @@ execfile('postprocess-base.py')
 
 #####   Sample plot output
 
-import matplotlib
-matplotlib.use('Agg')
 from pylab import *
 
 rcParams['font.sans-serif'].insert(0,'Noto Sans')
@@ -63,14 +63,15 @@ if 'case' in sel_runs[0]:
    print 'Using case:', case
    sel_runs=[run for run in sel_runs if run['case']==case]
 
+codes = list(set([run['code'] for run in sel_runs]))
+code  = codes[0]
+sel_runs=[run for run in sel_runs if run['code']==code]
+
 pl_set=[(run['compiler'],run['num-procs'],run['num-procs-node'])
         for run in sel_runs]
 pl_set=sorted(set(pl_set))
 print
 pprint.pprint(pl_set)
-
-codes = list(set([run['code'] for run in sel_runs]))
-code  = codes[0]
 
 for plt in pl_set:
    compiler=plt[0]
@@ -166,8 +167,10 @@ for plt in pl_set:
    ylabel('[DOFs x CG iterations] / [compute nodes x seconds]')
    legend(ncol=2, loc='best')
 
-   savefig('%s_%s_%s_%s_N%03i_pn%i.pdf'%(
-           code,test_short,config_short,compiler,num_nodes,num_procs_node),
-           format='pdf', bbox_inches='tight')
+   if 1: # write .pdf file?
+      savefig('plot2_%s_%s_%s_%s_N%03i_pn%i.pdf'%(
+              code,test_short,config_short,compiler,num_nodes,num_procs_node),
+              format='pdf', bbox_inches='tight')
 
-show()
+if 1: # show the figures?
+   show()
