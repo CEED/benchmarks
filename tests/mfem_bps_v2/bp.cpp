@@ -12,7 +12,7 @@ using namespace mfem;
 #define SOL_P 3
 #endif
 #ifndef IR_ORDER
-#define IR_ORDER 2*(SOL_P+3)-1
+#define IR_ORDER 2*(SOL_P+2)-1
 #endif
 
 // Define template parameters for optimized build.
@@ -45,9 +45,9 @@ typedef TIntegrator<coeff_t,TDiffusionKernel> diffusion_integ_t;
 #if PROBLEM == 1
 typedef TBilinearForm<mesh_t,sol_fes_t,int_rule_t,mass_integ_t,scal_layout_t> HPCBilinearForm;
 #elif PROBLEM == 2
-typedef TBilinearForm<mesh_t,sol_fes_t,int_rule_t,diffusion_integ_t,scal_layout_t> HPCBilinearForm;
-#elif PROBLEM == 3
 typedef TBilinearForm<mesh_t,sol_fes_t,int_rule_t,mass_integ_t,vec_layout_t> HPCBilinearForm;
+#elif PROBLEM == 3
+typedef TBilinearForm<mesh_t,sol_fes_t,int_rule_t,diffusion_integ_t,scal_layout_t> HPCBilinearForm;
 #elif PROBLEM == 4
 typedef TBilinearForm<mesh_t,sol_fes_t,int_rule_t,diffusion_integ_t,vec_layout_t> HPCBilinearForm;
 #else
@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
    int el_per_proc_x = 4;
    int el_per_proc_y = 4;
    int el_per_proc_z = 4;
-   const bool vec = PROBLEM == 3 || PROBLEM == 4;
+   const bool vec = PROBLEM == 2 || PROBLEM == 4;
 
    OptionsParser args(argc, argv);
    args.AddOption(&order, "-o", "--order",
@@ -248,7 +248,7 @@ int main(int argc, char *argv[])
    if (pmesh->bdr_attributes.Size())
    {
       Array<int> ess_bdr(pmesh->bdr_attributes.Max());
-      ess_bdr = 0;
+      ess_bdr = 1;
       fespace->GetEssentialTrueDofs(ess_bdr, ess_tdof_list);
    }
 
@@ -257,7 +257,7 @@ int main(int argc, char *argv[])
    ParGridFunction x0(fespace), x(fespace), b(fespace), ones(fespace);
    ones = 1.0;
    x0.Randomize();
-#if PROBLEM == 2
+#if PROBLEM == 3
    x0 -= (x0 * ones) / x0.Size();
 #elif PROBLEM == 4
    for (int d=0; d<dim; ++d)
@@ -303,9 +303,9 @@ int main(int argc, char *argv[])
 
    // High-performance assembly/evaluation using the templated operator type
    Operator *a = NULL;
-#if PROBLEM == 1 || PROBLEM == 3
+#if PROBLEM == 1 || PROBLEM == 2
    a = new HPCBilinearForm(mass_integ_t(coeff_t(1.0)), *fespace);
-#else
+#elif PROBLEM == 3 || PROBLEM == 4
    a = new HPCBilinearForm(diffusion_integ_t(coeff_t(1.0)), *fespace);
 #endif
    ((HPCBilinearForm*) a)->Assemble();
@@ -356,9 +356,9 @@ int main(int argc, char *argv[])
 #if PROBLEM == 1
       a_pc->AddDomainIntegrator(new MassIntegrator(one));
 #elif PROBLEM == 2
-      a_pc->AddDomainIntegrator(new DiffusionIntegrator(one));
-#elif PROBLEM == 3
       a_pc->AddDomainIntegrator(new VectorMassIntegrator(one));
+#elif PROBLEM == 3
+      a_pc->AddDomainIntegrator(new DiffusionIntegrator(one));
 #elif PROBLEM == 4
       a_pc->AddDomainIntegrator(new VectorDiffusionIntegrator(one));
 #endif
@@ -449,7 +449,7 @@ int main(int argc, char *argv[])
    // Check relative error in solution
    a->RecoverFEMSolution(X, b, x);
 #if 0
-#if PROBLEM == 2
+#if PROBLEM == 3
    x -= (x * ones) / x.Size();
 #elif PROBLEM == 4
    for (int d=0; d<dim; ++d)
