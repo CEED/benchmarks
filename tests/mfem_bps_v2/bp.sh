@@ -25,7 +25,7 @@ function build_and_run_tests()
 
    # Build test
    $dry_run cd "$test_dir"
-   local make_extra=("PROBLEM=$problem" "SOL_P=$sol_p")
+   local make_extra=("PROBLEM=$problem" "SOL_P=$sol_p" "USE_MPI_WTIME=1")
    make_extra=("${make_extra[@]}" "EXTRA_CXXFLAGS=$TEST_EXTRA_CFLAGS")
    make_extra=("${make_extra[@]}" "MFEM_DIR=$MFEM_DIR")
    make_extra=("${make_extra[@]}" "BLD=$test_exe_dir/")

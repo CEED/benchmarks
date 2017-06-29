@@ -1,3 +1,39 @@
+// Copyright (c) 2017, Lawrence Livermore National Security, LLC. Produced at
+// the Lawrence Livermore National Laboratory. LLNL-CODE-XXXXXX. All Rights
+// reserved. See file LICENSE for details.
+//
+// This file is part of CEED, a collection of benchmarks, miniapps, software
+// libraries and APIs for efficient high-order finite element and spectral
+// element discretizations for exascale applications. For more information and
+// source code availability see http://github.com/ceed.
+//
+// The CEED research is supported by the Exascale Computing Project
+// (17-SC-20-SC), a collaborative effort of two U.S. Department of Energy
+// organizations (Office of Science and the National Nuclear Security
+// Administration) responsible for the planning and preparation of a capable
+// exascale ecosystem, including software, applications, hardware, advanced
+// system engineering and early testbed platforms, in support of the nation's
+// exascale computing imperative.
+
+
+//==============================================================================
+//                  MFEM Bake-off Problems 1, 2, 3, and 4
+//                                Version 1
+//
+// Compile with: see ../../README.md
+//
+// Sample runs:  see ../../README.md
+//
+// Description:  These benchmarks (CEED Bake-off Problems BP1-4) test the
+//               performance of high-order mass and stiffness matrix operator
+//               evaluation with "partial assembly" algorithms.
+//
+//               Code is based on MFEM's HPC ex1, http://mfem.org/performance.
+//
+//               More details about CEED's bake-off problems can be found at
+//               http://ceed.exascaleproject.org/bps.
+//==============================================================================
+
 #include "mfem-performance.hpp"
 #include <fstream>
 #include <iostream>
@@ -8,20 +44,29 @@ using namespace mfem;
 #ifndef PROBLEM
 #define PROBLEM 1
 #endif
+
+#ifndef GEOM
+#define GEOM Geometry::CUBE
+#endif
+
+#ifndef MESH_P
+#define MESH_P 1
+#endif
+
 #ifndef SOL_P
 #define SOL_P 3
 #endif
+
 #ifndef IR_ORDER
 #define IR_ORDER 2*(SOL_P+2)-1
 #endif
 
 // Define template parameters for optimized build.
-const int            dim      = 3;
-const Geometry::Type geom     = Geometry::CUBE; // mesh elements  (default: hex)
-const int            mesh_p   = 1;              // mesh curvature (default: 1)
-const int            sol_p    = SOL_P;      // solution order (default: 3)
-const int            rdim     = Geometry::Constants<geom>::Dimension;
+const Geometry::Type geom     = GEOM;
+const int            mesh_p   = MESH_P;
+const int            sol_p    = SOL_P;
 const int            ir_order = IR_ORDER;
+const int            dim      = Geometry::Constants<geom>::Dimension;
 
 // Static mesh type
 typedef H1_FiniteElement<geom,mesh_p>         mesh_fe_t;
@@ -62,8 +107,10 @@ int main(int argc, char *argv[])
    MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
    MPI_Comm_rank(MPI_COMM_WORLD, &myid);
 
+   // Initialize timers
+   double my_rt_start, my_rt, rt_min, rt_max;
+
    // Parse command-line options.
-   int order = sol_p;
    const char *pc = "none";
    bool visualization = 1;
    int num_procs_x = num_procs;
@@ -75,9 +122,6 @@ int main(int argc, char *argv[])
    const bool vec = PROBLEM == 2 || PROBLEM == 4;
 
    OptionsParser args(argc, argv);
-   args.AddOption(&order, "-o", "--order",
-                  "Finite element order (polynomial degree) or -1 for"
-                  " isoparametric space.");
    args.AddOption(&pc, "-pc", "--preconditioner",
                   "Preconditioner: "
                   "lor - low-order-refined (matrix-free) AMG, "
@@ -170,10 +214,9 @@ int main(int argc, char *argv[])
        mesh->SetCurvature(mesh_p, false, dim, Ordering::byNODES);
    }
 
-   // Define a parallel mesh by a partitioning of the serial
-   // mesh. Refine this mesh further in parallel to increase the
-   // resolution. Once the parallel mesh is defined, the serial mesh
-   // can be deleted.
+   // Define a parallel mesh by a partitioning of the serial mesh.
+   // Once the parallel mesh is defined, the serial mesh can be
+   // deleted.
    if (myid == 0)
    {
       cout << "Initializing parallel mesh ..." << endl;
@@ -203,7 +246,7 @@ int main(int argc, char *argv[])
 
    // Define a parallel finite element space on the parallel mesh
    const int basis = BasisType::GaussLobatto;
-   FiniteElementCollection *fec = new H1_FECollection(order, dim, basis);
+   FiniteElementCollection *fec = new H1_FECollection(sol_p, dim, basis);
    ParFiniteElementSpace *fespace
      = new ParFiniteElementSpace(pmesh, fec,
                                  vec ? dim : 1,
@@ -218,7 +261,7 @@ int main(int argc, char *argv[])
    ParFiniteElementSpace *fespace_lor = NULL;
    if (pc_choice == LOR)
    {
-      pmesh_lor = new ParMesh(pmesh, order, basis);
+      pmesh_lor = new ParMesh(pmesh, sol_p, basis);
       fec_lor = new H1_FECollection(1, dim);
       fespace_lor
         = new ParFiniteElementSpace(pmesh_lor,
@@ -268,7 +311,7 @@ int main(int argc, char *argv[])
       {
          mean += x0(i);
       }
-      MPI_Allreduce(MPI_IN_PLACE, &mean, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+      MPI_Allreduce(MPI_IN_PLACE, &mean, 1, MPI_DOUBLE, MPI_SUM, pmesh->GetComm());
       mean /= (x0.Size() / dim);
       for (int i=d*ndofs; i<(d+1)*ndofs; ++i)
       {
@@ -290,30 +333,38 @@ int main(int argc, char *argv[])
       a_pc = new ParBilinearForm(fespace);
    }
 
-   // 13. Assemble the parallel bilinear form and the corresponding linear
-   //     system, applying any necessary transformations such as: parallel
-   //     assembly, eliminating boundary conditions, applying conforming
-   //     constraints for non-conforming AMR, static condensation, etc.
+   // High-performance assembly/evaluation using the templated operator type
+   HPCBilinearForm *a = NULL;
    if (myid == 0)
    {
-      cout << "Assembling the matrix ..." << flush;
+      cout << "Assembling the local matrix ..." << flush;
    }
+#ifdef USE_MPI_WTIME
+   my_rt_start = MPI_Wtime();
+#else
    tic_toc.Clear();
    tic_toc.Start();
-
-   // High-performance assembly/evaluation using the templated operator type
-   Operator *a = NULL;
+#endif
 #if PROBLEM == 1 || PROBLEM == 2
    a = new HPCBilinearForm(mass_integ_t(coeff_t(1.0)), *fespace);
 #elif PROBLEM == 3 || PROBLEM == 4
    a = new HPCBilinearForm(diffusion_integ_t(coeff_t(1.0)), *fespace);
 #endif
-   ((HPCBilinearForm*) a)->Assemble();
-
+   a->Assemble();
+#ifdef USE_MPI_WTIME
+   my_rt = MPI_Wtime() - my_rt_start;
+#else
    tic_toc.Stop();
+   my_rt = tic_toc.RealTime();
+#endif
+   MPI_Reduce(&my_rt, &rt_min, 1, MPI_DOUBLE, MPI_MIN, 0, pmesh->GetComm());
+   MPI_Reduce(&my_rt, &rt_max, 1, MPI_DOUBLE, MPI_MAX, 0, pmesh->GetComm());
    if (myid == 0)
    {
-      cout << " done, " << tic_toc.RealTime() << "s." << endl;
+      cout << " done, " << rt_max << " (" << rt_min << ") s." << endl;
+      cout << "\n\"DOFs/sec\" in local assembly: "
+           << 1e-6*size/rt_max << " ("
+           << 1e-6*size/rt_min << ") million.\n" << endl;
    }
 
    // Apply operator matrix
@@ -321,23 +372,58 @@ int main(int argc, char *argv[])
    {
       cout << "Applying the matrix ..." << flush;
    }
+#ifdef USE_MPI_WTIME
+   my_rt_start = MPI_Wtime();
+#else
    tic_toc.Clear();
    tic_toc.Start();
+#endif
    a->Mult(x, b);
+#ifdef USE_MPI_WTIME
+   my_rt = MPI_Wtime() - my_rt_start;
+#else
    tic_toc.Stop();
+   my_rt = tic_toc.RealTime();
+#endif
+   MPI_Reduce(&my_rt, &rt_min, 1, MPI_DOUBLE, MPI_MIN, 0, pmesh->GetComm());
+   MPI_Reduce(&my_rt, &rt_max, 1, MPI_DOUBLE, MPI_MAX, 0, pmesh->GetComm());
    if (myid == 0)
    {
-      cout << " done, " << tic_toc.RealTime() << "s." << endl;
+      cout << " done, " << rt_max << " (" << rt_min << ") s." << endl;
+      cout << "\n\"DOFs/sec\" in matrix multiplication: "
+           << 1e-6*size/rt_max << " ("
+           << 1e-6*size/rt_min << ") million.\n" << endl;
    }
    x = 0.0;
 
-   Operator *a_oper = NULL;
-   Vector B, X;
-   a->FormLinearSystem(ess_tdof_list, x, b, a_oper, X, B);
-   HYPRE_Int glob_size = fespace->GlobalTrueVSize();
    if (myid == 0)
    {
-       cout << "Size of linear system: " << glob_size << endl;
+      cout << "FormLinearSystem() ..." << flush;
+   }
+   Operator *a_oper = NULL;
+   Vector B, X;
+#ifdef USE_MPI_WTIME
+   my_rt_start = MPI_Wtime();
+#else
+   tic_toc.Clear();
+   tic_toc.Start();
+#endif
+   a->FormLinearSystem(ess_tdof_list, x, b, a_oper, X, B);
+#ifdef USE_MPI_WTIME
+   my_rt = MPI_Wtime() - my_rt_start;
+#else
+   tic_toc.Stop();
+   double rt_min, rt_max, my_rt;
+   my_rt = tic_toc.RealTime();
+#endif
+   MPI_Reduce(&my_rt, &rt_min, 1, MPI_DOUBLE, MPI_MIN, 0, pmesh->GetComm());
+   MPI_Reduce(&my_rt, &rt_max, 1, MPI_DOUBLE, MPI_MAX, 0, pmesh->GetComm());
+   if (myid == 0)
+   {
+      cout << " done, " << rt_max << " (" << rt_min << ") s." << endl;
+      cout << "\n\"DOFs/sec\" in FormLinearSystem(): "
+           << 1e-6*size/rt_max << " ("
+           << 1e-6*size/rt_min << ") million.\n" << endl;
    }
 
    // Setup the matrix used for preconditioning
@@ -345,8 +431,12 @@ int main(int argc, char *argv[])
    {
       cout << "Assembling the preconditioning matrix ..." << flush;
    }
+#ifdef USE_MPI_WTIME
+   my_rt_start = MPI_Wtime();
+#else
    tic_toc.Clear();
    tic_toc.Start();
+#endif
 
    HypreParMatrix *A_pc = NULL;
    if (pc_choice == LOR)
@@ -403,15 +493,22 @@ int main(int argc, char *argv[])
       delete[] I;
       delete[] J;
    }
+#ifdef USE_MPI_WTIME
+   my_rt = MPI_Wtime() - my_rt_start;
+#else
    tic_toc.Stop();
+   my_rt = tic_toc.RealTime();
+#endif
+   MPI_Reduce(&my_rt, &rt_min, 1, MPI_DOUBLE, MPI_MIN, 0, pmesh->GetComm());
+   MPI_Reduce(&my_rt, &rt_max, 1, MPI_DOUBLE, MPI_MAX, 0, pmesh->GetComm());
    if (myid == 0)
    {
-      cout << " done, " << tic_toc.RealTime() << "s." << endl;
+      cout << " done, " << rt_max << "s." << endl;
    }
 
    // Solve with CG or PCG, depending if the matrix A_pc is available
    CGSolver *pcg;
-   pcg = new CGSolver(MPI_COMM_WORLD);
+   pcg = new CGSolver(pmesh->GetComm());
    pcg->SetRelTol(1e-6);
    pcg->SetMaxIter(1000);
    pcg->SetPrintLevel(1);
@@ -429,21 +526,38 @@ int main(int argc, char *argv[])
       pcg->SetPreconditioner(*pc_oper);
    }
 
+#ifdef USE_MPI_WTIME
+   my_rt_start = MPI_Wtime();
+#else
    tic_toc.Clear();
    tic_toc.Start();
+#endif
 
    pcg->Mult(B, X);
 
+#ifdef USE_MPI_WTIME
+   my_rt = MPI_Wtime() - my_rt_start;
+#else
    tic_toc.Stop();
+   my_rt = tic_toc.RealTime();
+#endif
    delete pc_oper;
 
+   MPI_Reduce(&my_rt, &rt_min, 1, MPI_DOUBLE, MPI_MIN, 0, pmesh->GetComm());
+   MPI_Reduce(&my_rt, &rt_max, 1, MPI_DOUBLE, MPI_MAX, 0, pmesh->GetComm());
    if (myid == 0)
    {
       // Note: In the pcg algorithm, the number of operator Mult() calls is
       //       N_iter and the number of preconditioner Mult() calls is N_iter+1.
-      cout << "Time in CG: " << tic_toc.RealTime() << "s." << endl;
+      cout << "Total CG time:    " << rt_max << " (" << rt_min << ") sec."
+           << endl;
       cout << "Time per CG step: "
-           << tic_toc.RealTime() / pcg->GetNumIterations() << "s." << endl;
+           << rt_max / pcg->GetNumIterations() << " ("
+           << rt_min / pcg->GetNumIterations() << ") sec." << endl;
+      cout << "\n\"DOFs/sec\" in CG: "
+           << 1e-6*size*pcg->GetNumIterations()/rt_max << " ("
+           << 1e-6*size*pcg->GetNumIterations()/rt_min << ") million.\n"
+           << endl;
    }
 
    // Check relative error in solution
@@ -460,7 +574,7 @@ int main(int argc, char *argv[])
       {
          mean += x(i);
       }
-      MPI_Allreduce(MPI_IN_PLACE, &mean, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+      MPI_Allreduce(MPI_IN_PLACE, &mean, 1, MPI_DOUBLE, MPI_SUM, pmesh->GetComm());
       mean /= (x.Size() / dim);
       for (int i=d*ndofs; i<(d+1)*ndofs; ++i)
       {
@@ -478,7 +592,7 @@ int main(int argc, char *argv[])
    }
 #endif
 
-   // 17. Send the solution by socket to a GLVis server.
+   // Send the solution by socket to a GLVis server.
    if (visualization)
    {
       char vishost[] = "localhost";
@@ -490,7 +604,7 @@ int main(int argc, char *argv[])
       sol_sock << "keys maaAcvvv" << endl;
    }
 
-   // 18. Free the used memory.
+   // Free the used memory.
    delete a;
    if (A_pc) { delete A_pc; }
    if (a_pc) { delete a_pc; }

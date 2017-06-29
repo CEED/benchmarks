@@ -19,6 +19,7 @@
 PROBLEM = 1
 SOL_P = 3
 IR_ORDER =
+USE_MPI_WTIME =
 
 # Use the MFEM build directory
 MFEM_DIR = ../../mfem
@@ -55,7 +56,7 @@ $(BLD)%: $(SRC)%.cpp $(MFEM_LIB_FILE) $(CONFIG_MK)
 all: $(BLD)bp$(PROBLEM)_solp$(SOL_P)
 
 $(BLD)bp$(PROBLEM)_solp$(SOL_P): $(SRC)bp.cpp $(MFEM_LIB_FILE) $(CONFIG_MK)
-	$(MFEM_CXX) $(if $(PROBLEM),-DPROBLEM=$(PROBLEM)) $(if $(SOL_P),-DSOL_P=$(SOL_P)) $(if $(IR_ORDER),-DIR_ORDER=$(IR_ORDER)) $(MFEM_FLAGS) $< -o $@ $(MFEM_LIBS)
+	$(MFEM_CXX) $(if $(PROBLEM),-DPROBLEM=$(PROBLEM)) $(if $(SOL_P),-DSOL_P=$(SOL_P)) $(if $(IR_ORDER),-DIR_ORDER=$(IR_ORDER)) $(if $(USE_MPI_WTIME),-DUSE_MPI_WTIME) $(MFEM_FLAGS) $< -o $@ $(MFEM_LIBS)
 
 # Generate an error message if the MFEM library is not built and exit
 $(MFEM_LIB_FILE):
