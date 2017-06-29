@@ -15,10 +15,9 @@
 // system engineering and early testbed platforms, in support of the nation's
 // exascale computing imperative.
 
-
 //==============================================================================
 //                  MFEM Bake-off Problems 1, 2, 3, and 4
-//                                Version 1
+//                                Version 2
 //
 // Compile with: see ../../README.md
 //
@@ -455,7 +454,7 @@ int main(int argc, char *argv[])
       A_pc = new HypreParMatrix();
       a_pc->UsePrecomputedSparsity();
       a_pc->Assemble();
-      a_pc->FormSystemMatrix(ess_tdof_list, *A_pc);        
+      a_pc->FormSystemMatrix(ess_tdof_list, *A_pc);
    }
    else if (pc_choice == HO || pc_choice == JACOBI)
    {
