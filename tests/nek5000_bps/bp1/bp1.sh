@@ -94,10 +94,12 @@ function build_tests()
     fi
 
     set_max_elem_order "$i"
-
-    local lelt=$(( (2**max_elem_order)/num_proc_run ))
+    
+    local lelg=$(( 2**max_elem_order )) 
+    local lelt=$(( lelg/num_proc_run ))
     sed -e "s/lelt=[0-9]*/lelt=${lelt}/" \
         -e "s/lp=[0-9]*/lp=${num_proc_run}/" \
+        -e "s/lelg=[0-9]*/lelg=${lelgt}/" \
         $BP_ROOT/SIZE > SIZE
 
     cp $BP_ROOT/bp1/$1.usr lx$i/
