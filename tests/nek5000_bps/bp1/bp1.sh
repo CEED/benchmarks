@@ -49,6 +49,11 @@ function configure_tests()
      ((max_points=2*max_points))
      ((n=n/2))
   done
+
+  # Make sure that we do not exceed 2^21 limit
+  if [[ "$max_elem" -gt 21 ]]; then
+    max_elem=21
+  fi
 }
 
 function set_max_elem_order()
@@ -89,10 +94,12 @@ function build_tests()
     fi
 
     set_max_elem_order "$i"
-
-    local lelt=$(( (2**max_elem_order)/num_proc_run ))
+    
+    local lelg=$(( 2**max_elem_order )) 
+    local lelt=$(( lelg/num_proc_run ))
     sed -e "s/lelt=[0-9]*/lelt=${lelt}/" \
         -e "s/lp=[0-9]*/lp=${num_proc_run}/" \
+        -e "s/lelg=[0-9]*/lelg=${lelg}/" \
         $BP_ROOT/SIZE > SIZE
 
     cp $BP_ROOT/bp1/$1.usr lx$i/
