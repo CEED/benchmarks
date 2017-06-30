@@ -83,10 +83,12 @@ function setup_clang()
 
 function set_mpi_options()
 {
+   local account="${account:-ceed}"
+   local partition="${partition:-pdebug}"
    # pdebug (<= 1K nodes & <= 1h)
    # psmall (<= 1K nodes & <= 12h)
    # pbatch (> 1K nodes & <= 8K nodes & <= 12h)
-   MPIEXEC_OPTS="-A ceed -p pdebug"
+   MPIEXEC_OPTS="-A ${account} -p ${partition}"
    # MPIEXEC_OPTS="-A ceed -p psmall"
    MPIEXEC_OPTS+=" --ntasks-per-node $num_proc_node"
    if [[ "$num_proc_node" -gt "16" ]]; then
