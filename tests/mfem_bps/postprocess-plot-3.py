@@ -50,7 +50,7 @@ print 'Using configuration:', config
 config_short=config.rsplit('/',1)[-1].rsplit('.sh',1)[0]
 sel_runs=[run for run in sel_runs if run['config']==config]
 
-compilers=list(set([run['compiler'] for run in sel_runs]))
+compilers=sorted(list(set([run['compiler'] for run in sel_runs])))
 compilers=compilers[0:2]
 print 'Using compilers:', compilers
 sel_runs=[run for run in sel_runs if run['compiler'] in compilers]
@@ -97,6 +97,7 @@ for plt in pl_set:
 
    figure()
    i=0
+   compilers_fig=list(set([run['compiler'] for run in pl_runs]))
    tpn_set=sorted(set([run['num-procs-node'] for run in pl_runs]))
    for tpn in tpn_set:
       d=[[1.*run['num-unknowns']/num_nodes,
@@ -106,16 +107,22 @@ for plt in pl_set:
       if len(d)==0:
          i=i+1
          continue
-      d=[[dpn,
-          max([e[1] for e in d if e[0]==dpn and e[2]==compilers[0]]),
-          max([e[1] for e in d if e[0]==dpn and e[2]==compilers[-1]])]
-         for dpn in set([e[0] for e in d])]
+      compilers_d=sorted(list(set([e[2] for e in d])))
+      if len(compilers_d)==1:
+         d=[[dpn,
+             max([e[1] for e in d if e[0]==dpn and e[2]==compilers_d[0]])]
+            for dpn in set([e[0] for e in d])]
+      else:
+         d=[[dpn,
+             max([e[1] for e in d if e[0]==dpn and e[2]==compilers_d[0]]),
+             max([e[1] for e in d if e[0]==dpn and e[2]==compilers_d[1]])]
+            for dpn in set([e[0] for e in d])]
       d=asarray(sorted(d))
       plot(d[:,0],d[:,1],'o-',color=colors[i],
-           label='%s, %i t/n'%(compilers[0],tpn))
-      if len(compilers)==2:
+           label='%s, %i t/n'%(compilers_d[0],tpn))
+      if len(compilers_d)==2:
          plot(d[:,0],d[:,2],'d-',color=colors[i],
-              label='%s, %i t/n'%(compilers[-1],tpn))
+              label='%s, %i t/n'%(compilers_d[1],tpn))
          fill_between(d[:,0],d[:,1],d[:,2],facecolor=colors[i],alpha=0.2)
       ##
       i=i+1
@@ -144,8 +151,13 @@ for plt in pl_set:
    legend(ncol=2, loc='best')
 
    if 1: # write .pdf file?
-      pdf_file='plot3_%s_%s_%s_N%03i_p%i_q%i.pdf'%(code,test_short,config_short,
-               num_nodes,sol_p,int(qpts**(1./3)+0.5))
+      if len(compilers_fig)==1:
+         pdf_file='plot3_%s_%s_%s_%s_N%03i_p%i_q%i.pdf'%(code,test_short,
+                  config_short,compilers[0],
+                  num_nodes,sol_p,int(qpts**(1./3)+0.5))
+      else:
+         pdf_file='plot3_%s_%s_%s_N%03i_p%i_q%i.pdf'%(code,test_short,
+                  config_short,num_nodes,sol_p,int(qpts**(1./3)+0.5))
       print 'saving figure --> %s'%pdf_file
       savefig(pdf_file, format='pdf', bbox_inches='tight')
 

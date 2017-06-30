@@ -164,8 +164,12 @@ for plt in pl_set:
    legend(ncol=2, loc='best')
 
    if 1: # write .pdf file?
-      pdf_file='plot1_%s_%s_%s_N%03i.pdf'%(
-                code,test_short,config_short,num_nodes)
+      if len(compilers)==1:
+         pdf_file='plot1_%s_%s_%s_%s_N%03i.pdf'%(
+                  code,test_short,config_short,compilers[0],num_nodes)
+      else:
+         pdf_file='plot1_%s_%s_%s_N%03i.pdf'%(
+                  code,test_short,config_short,num_nodes)
       print 'saving figure --> %s'%pdf_file
       savefig(pdf_file, format='pdf', bbox_inches='tight')
 
