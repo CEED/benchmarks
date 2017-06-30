@@ -168,9 +168,11 @@ for plt in pl_set:
    legend(ncol=2, loc='best')
 
    if 1: # write .pdf file?
-      savefig('plot2_%s_%s_%s_%s_N%03i_pn%i.pdf'%(
-              code,test_short,config_short,compiler,num_nodes,num_procs_node),
-              format='pdf', bbox_inches='tight')
+      pdf_file='plot2_%s_%s_%s_%s_N%03i_pn%i.pdf'%(
+               code,test_short,config_short,compiler,num_nodes,num_procs_node)
+      print 'saving figure --> %s'%pdf_file
+      savefig(pdf_file, format='pdf', bbox_inches='tight')
 
 if 1: # show the figures?
+   print '\nshowing figures ...'
    show()

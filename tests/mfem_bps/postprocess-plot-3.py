@@ -144,9 +144,11 @@ for plt in pl_set:
    legend(ncol=2, loc='best')
 
    if 1: # write .pdf file?
-      savefig('plot3_%s_%s_%s_N%03i_p%i_q%i.pdf'%(code,test_short,config_short,
-              num_nodes,sol_p,int(qpts**(1./3)+0.5)),
-              format='pdf', bbox_inches='tight')
+      pdf_file='plot3_%s_%s_%s_N%03i_p%i_q%i.pdf'%(code,test_short,config_short,
+               num_nodes,sol_p,int(qpts**(1./3)+0.5))
+      print 'saving figure --> %s'%pdf_file
+      savefig(pdf_file, format='pdf', bbox_inches='tight')
 
 if 1: # show the figures?
+   print '\nshowing figures ...'
    show()
