@@ -38,24 +38,28 @@ colors=[cm(1.*i/(cm_size-1)) for i in range(cm_size)]
 
 # Down-select from all runs:
 sel_runs=runs
-configs=list(set([run['config'] for run in sel_runs]))
+configs=list(set([run['config'].rsplit('/',1)[-1].rsplit('.sh',1)[0]
+                  for run in sel_runs]))
 # print 'Present configurations:', configs
 config=configs[0]
 print 'Using configuration:', config
-config_short=config.rsplit('/',1)[-1].rsplit('.sh',1)[0]
-sel_runs=[run for run in sel_runs if run['config']==config]
+config_short=config
+sel_runs=[run for run in sel_runs if
+          run['config'].rsplit('/',1)[-1].rsplit('.sh',1)[0]==config]
 
 compilers=list(set([run['compiler'] for run in sel_runs]))
 compilers=compilers[0:2]
 print 'Using compilers:', compilers
 sel_runs=[run for run in sel_runs if run['compiler'] in compilers]
 
-tests=list(set([run['test'] for run in sel_runs]))
+tests=list(set([run['test'].rsplit('/',1)[-1].rsplit('.sh',1)[0]
+                for run in sel_runs]))
 # print 'Present tests:', tests
 test=tests[0]
 print 'Using test:', test
-test_short=test.rsplit('/',1)[-1].rsplit('.sh',1)[0]
-sel_runs=[run for run in sel_runs if run['test']==test]
+test_short=test
+sel_runs=[run for run in sel_runs if
+          run['test'].rsplit('/',1)[-1].rsplit('.sh',1)[0]==test]
 
 action_type=sel_runs[0]['action-type']
 print 'Using action-type:', action_type
