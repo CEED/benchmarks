@@ -95,7 +95,7 @@ while True:
          # out.write(str(e)+'\n')
          data['order']=int(e[3])
          data['assembly-dps']=0
-         data['cg-iteration-dps']=int(e[6])*int(e[8])*3/float(e[9])
+         data['cg-iteration-dps']=int(e[6])*int(e[8])/float(e[9])
          data['num-unknowns']=int(e[6])
          data['quadrature-pts']=(int(e[3])+2)**3 ##  !!! q=(p+2)^3
          data['num-elem']=int(e[5])
@@ -112,7 +112,7 @@ while True:
          # out.write(str(e)+'\n')
          data['order']=int(e[3])
          data['assembly-dps']=0
-         data['cg-iteration-dps']=3*int(e[6])*int(e[8])/float(e[9])
+         data['cg-iteration-dps']=int(e[6])*int(e[8])/float(e[9])
          data['num-unknowns']=3*int(e[6])
          data['quadrature-pts']=(int(e[3])+2)**3 ##  !!! q=(p+2)^3
          data['num-elem']=int(e[5])
