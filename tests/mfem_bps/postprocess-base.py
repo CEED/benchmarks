@@ -86,6 +86,9 @@ while True:
          data['num-procs-node']=num_procs_node
          data['mesh-order']=mesh_p
          data['code']="MFEM"
+         test_=test.rsplit('/',1)[-1]
+         data['case']='scalar' if (('bp1' in test_) or ('bp3' in test_)) \
+                      else 'vector'
          # out.write('\n'+lnfmt%i+': %s'%line)
          # out.write('*'*len(lnfmt%i)+':    --mesh-p %i\n'%mesh_p)
          state=2

@@ -69,6 +69,7 @@ sel_runs=[run for run in sel_runs if
 if 'case' in sel_runs[0]:
    cases=list(set([run['case'] for run in sel_runs]))
    case=cases[0]
+   vdim=1 if case=='scalar' else 3
    print 'Using case:', case
    sel_runs=[run for run in sel_runs if run['case']==case]
 
@@ -104,7 +105,7 @@ for plt in pl_set:
    compilers_fig=list(set([run['compiler'] for run in pl_runs]))
    tpn_set=sorted(set([run['num-procs-node'] for run in pl_runs]))
    for tpn in tpn_set:
-      d=[[1.*run['num-unknowns']/num_nodes,
+      d=[[1.*run['num-unknowns']/num_nodes/vdim,
           run['cg-iteration-dps']/num_nodes,
           run['compiler']]
          for run in pl_runs if run['num-procs-node']==tpn]
@@ -150,7 +151,7 @@ for plt in pl_set:
    grid('on', color='gray', ls='dotted')
    grid('on', axis='both', which='minor', color='gray', ls='dotted')
    gca().set_axisbelow(True)
-   xlabel('DOFs per compute node')
+   xlabel('Points per compute node')
    ylabel('[DOFs x CG iterations] / [compute nodes x seconds]')
    legend(ncol=2, loc='best')
 

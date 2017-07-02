@@ -68,6 +68,7 @@ sel_runs=[run for run in sel_runs if run['action-type']==action_type]
 if 'case' in sel_runs[0]:
    cases=list(set([run['case'] for run in sel_runs]))
    case=cases[0]
+   vdim=1 if case=='scalar' else 3
    print 'Using case:', case
    sel_runs=[run for run in sel_runs if run['case']==case]
 

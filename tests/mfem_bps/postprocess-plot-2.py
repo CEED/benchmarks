@@ -64,6 +64,7 @@ sel_runs=[run for run in sel_runs if
 if 'case' in sel_runs[0]:
    cases=list(set([run['case'] for run in sel_runs]))
    case=cases[0]
+   vdim=1 if case=='scalar' else 3
    print 'Using case:', case
    sel_runs=[run for run in sel_runs if run['case']==case]
 
@@ -104,7 +105,7 @@ for plt in pl_set:
       print 'Order: %i, quadrature points:'%sol_p, qpts
       qpts_1d=[int(q**(1./3)+0.5) for q in qpts]
 
-      d=[[run['order'],run['num-elem'],1.*run['num-unknowns']/num_nodes,
+      d=[[run['order'],run['num-elem'],1.*run['num-unknowns']/num_nodes/vdim,
           run['cg-iteration-dps']/num_nodes]
          for run in pl_runs
          if run['order']==sol_p and
@@ -128,7 +129,7 @@ for plt in pl_set:
       if len(qpts)==1:
          i=i+1
          continue
-      d=[[run['order'],run['num-elem'],1.*run['num-unknowns']/num_nodes,
+      d=[[run['order'],run['num-elem'],1.*run['num-unknowns']/num_nodes/vdim,
           run['cg-iteration-dps']/num_nodes]
          for run in pl_runs
          if run['order']==sol_p and (run['quadrature-pts']==qpts[1])]
@@ -167,7 +168,7 @@ for plt in pl_set:
    grid('on', color='gray', ls='dotted')
    grid('on', axis='both', which='minor', color='gray', ls='dotted')
    gca().set_axisbelow(True)
-   xlabel('DOFs per compute node')
+   xlabel('Points per compute node')
    ylabel('[DOFs x CG iterations] / [compute nodes x seconds]')
    legend(ncol=2, loc='best')
 
