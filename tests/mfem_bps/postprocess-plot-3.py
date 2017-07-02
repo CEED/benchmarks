@@ -133,10 +133,10 @@ for plt in pl_set:
       i=i+1
    ##
    y=asarray([3e5, 7e7])
-   slope1=600
-   slope2=6000
-   plot(y/slope1,y,'k--',label='%g iter/s'%slope1)
-   plot(y/slope2,y,'k-',label='%g iter/s'%slope2)
+   slope1=600.
+   slope2=6000.
+   plot(y/slope1,y,'k--',label='%g iter/s'%(slope1/vdim))
+   plot(y/slope2,y,'k-',label='%g iter/s'%(slope2/vdim))
 
    title('Config: %s (%i node%s), p=%i, q=%i, %s, %s'%(
          config_short,num_nodes,'' if num_nodes==1 else 's', sol_p,
