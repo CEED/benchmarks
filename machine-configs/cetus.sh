@@ -14,7 +14,7 @@
 # software, applications, hardware, advanced system engineering and early
 # testbed platforms, in support of the nation's exascale computing imperative.
 
-function setup_mpi()
+function setup_gcc()
 {
    MPICC=mpicc
    MPICXX=mpicxx
