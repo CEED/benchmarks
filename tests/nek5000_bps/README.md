@@ -84,3 +84,11 @@ python postprocess-plot-1.py run_001.txt
 Note that the `postprocess-*.py` scripts can read multiple files at a
 time just by listing them on the command line and also read the standard
 input if no files were specified on the command line.
+
+### Plotting performance comparisons
+
+The script `postprocess-plot-4.py` can be used to plot the performance ratios
+between two sets of data, e.g. vector (BP2) vs scalar (BP1). Sample usage:
+```sh
+python postprocess-plot-4.py bp1-bp2_gcc_n16.txt
+```
