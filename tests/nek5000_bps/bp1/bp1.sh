@@ -236,13 +236,8 @@ function build_and_run_tests()
   $dry_run generate_boxes || return 1
   echo 'Buiding the sin and w tests ...'
   $dry_run build_tests zsin || return 1
-#  $dry_run build_tests zsin zw || return 1
   echo 'Running the sin tests ...'
   run_tests zsin
-  # W tests are commented as there is no diskquota
-  # in vulcan to run both the tests
-#  echo 'Running the w tests ...'
-#  $dry_run run_tests zw
 }
 
 test_required_packages="nek5000"

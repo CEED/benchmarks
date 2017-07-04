@@ -14,26 +14,37 @@
 # software, applications, hardware, advanced system engineering and early
 # testbed platforms, in support of the nation's exascale computing imperative.
 
-function setup_gcc()
+function setup_mpi()
 {
-   # GCC 4.7.2
-   MPICC=mpigcc-4.7.2-fastmpi
-   MPICXX=mpig++-4.7.2-fastmpi
-   MPIF77=mpigfortran-4.7.2-fastmpi
+   MPICC=mpicc
+   MPICXX=mpicxx
+   MPIF77=mpif77
 
    CFLAGS="-O3 -mcpu=a2 -mtune=a2"
    FFLAGS="$CFLAGS"
    TEST_EXTRA_CFLAGS=""
-
    NEK5K_EXTRA_PPLIST=""
+}
+
+function set_mpi_options()
+{
+   local account="${account:-CEED_ECPAD}"
+   local queue="${queue:-default}"
+   local mode="${mode:-c32}"
+   local runtime="${runtime:-0:60:00}"
+
+   MPIEXEC_OPTS="-I --mode ${mode} -A ${account} -q ${queue}"
+   MPIEXEC_OPTS+=" -t ${runtime}"
+
+   compose_mpi_run_command
 }
 
 MFEM_EXTRA_CONFIG="MFEM_TIMER_TYPE=0"
 
 valid_compilers="gcc"
-num_proc_build=${num_proc_build:-16}
-num_proc_run=${num_proc_run:-16}
-num_proc_node=${num_proc_node:-16}
+num_proc_build=${num_proc_build:-32}
+num_proc_run=${num_proc_run:-32}
+num_proc_node=${num_proc_node:-32}
 memory_per_node=16
 node_virt_mem_lim=16
 
