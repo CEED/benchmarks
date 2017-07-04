@@ -1,5 +1,3 @@
-#!/bin/bash
-
 # Copyright (c) 2017, Lawrence Livermore National Security, LLC. Produced at
 # the Lawrence Livermore National Laboratory. LLNL-CODE-XXXXXX. All Rights
 # reserved. See file LICENSE for details.
@@ -16,12 +14,29 @@
 # software, applications, hardware, advanced system engineering and early
 # testbed platforms, in support of the nation's exascale computing imperative.
 
-#SBATCH -o out.file
-#SBATCH -e error.file
+function setup_gcc()
+{
+   # GCC 4.7.2
+   MPICC=mpigcc-4.7.2-fastmpi
+   MPICXX=mpig++-4.7.2-fastmpi
+   MPIF77=mpigfortran-4.7.2-fastmpi
 
-echo $1        >  SESSION.NAME
-echo `pwd`'/' >>  SESSION.NAME
-echo "Executing: $mpi_run ./nek5000"
-echo "In directory: $PWD"
-$mpi_run ./nek5000
-sleep 3
+   CFLAGS="-O3 -mcpu=a2 -mtune=a2"
+   FFLAGS="$CFLAGS"
+   TEST_EXTRA_CFLAGS=""
+
+   NEK5K_EXTRA_PPLIST=""
+}
+
+MFEM_EXTRA_CONFIG="MFEM_TIMER_TYPE=0"
+
+valid_compilers="gcc"
+num_proc_build=${num_proc_build:-16}
+num_proc_run=${num_proc_run:-16}
+num_proc_node=${num_proc_node:-16}
+memory_per_node=16
+node_virt_mem_lim=16
+
+# Optional (default): MPIEXEC (mpirun), MPIEXEC_OPTS (), MPIEXEC_NP (-np)
+MPIEXEC=qsub
+MPIEXEC_NP=-n
