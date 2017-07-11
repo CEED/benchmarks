@@ -36,6 +36,8 @@
 #include "mfem-performance.hpp"
 #include <fstream>
 #include <iostream>
+#include <vector>
+#include <list>
 
 using namespace std;
 using namespace mfem;
@@ -66,6 +68,7 @@ const int            mesh_p   = MESH_P;
 const int            sol_p    = SOL_P;
 const int            ir_order = IR_ORDER;
 const int            dim      = Geometry::Constants<geom>::Dimension;
+const bool           vec      = PROBLEM == 2 || PROBLEM == 4;
 
 // Static mesh type
 typedef H1_FiniteElement<geom,mesh_p>         mesh_fe_t;
@@ -98,6 +101,71 @@ typedef TBilinearForm<mesh_t,sol_fes_t,int_rule_t,diffusion_integ_t,vec_layout_t
 #error "Invalid bake-off problem."
 #endif
 
+// Naive factorization of number into roughly balanced factors
+vector<int> balanced_factorization(int number, int num_factors) {
+
+   // Return trivial factorization if possible
+   if (num_factors <= 1)
+   {
+      return vector<int>(1, number);
+   }
+   if (number == 0)
+   {
+      return vector<int>(num_factors, 0);
+   }
+   if (number == 1)
+   {
+      return vector<int>(num_factors, 1);
+   }
+   if (number == -1)
+   {
+      vector<int> f(num_factors, 1);
+      f[0] = -1;
+      return f;
+   }
+
+   // Initial list of factors
+   list<int> factors(num_factors-1, 1);
+   factors.push_back(number > 0 ? number : -number);
+
+   // Iterate algorithm until list converges
+   for(int iter = 0; iter < number; ++iter)
+   {
+
+      // Smallest and largest factors
+      int smallest = factors.front();
+      int largest = factors.back();
+
+      // Find smallest prime factor of largest factor
+      int p = 2;
+      while (largest % p != 0) { ++p; }
+
+      // Transfer prime factor from largest to smallest list entry
+      if (largest / p <= smallest) { break; }
+      else
+      {
+         factors.pop_front();
+         factors.pop_back();
+         factors.insert(lower_bound(factors.begin(),
+                                    factors.end(),
+                                    smallest * p),
+                        smallest * p);
+         factors.insert(lower_bound(factors.begin(),
+                                    factors.end(),
+                                    largest / p),
+                        largest / p);
+      }
+      
+   }
+
+   // Negate first factor is initial number is negative
+   if (number < 0) { factors.front() *= -1; }
+
+   // Return factorization
+   return vector<int>(factors.begin(), factors.end());
+
+}
+
 int main(int argc, char *argv[])
 {
    // Initialize MPI.
@@ -112,13 +180,7 @@ int main(int argc, char *argv[])
    // Parse command-line options.
    const char *pc = "none";
    bool visualization = 1;
-   int num_procs_x = num_procs;
-   int num_procs_y = 1;
-   int num_procs_z = 1;
-   int el_per_proc_x = 4;
-   int el_per_proc_y = 4;
-   int el_per_proc_z = 4;
-   const bool vec = PROBLEM == 2 || PROBLEM == 4;
+   int el_per_proc = 1;
 
    OptionsParser args(argc, argv);
    args.AddOption(&pc, "-pc", "--preconditioner",
@@ -128,21 +190,11 @@ int main(int argc, char *argv[])
                   "jacobi, "
                   "lumpedmass, "
                   "none.");
+   args.AddOption(&el_per_proc, "-e", "--num-el-per-proc",
+                  "Number of elements per MPI rank.");
    args.AddOption(&visualization, "-vis", "--visualization", "-no-vis",
                   "--no-visualization",
                   "Enable or disable GLVis visualization.");
-   args.AddOption(&num_procs_x, "-nx", "--num-procs-x",
-                  "Number of MPI ranks in x-dimension.");
-   args.AddOption(&num_procs_y, "-ny", "--num-procs-y",
-                  "Number of MPI ranks in y-dimension.");
-   args.AddOption(&num_procs_z, "-nz", "--num-procs-z",
-                  "Number of MPI ranks in z-dimension.");
-   args.AddOption(&el_per_proc_x, "-ex", "--num-el-per-proc-x",
-                  "Number of elements per MPI rank in x-dimension.");
-   args.AddOption(&el_per_proc_y, "-ey", "--num-el-per-proc-y",
-                  "Number of elements per MPI rank in y-dimension.");
-   args.AddOption(&el_per_proc_z, "-ez", "--num-el-per-proc-z",
-                  "Number of elements per MPI rank in z-dimension.");
    args.Parse();
    if (!args.Good())
    {
@@ -158,12 +210,6 @@ int main(int argc, char *argv[])
       args.PrintOptions(cout);
    }
 
-   if (num_procs_x * num_procs_y * num_procs_z != num_procs)
-   {
-      mfem_error("Invalid dimensions for MPI ranks");
-      return -1;
-   }
-
    enum PCType { NONE, LOR, HO, JACOBI, LUMPEDMASS };
    PCType pc_choice;
    if (!strcmp(pc, "ho"))          { pc_choice = HO; }
@@ -177,14 +223,33 @@ int main(int argc, char *argv[])
       return 3;
    }
 
+   // Factorize number of processes and elements
+   vector<int> num_procs_dims = balanced_factorization(num_procs, dim);
+   vector<int> el_per_proc_dims = balanced_factorization(el_per_proc, dim);
+   reverse(el_per_proc_dims.begin(), el_per_proc_dims.end());
 
    // Generate serial mesh
    Mesh *mesh;
-   const int nx = num_procs_x * el_per_proc_x;
-   const int ny = num_procs_y * el_per_proc_y;
-   const int nz = num_procs_z * el_per_proc_z;
-   mesh = new Mesh(nx, ny, nz, Element::HEXAHEDRON, 1,
-                   1.0, 1.0, 1.0);
+   switch (dim)
+   {
+   case 1:
+      mesh = new Mesh(num_procs * el_per_proc, 1.0);
+      break;
+   case 2:
+      mesh = new Mesh(num_procs_dims[0] * el_per_proc_dims[0],
+                      num_procs_dims[1] * el_per_proc_dims[1],
+                      Element::QUADRILATERAL, 1, 1.0, 1.0);
+      break;
+   case 3:
+      mesh = new Mesh(num_procs_dims[0] * el_per_proc_dims[0],
+                      num_procs_dims[1] * el_per_proc_dims[1],
+                      num_procs_dims[2] * el_per_proc_dims[2],
+                      Element::HEXAHEDRON, 1, 1.0, 1.0, 1.0);
+      break;
+   default:
+      mfem_error("Invalid number of dimensions");
+      return -1;
+   }
 
    // Check if the generated mesh matches the optimized version
    if (myid == 0)
@@ -220,20 +285,59 @@ int main(int argc, char *argv[])
    {
       cout << "Initializing parallel mesh ..." << endl;
    }
-   int *partitioning = new int[nx*ny*nz];
-   for (int k=0; k<nz; ++k)
+   int *partitioning = new int[mesh->GetNE()];
+   switch (dim)
    {
-      const int pz = k / el_per_proc_z;
-      for (int j=0; j<ny; ++j)
+   case 1:
       {
-         const int py = j / el_per_proc_y;
-         for (int i=0; i<nx; ++i)
+         const int n = num_procs * el_per_proc;
+         for (int i=0; i<n; ++i)
          {
-            const int px = i / el_per_proc_x;
-            partitioning[i+j*nx+k*nx*ny] = px + py * num_procs_x + pz * num_procs_x * num_procs_y;
+            const int p = i / el_per_proc;
+            partitioning[i] = p;
          }
+         break;
       }
-   }
+   case 2:
+      {
+         const int nx = num_procs_dims[0] * el_per_proc_dims[0];
+         const int ny = num_procs_dims[1] * el_per_proc_dims[1];
+         for (int j=0; j<ny; ++j)
+         {
+            const int py = j / el_per_proc_dims[1];
+            for (int i=0; i<nx; ++i)
+            {
+               const int px = i / el_per_proc_dims[0];
+               partitioning[i+j*nx] = px + py * num_procs_dims[0];
+            }
+         }
+         break;
+      }
+   case 3:
+      {
+         const int nx = num_procs_dims[0] * el_per_proc_dims[0];
+         const int ny = num_procs_dims[1] * el_per_proc_dims[1];
+         const int nz = num_procs_dims[2] * el_per_proc_dims[2];
+         for (int k=0; k<nz; ++k)
+         {
+            const int pz = k / el_per_proc_dims[2];
+            for (int j=0; j<ny; ++j)
+            {
+               const int py = j / el_per_proc_dims[1];
+               for (int i=0; i<nx; ++i)
+               {
+                  const int px = i / el_per_proc_dims[0];
+                  partitioning[i+j*nx+k*nx*ny]
+                    = px + py * num_procs_dims[0] + pz * num_procs_dims[0] * num_procs_dims[1];
+               }
+            }
+         }
+         break;
+      }
+   default:
+      mfem_error("Invalid number of dimensions");
+      return -1;
+   }   
    ParMesh *pmesh = new ParMesh(MPI_COMM_WORLD, *mesh, partitioning);
    delete mesh;
    if (pmesh->MeshGenerator() & 1) // simplex mesh

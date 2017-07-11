@@ -14,6 +14,16 @@
 # software, applications, hardware, advanced system engineering and early
 # testbed platforms, in support of the nation's exascale computing imperative.
 
+# function configure_tests()
+# {
+#    problem=1
+#    sol_p_list=(1 2 3 4 5 6 7 8 9)
+   
+# }
+
+# function build_tests()
+# {
+# }
 
 function build_and_run_tests()
 {
@@ -36,8 +46,8 @@ function build_and_run_tests()
    $dry_run cd "$test_exe_dir"
    set_mpi_options
    local test_name=bp${problem}_solp${sol_p}
-   local all_args="--no-visualization -nx 2 -ny 2 -nz 4"
-   all_args="$all_args -ex 2 -ey 2 -ez 2"
+   local all_args="--no-visualization"
+   all_args="$all_args -e 36"
    all_args="$all_args --preconditioner $pc"
    if [ -z "$dry_run" ]; then
       echo "Running test:"
