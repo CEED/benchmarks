@@ -394,7 +394,7 @@ int main(int argc, char *argv[])
    if (pmesh->bdr_attributes.Size())
    {
       Array<int> ess_bdr(pmesh->bdr_attributes.Max());
-      ess_bdr = 1;
+      ess_bdr = 0;
       fespace->GetEssentialTrueDofs(ess_bdr, ess_tdof_list);
    }
 
@@ -422,6 +422,7 @@ int main(int argc, char *argv[])
       }
    }
 #endif
+   // x0.SetSubVectorComplement(ess_tdof_list, 0.0);
    x = x0;
    b = -1.0;
 
@@ -665,7 +666,6 @@ int main(int argc, char *argv[])
 
    // Check relative error in solution
    a->RecoverFEMSolution(X, b, x);
-#if 0
 #if PROBLEM == 3
    x -= (x * ones) / x.Size();
 #elif PROBLEM == 4
@@ -693,7 +693,6 @@ int main(int argc, char *argv[])
    {
       cout << "|| x - x0 ||_2 / || x0 ||_2 = " << norm_err << "/" << norm_x << "=" << norm_err/norm_x << endl;
    }
-#endif
 
    // Send the solution by socket to a GLVis server.
    if (visualization)
