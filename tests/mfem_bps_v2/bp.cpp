@@ -59,7 +59,7 @@ using namespace mfem;
 #endif
 
 #ifndef IR_ORDER
-#define IR_ORDER 2*(SOL_P+2)-1
+#define IR_ORDER 2*SOL_P+3
 #endif
 
 // Define template parameters for optimized build.
@@ -178,11 +178,20 @@ int main(int argc, char *argv[])
    double my_rt_start, my_rt, rt_min, rt_max;
 
    // Parse command-line options.
-   const char *pc = "none";
-   bool visualization = 1;
    int el_per_proc = 1;
+   double tol = 1e-6;
+   int max_iters = 500;
+   const char *pc = "none";
+   bool essential_bcs = true;
+   bool visualization = 1;
 
    OptionsParser args(argc, argv);
+   args.AddOption(&el_per_proc, "-e", "--num-el-per-proc",
+                  "Number of elements per MPI rank.");
+   args.AddOption(&tol, "-tol", "--pcg-rel-tol",
+                  "Relative tolerance for PCG convergence.");
+   args.AddOption(&max_iters, "-i", "--max-iters",
+                  "Maximum number of PCG iterations.");
    args.AddOption(&pc, "-pc", "--preconditioner",
                   "Preconditioner: "
                   "lor - low-order-refined (matrix-free) AMG, "
@@ -190,8 +199,9 @@ int main(int argc, char *argv[])
                   "jacobi, "
                   "lumpedmass, "
                   "none.");
-   args.AddOption(&el_per_proc, "-e", "--num-el-per-proc",
-                  "Number of elements per MPI rank.");
+   args.AddOption(&essential_bcs, "-ess-bc", "--essential-bcs",
+                  "-nat-bc", "--natural-bcs",
+                  "Essential or natural boundary conditions.");
    args.AddOption(&visualization, "-vis", "--visualization", "-no-vis",
                   "--no-visualization",
                   "Enable or disable GLVis visualization.");
@@ -355,6 +365,7 @@ int main(int argc, char *argv[])
                                  vec ? dim : 1,
                                  vec ? Ordering::byVDIM : Ordering::byNODES);
    HYPRE_Int size = fespace->GlobalTrueVSize();
+   int local_size = fespace->GetTrueVSize();
    if (myid == 0)
    {
       cout << "Number of finite element unknowns: " << size << endl;
@@ -394,37 +405,43 @@ int main(int argc, char *argv[])
    if (pmesh->bdr_attributes.Size())
    {
       Array<int> ess_bdr(pmesh->bdr_attributes.Max());
-      ess_bdr = 0;
+      ess_bdr = essential_bcs ? 1 : 0;
       fespace->GetEssentialTrueDofs(ess_bdr, ess_tdof_list);
    }
 
    // Define the solution vector x and RHS vector b
    // Note: subtract mean value if solving stiffness matrix problem
-   ParGridFunction x0(fespace), x(fespace), b(fespace), ones(fespace);
-   ones = 1.0;
+   ParGridFunction x0(fespace), x(fespace), b(fespace);
    x0.Randomize();
+   x0.SetSubVector(ess_tdof_list, 0.0);
 #if PROBLEM == 3
-   x0 -= (x0 * ones) / x0.Size();
-#elif PROBLEM == 4
-   for (int d=0; d<dim; ++d)
+   if (!essential_bcs)
    {
-      const int ndofs = fespace->GetNDofs();
-      double mean = 0;
-      for (int i=d*ndofs; i<(d+1)*ndofs; ++i)
-      {
-         mean += x0(i);
-      }
+      double mean = x0.Sum() / size;
       MPI_Allreduce(MPI_IN_PLACE, &mean, 1, MPI_DOUBLE, MPI_SUM, pmesh->GetComm());
-      mean /= (x0.Size() / dim);
-      for (int i=d*ndofs; i<(d+1)*ndofs; ++i)
+      x0 -= mean;
+   }
+#elif PROBLEM == 4
+   if (!essential_bcs)
+   {
+      const int npts = local_size / dim;
+      for (int d=0; d<dim; ++d)
       {
-         x0(i) -= mean;
+         double mean = 0;
+         for (int i=d*npts; i<(d+1)*npts; ++i)
+         {
+            mean += x0(i);
+         }
+         MPI_Allreduce(MPI_IN_PLACE, &mean, 1, MPI_DOUBLE, MPI_SUM, pmesh->GetComm());
+         mean /= size / dim;
+         for (int i=d*npts; i<(d+1)*npts; ++i)
+         {
+            x0(i) -= mean;
+         }
       }
    }
 #endif
-   // x0.SetSubVectorComplement(ess_tdof_list, 0.0);
    x = x0;
-   b = -1.0;
 
    // Set up bilinear form for preconditioner
    ParBilinearForm *a_pc = NULL;
@@ -564,17 +581,17 @@ int main(int argc, char *argv[])
    else if (pc_choice == HO || pc_choice == JACOBI)
    {
       a_pc->UsePrecomputedSparsity();
-      ((HPCBilinearForm*) a)->AssembleBilinearForm(*a_pc);
+      a->AssembleBilinearForm(*a_pc);
       A_pc = new HypreParMatrix();
       a_pc->FormSystemMatrix(ess_tdof_list, *A_pc);
    }
    else if (pc_choice == LUMPEDMASS)
    {
-      ParGridFunction lumped_mass_diag(fespace);
+      ParGridFunction lumped_mass_diag(fespace), ones(fespace);
+      ones = 1.0;
       a->Mult(ones, lumped_mass_diag);
       HypreParVector* lumped_mass_vec
         = lumped_mass_diag.ParallelAssemble();
-      const int local_size = lumped_mass_vec->Size();
       int* I = new int[local_size+1];
       int* J = new int[local_size];
       const int my_col_start = lumped_mass_vec->Partitioning()[0];
@@ -613,8 +630,8 @@ int main(int argc, char *argv[])
    // Solve with CG or PCG, depending if the matrix A_pc is available
    CGSolver *pcg;
    pcg = new CGSolver(pmesh->GetComm());
-   pcg->SetRelTol(1e-6);
-   pcg->SetMaxIter(1000);
+   pcg->SetRelTol(tol);
+   pcg->SetMaxIter(max_iters);
    pcg->SetPrintLevel(1);
 
    HypreSolver* pc_oper = NULL;
@@ -666,32 +683,45 @@ int main(int argc, char *argv[])
 
    // Check relative error in solution
    a->RecoverFEMSolution(X, b, x);
+   x.SetSubVector(ess_tdof_list, 0.0);
 #if PROBLEM == 3
-   x -= (x * ones) / x.Size();
-#elif PROBLEM == 4
-   for (int d=0; d<dim; ++d)
+   if (!essential_bcs)
    {
-      const int ndofs = fespace->GetNDofs();
-      double mean = 0;
-      for (int i=d*ndofs; i<(d+1)*ndofs; ++i)
-      {
-         mean += x(i);
-      }
+      double mean = x.Sum() / size;
       MPI_Allreduce(MPI_IN_PLACE, &mean, 1, MPI_DOUBLE, MPI_SUM, pmesh->GetComm());
-      mean /= (x.Size() / dim);
-      for (int i=d*ndofs; i<(d+1)*ndofs; ++i)
+      x -= mean;
+   }
+#elif PROBLEM == 4
+   if (!essential_bcs)
+   {
+      const int npts = local_size / dim;
+      for (int d=0; d<dim; ++d)
       {
-         x(i) -= mean;
+         double mean = 0;
+         for (int i=d*npts; i<(d+1)*npts; ++i)
+         {
+            mean += x(i);
+         }
+         MPI_Allreduce(MPI_IN_PLACE, &mean, 1, MPI_DOUBLE, MPI_SUM, pmesh->GetComm());
+         mean /= size / dim;
+         for (int i=d*npts; i<(d+1)*npts; ++i)
+         {
+            x(i) -= mean;
+         }
       }
    }
 #endif
-   ConstantCoefficient zero(0.0);
-   const double norm_x = x0.ComputeL2Error(zero);
-   x -= x0;
-   const double norm_err = x.ComputeL2Error(zero);
+   double norm_x  = x * x;
+   double norm_x0 = x0 * x0;
+   x0 -= x;
+   double norm_err = x0 * x0;
+   MPI_Allreduce(MPI_IN_PLACE, &norm_x, 1, MPI_DOUBLE, MPI_SUM, pmesh->GetComm());
+   MPI_Allreduce(MPI_IN_PLACE, &norm_err, 1, MPI_DOUBLE, MPI_SUM, pmesh->GetComm());
+   norm_x = sqrt(norm_x);
+   norm_err = sqrt(norm_err);
    if (myid == 0)
    {
-      cout << "|| x - x0 ||_2 / || x0 ||_2 = " << norm_err << "/" << norm_x << "=" << norm_err/norm_x << endl;
+      cout << "Relative error: " << 2 * norm_err / (norm_x + norm_x0) << endl;
    }
 
    // Send the solution by socket to a GLVis server.

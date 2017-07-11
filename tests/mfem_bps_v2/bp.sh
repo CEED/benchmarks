@@ -29,9 +29,9 @@ function build_and_run_tests()
 {
 
    # Parameters
-   local problem=4
+   local problem=1
    local sol_p=3
-   local pc=lor #lumpedmass
+   local pc=lumpedmass
 
    # Build test
    $dry_run cd "$test_dir"
