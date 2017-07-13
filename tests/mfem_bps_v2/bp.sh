@@ -14,15 +14,21 @@
 # software, applications, hardware, advanced system engineering and early
 # testbed platforms, in support of the nation's exascale computing imperative.
 
-# function configure_tests()
-# {
-#    problem=1
-#    sol_p_list=(1 2 3 4 5 6 7 8 9)
-   
-# }
+function configure_tests()
+{
+   problem=1
+   sol_p_list=(   1  2  3   4   5   6   7   8  1  2)
+   ir_order_list=(5  7  9  11  13  15  17  19  3  5)
+
+   el_per_proc_list=(1 2 4 8 12 18 27 36)
+   pc=lumpedmass
+}
 
 # function build_tests()
 # {
+
+   
+
 # }
 
 function build_and_run_tests()

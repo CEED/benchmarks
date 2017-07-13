@@ -412,8 +412,11 @@ int main(int argc, char *argv[])
    // Define the solution vector x and RHS vector b
    // Note: subtract mean value if solving stiffness matrix problem
    ParGridFunction x0(fespace), x(fespace), b(fespace);
-   x0.Randomize();
-   x0.SetSubVector(ess_tdof_list, 0.0);
+   HypreParVector* x0_tdofs = fespace->NewTrueDofVector();
+   x0_tdofs->Randomize(0);
+   x0_tdofs->SetSubVector(ess_tdof_list, 0.0);
+   x0.SetFromTrueDofs(*x0_tdofs);
+   delete x0_tdofs;
 #if PROBLEM == 3
    if (!essential_bcs)
    {
@@ -683,7 +686,6 @@ int main(int argc, char *argv[])
 
    // Check relative error in solution
    a->RecoverFEMSolution(X, b, x);
-   x.SetSubVector(ess_tdof_list, 0.0);
 #if PROBLEM == 3
    if (!essential_bcs)
    {
@@ -711,17 +713,17 @@ int main(int argc, char *argv[])
       }
    }
 #endif
-   double norm_x  = x * x;
-   double norm_x0 = x0 * x0;
-   x0 -= x;
-   double norm_err = x0 * x0;
-   MPI_Allreduce(MPI_IN_PLACE, &norm_x, 1, MPI_DOUBLE, MPI_SUM, pmesh->GetComm());
-   MPI_Allreduce(MPI_IN_PLACE, &norm_err, 1, MPI_DOUBLE, MPI_SUM, pmesh->GetComm());
-   norm_x = sqrt(norm_x);
-   norm_err = sqrt(norm_err);
+   ConstantCoefficient zero_coefficient(0.0);
+#if PROBLEM == 2 || PROBLEM == 4
+   VectorGridFunctionCoefficient x0_coefficient(&x0);
+#else
+   GridFunctionCoefficient x0_coefficient(&x0);
+#endif
+   const double norm_x0 = x0.ComputeL2Error(zero_coefficient);
+   const double norm_err = x.ComputeL2Error(x0_coefficient);
    if (myid == 0)
    {
-      cout << "Relative error: " << 2 * norm_err / (norm_x + norm_x0) << endl;
+      cout << "Relative error: " << norm_err / norm_x0 << endl;
    }
 
    // Send the solution by socket to a GLVis server.
