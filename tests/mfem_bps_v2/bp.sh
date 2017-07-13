@@ -16,55 +16,71 @@
 
 function configure_tests()
 {
-   problem=1
+   problem=${problem:-1}
    sol_p_list=(   1  2  3   4   5   6   7   8  1  2)
    ir_order_list=(5  7  9  11  13  15  17  19  3  5)
-
    el_per_proc_list=(1 2 4 8 12 18 27 36)
-   pc=lumpedmass
+   pc=${pc:-none}
 }
 
-# function build_tests()
-# {
-
-   
-
-# }
-
-function build_and_run_tests()
+function build_tests()
 {
 
-   # Parameters
-   local problem=1
-   local sol_p=3
-   local pc=lumpedmass
-
-   # Build test
+   # Move to test directory
    $dry_run cd "$test_dir"
-   local make_extra=("PROBLEM=$problem" "SOL_P=$sol_p" "USE_MPI_WTIME=1")
+
+   # Initialize build arguments
+   local make_extra=("PROBLEM=${problem}" "sol_p=${sol_p_list[*]}" "ir_order=${ir_order_list[*]}" "USE_MPI_WTIME=1")
    make_extra=("${make_extra[@]}" "EXTRA_CXXFLAGS=$TEST_EXTRA_CFLAGS")
    make_extra=("${make_extra[@]}" "MFEM_DIR=$MFEM_DIR")
    make_extra=("${make_extra[@]}" "BLD=$test_exe_dir/")
-   quoted_echo make -j $num_proc_build "${make_extra[@]}"
-   [[ -n "$dry_run" ]] || make -j $num_proc_build "${make_extra[@]}"
 
-   # Run test
-   $dry_run cd "$test_exe_dir"
-   set_mpi_options
-   local test_name=bp${problem}_solp${sol_p}
-   local all_args="--no-visualization"
-   all_args="$all_args -e 36"
-   all_args="$all_args --preconditioner $pc"
-   if [ -z "$dry_run" ]; then
-      echo "Running test:"
-      quoted_echo $mpi_run ./$test_name $all_args
-      $mpi_run ./$test_name $all_args
-   fi
+   # Clear previous builds if needed
+   case "$rebuild_tests" in
+      yes|Yes|YES)
+         $dry_run make "${make_extra[@]}" clean
+   esac
 
-   # Clean up test
-   $dry_run make -f "$test_dir/makefile" clean-exec "${make_extra[@]}"
+   # Build tests
+   quoted_echo make -j $num_proc_build "${make_extra[@]}" all
+   [[ -n "$dry_run" ]] || make -j $num_proc_build "${make_extra[@]}" all
 
 }
 
+function run_tests()
+{
+
+   # Move to test executable directory
+   $dry_run cd "$test_exe_dir"
+
+   # Initialize MPI options
+   set_mpi_options
+
+   # Iterate through test configurations
+   local num_exes=${#sol_p_list[@]}
+   local el_per_proc_list_size=${#el_per_proc_list[@]}
+   for ((j = 0; j < el_per_proc_list_size; j++)) do
+      for ((i = 0; i < num_exes; i++)) do
+         local test_name=bp${problem}_solp${sol_p_list[i]}_irorder${ir_order_list[i]}
+         local all_args="--no-visualization"
+         all_args="$all_args --num-el-per-proc ${el_per_proc_list[j]}"
+         all_args="$all_args --preconditioner $pc"
+         if [ -z "$dry_run" ]; then
+            echo "Running test:"
+            quoted_echo $mpi_run ./$test_name $all_args
+            $mpi_run ./$test_name $all_args
+         fi
+      done
+   done
+    
+}
+
+function build_and_run_tests()
+{
+   configure_tests || return 1
+   build_tests || return 1
+   [[ -n "$build_only" ]] && return
+   run_tests || return 1
+}
 
 test_required_packages="metis hypre mfem"

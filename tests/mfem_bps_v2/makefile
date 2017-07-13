@@ -17,8 +17,8 @@
 
 # Default build parameters
 PROBLEM = 1
-SOL_P = 3
-IR_ORDER =
+sol_p =
+ir_order =
 USE_MPI_WTIME =
 
 # Use the MFEM build directory
@@ -53,20 +53,34 @@ endif
 $(BLD)%: $(SRC)%.cpp $(MFEM_LIB_FILE) $(CONFIG_MK)
 	$(MFEM_CXX) $(if $(PROBLEM),-DPROBLEM=$(PROBLEM)) $(if $(SOL_P),-DSOL_P=$(SOL_P)) $(if $(IR_ORDER),-DIR_ORDER=$(IR_ORDER)) $(MFEM_FLAGS) $< -o $@ $(MFEM_LIBS)
 
-all: $(BLD)bp$(PROBLEM)_solp$(SOL_P)
+# Create rules for building executables
+exe_list :=
+define make_bp_rule
+exe := $(BLD)bp$(PROBLEM)$(if $(1),_solp$(1))$(if $(2),_irorder$(2))
+exe_list += $(exe)
+$(exe): $(SRC)bp.cpp $(MFEM_LIB_FILE) $(CONFIG_MK)
+	$(MFEM_CXX) \
+	$(if $(PROBLEM),-DPROBLEM=$(PROBLEM)) \
+	$(if $(1),-DSOL_P=$(1)) \
+	$(if $(2),-DIR_ORDER=$(2)) \
+	$(if $(USE_MPI_WTIME),-DUSE_MPI_WTIME) \
+	$(MFEM_FLAGS) $$< -o $$@ $(MFEM_LIBS)
+endef
+comma = ,
+args_list := $(join $(addsuffix /,$(sol_p)),$(ir_order))
+$(foreach args,$(args_list),\
+	$(eval $$(eval $$(call make_bp_rule,$(subst /,$(comma),$(args))))))
 
-$(BLD)bp$(PROBLEM)_solp$(SOL_P): $(SRC)bp.cpp $(MFEM_LIB_FILE) $(CONFIG_MK)
-	$(MFEM_CXX) $(if $(PROBLEM),-DPROBLEM=$(PROBLEM)) $(if $(SOL_P),-DSOL_P=$(SOL_P)) $(if $(IR_ORDER),-DIR_ORDER=$(IR_ORDER)) $(if $(USE_MPI_WTIME),-DUSE_MPI_WTIME) $(MFEM_FLAGS) $< -o $@ $(MFEM_LIBS)
+all: $(exe_list)
 
 # Generate an error message if the MFEM library is not built and exit
 $(MFEM_LIB_FILE):
 	$(error The MFEM library is not built)
 
+# Clean targets
 clean: clean-build clean-exec
-
 clean-build:
-	rm -f *.o *~ $(BLD)bp?_solp*
+	rm -f *.o *~ $(BLD)*
 	rm -rf *.dSYM *.TVD.*breakpoints
-
 clean-exec:
 	@rm -f mesh.* sol.*
