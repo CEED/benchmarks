@@ -60,6 +60,7 @@ To see the available compilers for a config use `./go.sh --config <name>`.
 The following copyright applies to each file in the CEED software suite, unless
 otherwise stated in the file:
 
-Copyright (c) 2017, Lawrence Livermore National Security, LLC. Produced at the
-Lawrence Livermore National Laboratory. LLNL-CODE-734707. All Rights reserved.
+> Copyright (c) 2017, Lawrence Livermore National Security, LLC. Produced at the
+> Lawrence Livermore National Laboratory. LLNL-CODE-734707. All Rights reserved.
 
+See files LICENSE and NOTICE for details.
