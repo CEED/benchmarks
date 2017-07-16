@@ -49,11 +49,18 @@ Equivalent short version:
 ./go.sh -c vulcan -m gcc -r tests/mfem_bps/bp1_v1.sh
 ```
 
-To see a list of the available configs use `./go.sh` or generally use
-`./go.sh --help` for help. These configs correspond to the scripts
+Note that any packages required by the tests will be downloaded and built
+automatically, i.e. there is no need to explicitly pre-build any packages by
+running the `go.sh` script with the `--build` option.
+
+To see a list of the available configs use `./go.sh` without any options or
+generally use `./go.sh --help` for help. These configs correspond to the scripts
 `machine-configs/<name>.sh`.
 
 To see the available compilers for a config use `./go.sh --config <name>`.
+
+*For test-specific details, see the* `README.md` *file in the corresponding*
+`tests/<test-suite>` *subdirectory.*
 
 ## Copyright
 
