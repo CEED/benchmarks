@@ -14,27 +14,34 @@
 # software, applications, hardware, advanced system engineering and early
 # testbed platforms, in support of the nation's exascale computing imperative.
 
+
 if [[ -z "$root_dir" ]]; then
    echo "This script ($0) should not be called directly. Stop."
    return 1
 fi
 
-source "$test_dir/dtp.sh.inl"
+source "$test_dir/setup.sh.inl"
 
+function configure_tests()
+{
+    case_orders=( 1 2 3 4 5 6 7 8 )
+    case_refs=( 6 5 4 4 4 3 3 3 )
+}
 
 function build_and_run_tests()
 {
     # This test name
-    local test_name=dtp_occa
+    test_name=bp3
 
+    # Setup the tests
     setup_occa_test
+    configure_tests
 
-    # Run the tests
     $dry_run cd "$test_exe_dir"
     for i in "${!case_orders[@]}"; do
-        $dry_run ./$test_name -d "mode:'CUDA',deviceID:0" --order "${case_orders[$i]}" --ref-levels "${case_refs[$i]}" --no-acro --preconditioner none --mesh "fichera.mesh"
+        $dry_run ./$test_name -d "mode:'CUDA',deviceID:0" --order "${case_orders[$i]}" --ref-levels "${case_refs[$i]}" -ac --preconditioner none --mesh "inline-hex.mesh"
     done
 }
 
 
-test_required_packages="metis hypre occa mfem-occa"
+test_required_packages="metis hypre occa acrotensor mfem-occa"

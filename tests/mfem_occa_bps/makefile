@@ -31,9 +31,9 @@ EXTRA_CXXFLAGS =
 # Add any EXTRA_CXXFLAGS to MFEM_CXXFLAGS, which is part of MFEM_FLAGS.
 MFEM_CXXFLAGS += $(EXTRA_CXXFLAGS)
 
-DTP = dtp_baseline
+BP = bp3_baseline
 ifeq ($(MFEM_USE_OCCA),YES)
-DTP += dtp_occa
+BP += bp1_occa bp3_occa
 endif
 
 .SUFFIXES:
@@ -43,13 +43,9 @@ endif
 # Remove built-in rule
 %: %.cpp
 
+all: $(BP)
 # Replace the default implicit rule for *.cpp files
-%: $(SRC)%.cpp $(MFEM_LIB_FILE) $(CONFIG_MK)
-	$(MFEM_CXX) $(MFEM_FLAGS) $< -o $@ $(MFEM_LIBS)
-
-all: $(DTP)
-
-$(BLD)dtp_%: $(SRC)dtp_%.cpp $(MFEM_LIB_FILE) $(CONFIG_MK)
+$(BLD)%: $(SRC)%.cpp $(MFEM_LIB_FILE) $(CONFIG_MK)
 	$(MFEM_CXX) $(MFEM_FLAGS) $< -o $@ $(MFEM_LIBS)
 
 # Generate an error message if the MFEM library is not built and exit

@@ -17,10 +17,10 @@
 //==============================================================================
 //            MFEM Example 1 - OCCA/Acrotensor version for CEED BP3
 //
-// Compile with: make dtp_occa
+// Compile with: make bp3
 //
-// Sample runs:  ./dtp_occa.sh
-//               ./dtp_acro.sh
+// Sample runs:  ./bp3_occa.sh
+//               ./dp3_acro.sh
 //
 // Description:  This example code demonstrates the use of MFEM to define a
 //               simple finite element discretization of the Laplace problem
@@ -65,15 +65,17 @@ typedef OccaDiffusionIntegrator AcroDiffusionIntegrator;
 int main(int argc, char *argv[])
 {
   // 1. Parse command-line options.
-  const char *mesh_file = "../../fichera.mesh";
+  const char *mesh_file = "../../inline-hex.quad";
+  const char *basis_type = "G";
   int order = 3;
-  int ref_levels = 0;
-  const char *basis_type = "G"; // Gauss-Lobatto
+  int ref_levels = 2;
+  int cg_iter = 100;
+  int quad_add = 0;
   const char *pc = "none";
   const char *device_info = "mode: 'Serial'";
   bool occa_verbose = false;
   bool use_acrotensor = false;
-  bool visualization = 1;
+  bool visualization = 0;
 
   OptionsParser args(argc, argv);
   args.AddOption(&mesh_file, "-m", "--mesh",
@@ -83,11 +85,15 @@ int main(int argc, char *argv[])
                  " isoparametric space.");
   args.AddOption(&ref_levels, "-r", "--ref-levels",
                  "Number of uniform refinements");
-  args.AddOption(&basis_type, "-b", "--basis-type",
-                 "Basis: G - Gauss-Lobatto, P - Positive, U - Uniform");
   args.AddOption(&pc, "-pc", "--preconditioner",
                  "Preconditioner: lor - low-order-refined (matrix-free) GS, "
                  "ho - high-order (assembled) GS, none.");
+  args.AddOption(&cg_iter, "-i", "--cg-iter",
+                 "Number of uniform mesh refinements"
+                 " base mesh.");
+  args.AddOption(&quad_add, "-q", "--quad-add",
+                 "Additional quadrature order: 2p+3 + quad_add"
+                 " base quadrature: 2p+3.");
   args.AddOption(&device_info, "-d", "--device-info",
                  "Device information to run example on (default: \"mode: 'Serial'\").");
   args.AddOption(&occa_verbose,
@@ -131,10 +137,10 @@ int main(int argc, char *argv[])
   else if (!strcmp(pc, "lor")) { pc_choice = LOR; }
   else if (!strcmp(pc, "none")) { pc_choice = NONE; }
   else
-    {
-      mfem_error("Invalid Preconditioner specified");
-      return 3;
-    }
+  {
+    mfem_error("Invalid Preconditioner specified");
+    return 3;
+  }
 
   // See class BasisType in fem/fe_coll.hpp for available basis types
   int basis = BasisType::GetType(basis_type[0]);
@@ -151,27 +157,27 @@ int main(int argc, char *argv[])
   //    largest number that gives a final mesh with no more than 50,000
   //    elements.
   for (int l = 0; l < ref_levels; l++)
-    {
-      mesh->UniformRefinement();
-    }
+  {
+    mesh->UniformRefinement();
+  }
 
   // 4. Define a finite element space on the mesh. Here we use continuous
   //    Lagrange finite elements of the specified order. If order < 1, we
   //    instead use an isoparametric/isogeometric space.
   FiniteElementCollection *fec;
   if (order > 0)
-    {
-      fec = new H1_FECollection(order, dim, basis);
-    }
+  {
+    fec = new H1_FECollection(order, dim, basis);
+  }
   else if (mesh->GetNodes())
-    {
-      fec = mesh->GetNodes()->OwnFEC();
-      cout << "Using isoparametric FEs: " << fec->Name() << endl;
-    }
+  {
+    fec = mesh->GetNodes()->OwnFEC();
+    cout << "Using isoparametric FEs: " << fec->Name() << endl;
+  }
   else
-    {
-      fec = new H1_FECollection(order = 1, dim, basis);
-    }
+  {
+    fec = new H1_FECollection(order = 1, dim, basis);
+  }
 
   OccaFiniteElementSpace *ofespace = new OccaFiniteElementSpace(mesh, fec);
   FiniteElementSpace *fespace = ofespace->GetFESpace();
@@ -185,13 +191,13 @@ int main(int argc, char *argv[])
   FiniteElementCollection *fec_lor = NULL;
   FiniteElementSpace *fespace_lor = NULL;
   if (pc_choice == LOR)
-    {
-      int basis_lor = basis;
-      if (basis == BasisType::Positive) { basis_lor=BasisType::ClosedUniform; }
-      mesh_lor = new Mesh(mesh, order, basis_lor);
-      fec_lor = new H1_FECollection(1, dim);
-      fespace_lor = new FiniteElementSpace(mesh_lor, fec_lor);
-    }
+  {
+    int basis_lor = basis;
+    if (basis == BasisType::Positive) { basis_lor=BasisType::ClosedUniform; }
+    mesh_lor = new Mesh(mesh, order, basis_lor);
+    fec_lor = new H1_FECollection(1, dim);
+    fespace_lor = new FiniteElementSpace(mesh_lor, fec_lor);
+  }
 
   // 5. Determine the list of true (i.e. conforming) essential boundary dofs.
   //    In this example, the boundary conditions are defined by marking all
@@ -224,7 +230,7 @@ int main(int argc, char *argv[])
   // 8. Set up the bilinear form a(.,.) on the finite element space that will
   //    hold the matrix corresponding to the Laplacian operator -Delta.
   //    Optionally setup a form to be assembled for preconditioning (a_pc).
-  cout << "Assembling the bilinear form ..." << flush;
+  cout << "Assembling the local matrix ..." << endl;
   tic_toc.Clear();
   tic_toc.Start();
   OccaBilinearForm *a = new OccaBilinearForm(ofespace);
@@ -232,7 +238,12 @@ int main(int argc, char *argv[])
   if (use_acrotensor) {
     a->AddDomainIntegrator(new AcroDiffusionIntegrator(1.0));
   } else {
-    a->AddDomainIntegrator(new OccaDiffusionIntegrator(1.0));
+     const IntegrationRule *ir = &(IntRules.Get(ofespace->GetFESpace()->GetFE(0)->GetGeomType(), 2 * order + 3 + quad_add));
+     OccaIntegrator *di = new OccaDiffusionIntegrator(1.0, ir);
+     a->AddDomainIntegrator(di);
+
+     const int points = di->GetIntegrationRule().GetNPoints();
+     std::cout << " using integration rule with " << points << " points" << std::endl;
   }
 
   BilinearForm *a_pc = NULL;
@@ -252,7 +263,16 @@ int main(int argc, char *argv[])
   Operator *A;
   OccaVector B, X;
 
+  cout << "FormLinearSystem() ..." << flush;
+  tic_toc.Clear();
+  tic_toc.Start();
+
   a->FormLinearSystem(ess_tdof_list, x, b, A, X, B);
+
+  tic_toc.Stop();
+  const double rt_form = tic_toc.RealTime();
+  cout << " done, " << rt_form << "s." << endl;
+  cout << "\n\"DOFs/sec\" in FormLinearSystem(): " << 1e-6*size/rt_form << " million.\n" << endl;
 
   cout << "Size of linear system: " << A->Height() << endl;
 
@@ -270,9 +290,8 @@ int main(int argc, char *argv[])
   }
 
   tic_toc.Stop();
-  cout << " done, " << tic_toc.RealTime() << "s." << endl;
-
-  CG(*A, B, X, 0, 5, 0.0, 0.0);
+  const double rt_pc = tic_toc.RealTime();
+  cout << " done, " << rt_pc << "s." << endl;
 
   cout << "Running " << (pc_choice == NONE ? "CG" : "PCG")
        << " ...\n" << flush;
@@ -281,15 +300,15 @@ int main(int argc, char *argv[])
   // Solve with CG or PCG, depending if the matrix A_pc is available
   if (pc_choice != NONE) {
     GSSmoother M(A_pc);
-    PCG(*A, M, B, X, 0, 100, 0.0, 0.0);
+    PCG(*A, M, B, X, 0, cg_iter, 0.0, 0.0);
   } else {
-    CG(*A, B, X, 0, 100, 0.0, 0.0);
+    CG(*A, B, X, 0, cg_iter, 0.0, 0.0);
   }
   occa::finish();
   tic_toc.Stop();
   const double rt_solve = tic_toc.RealTime();
   cout << " done, " << rt_solve << "s." << endl;
-  cout << "\n\"DOFs/sec\" in CG: " << 1e-6*size*100/rt_solve << " million.\n" << endl;
+  cout << "\n\"DOFs/sec\" in CG: " << 1e-6*size*cg_iter/rt_solve << " million.\n" << endl;
 
   // 11. Recover the solution as a finite element grid function.
   a->RecoverFEMSolution(X, b, x);

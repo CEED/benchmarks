@@ -34,8 +34,8 @@ pkg="MFEM (occa-dev)"
 
 function mfem_occa_clone()
 {
-   pkg_repo_list=("git@github.com:mfem/mfem.git"
-                  "https://github.com/mfem/mfem.git")
+   pkg_repo_list=("git@github.com:jdahm/mfem.git"
+                  "https://github.com/jdahm/mfem.git")
    pkg_git_branch="occa-dev"
    cd "$pkg_sources_dir" || return 1
    if [[ -d "$pkg_src_dir" ]]; then
