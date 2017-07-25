@@ -235,25 +235,36 @@ int main(int argc, char *argv[])
 
    // Factorize number of processes and elements
    vector<int> num_procs_dims = balanced_factorization(num_procs, dim);
-   vector<int> el_per_proc_dims = balanced_factorization(el_per_proc, dim);
-   reverse(el_per_proc_dims.begin(), el_per_proc_dims.end());
+   int unrefined_el_per_proc = el_per_proc;
+   int refinement_levels = 0;
+   int refinement_factor = 1;
+   for (int d = 0; d < dim; ++d) { refinement_factor *= 2; }
+   while (unrefined_el_per_proc % refinement_factor == 0)
+   {
+      unrefined_el_per_proc /= refinement_factor;
+      refinement_levels++;
+   }
+   vector<int> unrefined_el_per_proc_dims
+     = balanced_factorization(unrefined_el_per_proc, dim);
+   reverse(unrefined_el_per_proc_dims.begin(),
+           unrefined_el_per_proc_dims.end());
 
    // Generate serial mesh
    Mesh *mesh;
    switch (dim)
    {
    case 1:
-      mesh = new Mesh(num_procs * el_per_proc, 1.0);
+      mesh = new Mesh(num_procs * unrefined_el_per_proc, 1.0);
       break;
    case 2:
-      mesh = new Mesh(num_procs_dims[0] * el_per_proc_dims[0],
-                      num_procs_dims[1] * el_per_proc_dims[1],
+      mesh = new Mesh(num_procs_dims[0] * unrefined_el_per_proc_dims[0],
+                      num_procs_dims[1] * unrefined_el_per_proc_dims[1],
                       Element::QUADRILATERAL, 1, 1.0, 1.0);
       break;
    case 3:
-      mesh = new Mesh(num_procs_dims[0] * el_per_proc_dims[0],
-                      num_procs_dims[1] * el_per_proc_dims[1],
-                      num_procs_dims[2] * el_per_proc_dims[2],
+      mesh = new Mesh(num_procs_dims[0] * unrefined_el_per_proc_dims[0],
+                      num_procs_dims[1] * unrefined_el_per_proc_dims[1],
+                      num_procs_dims[2] * unrefined_el_per_proc_dims[2],
                       Element::HEXAHEDRON, 1, 1.0, 1.0, 1.0);
       break;
    default:
@@ -295,61 +306,24 @@ int main(int argc, char *argv[])
    {
       cout << "Initializing parallel mesh ..." << endl;
    }
-   int *partitioning = new int[mesh->GetNE()];
-   switch (dim)
-   {
-   case 1:
-      {
-         const int n = num_procs * el_per_proc;
-         for (int i=0; i<n; ++i)
-         {
-            const int p = i / el_per_proc;
-            partitioning[i] = p;
-         }
-         break;
-      }
-   case 2:
-      {
-         const int nx = num_procs_dims[0] * el_per_proc_dims[0];
-         const int ny = num_procs_dims[1] * el_per_proc_dims[1];
-         for (int j=0; j<ny; ++j)
-         {
-            const int py = j / el_per_proc_dims[1];
-            for (int i=0; i<nx; ++i)
-            {
-               const int px = i / el_per_proc_dims[0];
-               partitioning[i+j*nx] = px + py * num_procs_dims[0];
-            }
-         }
-         break;
-      }
-   case 3:
-      {
-         const int nx = num_procs_dims[0] * el_per_proc_dims[0];
-         const int ny = num_procs_dims[1] * el_per_proc_dims[1];
-         const int nz = num_procs_dims[2] * el_per_proc_dims[2];
-         for (int k=0; k<nz; ++k)
-         {
-            const int pz = k / el_per_proc_dims[2];
-            for (int j=0; j<ny; ++j)
-            {
-               const int py = j / el_per_proc_dims[1];
-               for (int i=0; i<nx; ++i)
-               {
-                  const int px = i / el_per_proc_dims[0];
-                  partitioning[i+j*nx+k*nx*ny]
-                    = px + py * num_procs_dims[0] + pz * num_procs_dims[0] * num_procs_dims[1];
-               }
-            }
-         }
-         break;
-      }
-   default:
-      mfem_error("Invalid number of dimensions");
-      return -1;
-   }   
+   int *partitioning = mesh->CartesianPartitioning(num_procs_dims.data());
    ParMesh *pmesh = new ParMesh(MPI_COMM_WORLD, *mesh, partitioning);
+   delete[] partitioning;
    delete mesh;
+   for (int l = 0; l < refinement_levels; ++l)
+   {
+      if (myid == 0)
+      {
+         cout << "Parallel refinement: level " << l << " -> level " << l+1
+              << " ..." << flush;
+      }
+      pmesh->UniformRefinement();
+      MPI_Barrier(MPI_COMM_WORLD);
+      if (myid == 0)
+      {
+         cout << " done." << endl;
+      }
+   }
    if (pmesh->MeshGenerator() & 1) // simplex mesh
    {
       MFEM_VERIFY(pc_choice != LOR,
@@ -394,7 +368,7 @@ int main(int argc, char *argv[])
       }
       delete fespace;
       delete fec;
-      delete mesh;
+      delete pmesh;
       MPI_Finalize();
       return 5;
    }
@@ -748,7 +722,6 @@ int main(int argc, char *argv[])
    delete pmesh_lor;
    delete fec;
    delete pmesh;
-   delete[] partitioning;
    delete pcg;
 
    MPI_Finalize();

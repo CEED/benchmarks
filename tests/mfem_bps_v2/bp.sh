@@ -19,8 +19,9 @@ function configure_tests()
    problem=${problem:-1}
    sol_p_list=(   1  2  3   4   5   6   7   8  1  2)
    ir_order_list=(5  7  9  11  13  15  17  19  3  5)
-   el_per_proc_list=(1 2 4 8 12 18 27 36)
+   el_per_proc_list=(1 2 4 8 16 32 64 128 256 512 1024)
    pc=${pc:-none}
+   bcs=${bcs:-essential}
 }
 
 function build_tests()
@@ -63,8 +64,9 @@ function run_tests()
       for ((i = 0; i < num_exes; i++)) do
          local test_name=bp${problem}_solp${sol_p_list[i]}_irorder${ir_order_list[i]}
          local all_args="--no-visualization"
-         all_args="$all_args --num-el-per-proc ${el_per_proc_list[j]}"
-         all_args="$all_args --preconditioner $pc"
+         all_args="${all_args} --num-el-per-proc ${el_per_proc_list[j]}"
+         all_args="${all_args} --${bcs}-bcs"
+         all_args="${all_args} --preconditioner ${pc}"
          if [ -z "$dry_run" ]; then
             echo "Running test:"
             quoted_echo $mpi_run ./$test_name $all_args
