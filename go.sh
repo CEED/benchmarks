@@ -715,7 +715,12 @@ postprocess
 
 } ## post-process on
 
-) || $exit_cmd 1
+$exit_cmd 0
+
+) || {
+   echo "Sub-shell for compiler '$compiler' returned error code $?. Stop."
+   $exit_cmd 1
+}
 done ## Loop over $compiler_list
 
 
