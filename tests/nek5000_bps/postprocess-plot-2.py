@@ -16,6 +16,18 @@
 # exascale computing imperative.
 
 
+#####   Adjustable plot parameters:
+log_y=0               # use log scale on the y-axis?
+x_range=(1e1,2e8)     # plot range for the x-axis; comment out for auto
+y_range=(0,9e8)       # plot range for the y-axis; comment out for auto
+draw_iter_lines=1     # draw the "iter/s" lines?
+ymin_iter_lines=3e5   # minimal y value for the "iter/s" lines
+ymax_iter_lines=8e8   # maximal y value for the "iter/s" lines
+legend_ncol=(2 if log_y else 1)   # number of columns in the legend
+write_figures=1       # save the figures to files?
+show_figures=1        # display the figures on the screen?
+
+
 #####   Load the data
 execfile('postprocess-base.py')
 
@@ -149,18 +161,25 @@ for plt in pl_set:
       ##
       i=i+1
    ##
-   y=asarray([3e5, 7e7])
-   slope1=600.
-   slope2=6000.
-   plot(y/slope1,y,'k--',label='%g iter/s'%(slope1/vdim))
-   plot(y/slope2,y,'k-',label='%g iter/s'%(slope2/vdim))
+   if draw_iter_lines:
+      y0,y1=ymin_iter_lines,ymax_iter_lines
+      y=asarray([y0,y1]) if log_y else exp(linspace(log(y0), log(y1)))
+      slope1=600.
+      slope2=6000.
+      plot(y/slope1,y,'k--',label='%g iter/s'%(slope1/vdim))
+      plot(y/slope2,y,'k-',label='%g iter/s'%(slope2/vdim))
 
    title('Config: %s %s (%i node%s, %i tasks/node), %s, %s, %s'%(
          code,config_short,num_nodes,'' if num_nodes==1 else 's',
          num_procs_node,compiler,test_short,
          'PA' if action_type=='matrix-free' else 'TA'))
    xscale('log') # subsx=[2,4,6,8]
-   yscale('log')
+   if log_y:
+      yscale('log')
+   if 'x_range' in vars() and len(x_range)==2:
+      xlim(x_range)
+   if 'y_range' in vars() and len(y_range)==2:
+      ylim(y_range)
    # rng=arange(1e7,1.02e8,1e7)
    # yticks(rng,['%i'%int(v/1e6) for v in rng])
    # ylim(min(rng),max(rng))
@@ -170,14 +189,14 @@ for plt in pl_set:
    gca().set_axisbelow(True)
    xlabel('Points per compute node')
    ylabel('[DOFs x CG iterations] / [compute nodes x seconds]')
-   legend(ncol=2, loc='best')
+   legend(ncol=legend_ncol, loc='best')
 
-   if 1: # write .pdf file?
+   if write_figures: # write .pdf file?
       pdf_file='plot2_%s_%s_%s_%s_N%03i_pn%i.pdf'%(
                code,test_short,config_short,compiler,num_nodes,num_procs_node)
       print 'saving figure --> %s'%pdf_file
       savefig(pdf_file, format='pdf', bbox_inches='tight')
 
-if 1: # show the figures?
+if show_figures: # show the figures?
    print '\nshowing figures ...'
    show()

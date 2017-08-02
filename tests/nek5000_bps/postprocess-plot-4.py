@@ -71,6 +71,12 @@ if 'case' in sel_runs[0]:
 for run in sel_runs:
    run['vdim']=3 if ('case' in run and run['case']=='vector') else 1
 
+files=[]
+for run in sel_runs:
+   if not (run['file'] in files):
+      files.append(run['file'])
+print 'Using files:', files
+
 codes = list(set([run['code'] for run in sel_runs]))
 code  = codes[0]
 sel_runs=[run for run in sel_runs if run['code']==code]
@@ -87,10 +93,16 @@ elif len(compilers)>1:
    key='compiler'
    val=compilers[0]
    val2=compilers[1]
-else:
+elif len(cases)>1:
    key='case'
    val='scalar'
    val2='vector'
+elif len(files)>1:
+   key='file'
+   # val,val2 are defined per plot
+else:
+   print 'Cannot determine comparison key. Stop.'
+   quit(1)
 
 pl_set=[(run['num-procs'],run['num-procs-node'])
         for run in sel_runs]
@@ -102,15 +114,27 @@ for plt in pl_set:
    num_procs=plt[0]
    num_procs_node=plt[1]
    num_nodes=num_procs/num_procs_node
+   print
+   print 'compute nodes: %i, number of MPI tasks = %i'%(num_nodes,num_procs)
    pl_runs=[run for run in sel_runs
             if run['num-procs']==num_procs and
                run['num-procs-node']==num_procs_node]
-   pl_runs=sorted(pl_runs)
+   if key=='file':
+      files=[]
+      for run in pl_runs:
+         if not (run['file'] in files):
+            files.append(run['file'])
+      print 'Using files:', files
+      if len(files)>1:
+         val=files[0]
+         val2=files[1]
+      else:
+         print 'Need at least two files. Skipping ...'
+         continue
    if len(pl_runs)==0:
+      print 'Empty set of runs. Skipping ...'
       continue
-
-   print
-   print 'compute nodes: %i, number of MPI tasks = %i'%(num_nodes,num_procs)
+   pl_runs=sorted(pl_runs)
 
    figure()
    i=0

@@ -56,6 +56,7 @@ function hypre_build()
       echo "Using successfully built $pkg from OUT_DIR."
       return 0
    elif [[ ! -d "$pkg_bld_dir" ]]; then
+      echo "Cloning hypre from $HYPRE_SOURCE_DIR to OUT_DIR ..."
       cd "$OUT_DIR" && git clone "$HYPRE_SOURCE_DIR" || {
          echo "Cloning $HYPRE_SOURCE_DIR to OUT_DIR failed. Stop."
          return 1

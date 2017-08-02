@@ -79,6 +79,7 @@ while True:
             # print
             # pprint.pprint(data)
          data={}
+         data['file']=fileinput.filename()
          data['config']=config
          data['compiler']=compiler
          data['test']=test
