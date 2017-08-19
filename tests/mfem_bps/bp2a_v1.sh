@@ -7,7 +7,7 @@
 # element discretizations for exascale applications. For more information and
 # source code availability see http://github.com/ceed.
 #
-# The CEED research was supported by the Exascale Computing Project
+# The CEED research is supported by the Exascale Computing Project
 # (17-SC-20-SC), a collaborative effort of two U.S. Department of Energy
 # organizations (Office of Science and the National Nuclear Security
 # Administration) responsible for the planning and preparation of a capable
