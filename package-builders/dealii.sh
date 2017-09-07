@@ -86,7 +86,7 @@ function dealii_build()
          -DDEAL_II_WITH_MPI="ON" \
          "${LAPACK_CMAKE_OPTS[@]}" \
          -DDEAL_II_WITH_P4EST="ON" \
-         -DP4EST_DIR="$P4EST_DIR"
+         -DP4EST_DIR="$P4EST_DIR" \
          -DDEAL_II_WITH_BOOST="OFF" \
          -DDEAL_II_WITH_THREADS="OFF" && \
       make -j $num_proc_build && \
