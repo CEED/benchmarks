@@ -87,7 +87,7 @@ function dealii_build()
          "${LAPACK_CMAKE_OPTS[@]}" \
          -DDEAL_II_WITH_P4EST="ON" \
          -DP4EST_DIR="$P4EST_DIR" \
-         -DDEAL_II_WITH_BOOST="OFF" \
+         -DCMAKE_DISABLE_FIND_PACKAGE_Boost="ON" \
          -DDEAL_II_WITH_THREADS="OFF" && \
       make -j $num_proc_build && \
       make install && \
