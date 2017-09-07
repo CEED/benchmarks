@@ -28,6 +28,7 @@ function setup_intel()
    CFLAGS="-O3"
    FFLAGS="-O3"
    TEST_EXTRA_CFLAGS="-xHost"
+   NATIVE_CFLAG="-xHost"
 
    NEK5K_EXTRA_PPLIST=""
 }
@@ -45,6 +46,7 @@ function setup_gcc()
    FFLAGS="$CFLAGS"
    TEST_EXTRA_CFLAGS="-march=native --param max-completely-peel-times=3"
    # TEST_EXTRA_CFLAGS+=" -std=c++11 -fdump-tree-optimized-blocks"
+   NATIVE_CFLAG="-march=native"
 
    NEK5K_EXTRA_PPLIST=""
 }

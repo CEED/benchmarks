@@ -71,6 +71,8 @@ function setup_intel()
    # The following options assume GCC:
    # TEST_EXTRA_CFLAGS="-march=native --param max-completely-peel-times=3"
    # "-std=c++11 -pedantic -Wall -fdump-tree-optimized-blocks"
+
+   NATIVE_CFLAG="-xHost"
 }
 
 function setup_gcc()
@@ -88,6 +90,8 @@ function setup_gcc()
    # The following options assume GCC:
    TEST_EXTRA_CFLAGS="-march=native --param max-completely-peel-times=3"
    # "-std=c++11 -pedantic -Wall -fdump-tree-optimized-blocks"
+
+   NATIVE_CFLAG="-march=native"
 }
 
 
@@ -107,6 +111,8 @@ function setup_clang()
    TEST_EXTRA_CFLAGS="-march=native -fcolor-diagnostics -fvectorize"
    TEST_EXTRA_CFLAGS+=" -fslp-vectorize -fslp-vectorize-aggressive"
    TEST_EXTRA_CFLAGS+=" -ffp-contract=fast"
+
+   NATIVE_CFLAG="-march=native"
 }
 
 

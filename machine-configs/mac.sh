@@ -44,6 +44,7 @@ function setup_clang()
    TEST_EXTRA_CFLAGS+=" -fslp-vectorize -fslp-vectorize-aggressive"
    TEST_EXTRA_CFLAGS+=" -ffp-contract=fast"
    # "-std=c++11 -pedantic -Wall"
+   NATIVE_CFLAG="-march=native"
 
    NEK5K_BIGMEM="no" # used by: package-builders/nek5000.sh
 }
@@ -63,6 +64,7 @@ function setup_gcc_6()
    OCCA_CXXFLAGS="-O3 -march=native"
    TEST_EXTRA_CFLAGS="-march=native --param max-completely-peel-times=3"
    # "-std=c++11 -pedantic -Wall -fdump-tree-optimized-blocks"
+   NATIVE_CFLAG="-march=native"
 
    NEK5K_BIGMEM="no" # used by: package-builders/nek5000.sh
 }
@@ -83,6 +85,7 @@ function setup_gcc_7()
    OCCA_CXXFLAGS="-O3 -march=native"
    TEST_EXTRA_CFLAGS="-march=native --param max-completely-peel-times=3"
    # "-std=c++11 -pedantic -Wall -fdump-tree-optimized-blocks"
+   NATIVE_CFLAG="-march=native"
 
    NEK5K_BIGMEM="no" # used by: package-builders/nek5000.sh
 }
