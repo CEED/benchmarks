@@ -24,9 +24,10 @@ if [[ -z "$OUT_DIR" ]]; then
    echo "The variable 'OUT_DIR' is not set. Stop."
    return 1
 fi
-pkg_src_dir="mfem"
+pkg_git_branch=${mfem_git_branch:-master}
+pkg_src_dir=mfem-$pkg_git_branch
 MFEM_SOURCE_DIR="$pkg_sources_dir/$pkg_src_dir"
-pkg_bld_dir="$OUT_DIR/mfem"
+pkg_bld_dir="$OUT_DIR/$pkg_src_dir"
 MFEM_DIR="$pkg_bld_dir"
 pkg_var_prefix="mfem_"
 pkg="MFEM"
@@ -36,7 +37,6 @@ function mfem_clone()
 {
    pkg_repo_list=("git@github.com:mfem/mfem.git"
                   "https://github.com/mfem/mfem.git")
-   pkg_git_branch="master"
    cd "$pkg_sources_dir" || return 1
    if [[ -d "$pkg_src_dir" ]]; then
       update_git_package
@@ -44,7 +44,10 @@ function mfem_clone()
    fi
    for pkg_repo in "${pkg_repo_list[@]}"; do
       echo "Cloning $pkg from $pkg_repo ..."
-      git clone "$pkg_repo" "$pkg_src_dir" && return 0
+      git clone "$pkg_repo" "$pkg_src_dir" &&
+         echo Checking out $pkg_git_branch &&
+         (cd $pkg_src_dir && git checkout $pkg_git_branch) &&
+         return 0
    done
    echo "Could not successfully clone $pkg. Stop."
    return 1
