@@ -24,8 +24,11 @@ function build_and_run_tests()
     mesh_dim=3
 
     # Build the executable
-    $dry_run cd $test_exe_dir &&
+    $dry_run cd $test_dir &&
         $dry_run make $test_exe_dir/bps MFEM_DIR=$MFEM_DIR BLD=$test_exe_dir/
+
+    # Go to the test directory
+    cd $test_exe_dir
 
     # Constant parameters
     quadorder=-1
