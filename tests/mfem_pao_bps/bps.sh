@@ -47,26 +47,27 @@ function run_test()
 
 function build_and_run_tests()
 {
+    # Copy the mesh into place
     [ ! -r $test_exe_dir/inline-hex.mesh ] && $dry_run cp $test_dir/inline-hex.mesh $test_exe_dir/
-
-    # Build the executable
-    $dry_run cd "$test_dir" && $dry_run make $test_exe_dir/bps MFEM_DIR=$MFEM_DIR BLD=$test_exe_dir/
-
     mesh_dim=3
 
+    # Build the executable
+    $dry_run cd $test_exe_dir && $dry_run make $test_exe_dir/bps MFEM_DIR=$MFEM_DIR BLD=$test_exe_dir/
+
+
     # Constant parameters
-    quadorder=-1
     basistype=G
     maxiter=100
     print_level=1
     write_solution=0
+    quadorder=-1
 
     # Loop through cases
     bp=1
     mf=0
 
+    if (( bp % 2 )); then vdim=1; else vdim=$mesh_dim; fi
     for num_proc_run in 1; do
-        if (( bp % 2 )); then vdim=1; else vdim=$mesh_dim; fi
         for order in 1 3; do
             for ser_ref in {0..10}; do
                 for par_ref in 0; do
