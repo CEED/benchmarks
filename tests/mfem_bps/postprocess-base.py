@@ -108,7 +108,7 @@ while True:
       elif 'Average nonzero entries per row' in line:
          # out.write(lnfmt%i+': %s'%line)
          data['entries/row']=float(line.rsplit(' ',1)[1])
-      elif 'using integration rule with' in line:
+      elif 'integration rule with' in line:
          # out.write(lnfmt%i+': %s'%line)
          data['quadrature-pts']=int(line.split('with ',1)[1].split(' ',1)[0])
       elif ' elements'==line[:9]:
