@@ -36,6 +36,7 @@ post_process=""
 num_proc_build=${num_proc_build:-""}
 num_proc_run=${num_proc_run:-""}
 num_proc_node=${num_proc_node:-""}
+iteractive=false
 dry_run="" # empty string = NO
 start_shell=""
 verbose=""
@@ -78,6 +79,7 @@ Options:
    -r|--run <name>          run the tests in the script <name>
    -n|--num-proc \"list\"     total number of MPI tasks to use in the tests
    -p|--proc-node \"list\"    number of MPI tasks per node to use in the tests
+   -i|--interactive         disables MPIEXEC arguments that submit job to queue
   -pp|--post-process <name> post process the results using script <name>
    -d|--dry-run             show (but do not run) the commands for the tests
    -s|--shell               execute bash shell commands before running the test
@@ -344,7 +346,11 @@ function build_packages()
 
 function compose_mpi_run_command()
 {
-   mpi_run="${MPIEXEC:-mpirun} ${MPIEXEC_OPTS}"
+   if [ "$interactive" = false ]; then
+      mpi_run="${MPIEXEC:-mpirun} ${MPIEXEC_OPTS}"
+   else
+      mpi_run="mpirun"
+   fi
    mpi_run+=" ${MPIEXEC_NP:--np} ${num_proc_run} $bind_sh"
 }
 
@@ -493,6 +499,9 @@ case "$1" in
          echo "Post process script not found: '$1'"; $exit_cmd 1
       }
       ;;
+   -i|--interactive)
+       interactive=true
+       ;;
    -d|--dry-run)
       dry_run="quoted_echo"
       ;;
