@@ -14,44 +14,34 @@
 # software, applications, hardware, advanced system engineering and early
 # testbed platforms, in support of the nation's exascale computing imperative.
 
+if [[ -z "$root_dir" ]]; then
+   echo "This script ($0) should not be called directly. Stop."
+   return 1
+fi
+
+source "$test_dir/setup.sh.inl"
+
 function configure_tests()
 {
     case_orders=( 1 2 3 4 5 6 7 8 )
     case_refs=( 6 5 4 4 4 3 3 3 )
 }
 
-function setup_occa_test()
+function build_and_run_tests()
 {
     # This test name
-    local test_name=dtp_occa
+    test_name=bp3
 
-    # Export OCCA_CACHE_DIR
-    export OCCA_CACHE_DIR=$test_exe_dir/.occa
-
-    # configuration from dtp.sh.inl
+    # Setup the tests
+    setup_occa_test
     configure_tests
 
-    # Build the executable
-    $dry_run cd "$test_dir"
-
-    $dry_run make "$test_exe_dir/$test_name" "MFEM_DIR=$MFEM_DIR" "BLD=$test_exe_dir/"
-    [ -z $dry_run ] && {
-        occa info && occa clear -ay && make cache-kernels "MFEM_DIR=$MFEM_DIR" "MFEM_SOURCE_DIR=$MFEM_SOURCE_DIR"
-    }
-    $dry_run cp $MFEM_DIR/data/fichera.mesh $test_exe_dir/
+    # Run the tests
+    $dry_run cd "$test_exe_dir"
+    for i in "${!case_orders[@]}"; do
+        $dry_run ./$test_name -d "mode:'CUDA',deviceID:0" --order "${case_orders[$i]}" --ref-levels "${case_refs[$i]}" --no-acro --preconditioner none --mesh "inline-hex.mesh"
+    done
 }
 
-function setup_baseline_test()
-{
-    # This test name
-    local test_name=dtp_baseline
 
-    # configuration from dtp.sh.inl
-    configure_tests
-
-    # Build the executable
-    $dry_run cd "$test_dir"
-
-    $dry_run make "$test_exe_dir/$test_name" "MFEM_DIR=$MFEM_DIR" "BLD=$test_exe_dir/"
-    $dry_run cp $MFEM_DIR/data/fichera.mesh $test_exe_dir/
-}
+test_required_packages="metis hypre occa mfem-occa"

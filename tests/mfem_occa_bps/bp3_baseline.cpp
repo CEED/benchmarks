@@ -17,9 +17,9 @@
 //==============================================================================
 //                 MFEM Example 1 - Baseline version for CEED BP3
 //
-// Compile with: make dtp_baseline
+// Compile with: make bp3_baseline
 //
-// Sample runs:  ./dtp_baseline.sh
+// Sample runs:  ./bp3_baseline.sh
 //
 // Description:  This example code demonstrates the use of MFEM to define a
 //               simple finite element discretization of the Laplace problem
@@ -47,12 +47,12 @@ using namespace mfem;
 int main(int argc, char *argv[])
 {
    // 1. Parse command-line options.
-   const char *mesh_file = "../../fichera.mesh";
+   const char *mesh_file = "../../inline-hex.mesh";
    int order = 3;
    int ref_levels = 0;
    const char *basis_type = "G"; // Gauss-Lobatto
    bool static_cond = false;
-   bool visualization = 1;
+   bool visualization = 0;
 
    OptionsParser args(argc, argv);
    args.AddOption(&mesh_file, "-m", "--mesh",

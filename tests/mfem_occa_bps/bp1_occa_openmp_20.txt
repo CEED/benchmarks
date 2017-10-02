@@ -1,0 +1,2 @@
+Start of Lmod init/bash script to define the module command
+End of Lmod init/bash script to define the module command
