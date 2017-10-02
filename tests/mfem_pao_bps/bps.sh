@@ -14,20 +14,22 @@
 # software, applications, hardware, advanced system engineering and early
 # testbed platforms, in support of the nation's exascale computing imperative.
 
+# This script by itself does not define a test case. It is included in
+# the other bp*.sh scripts in this directory.
+
 function run_test()
 {
-    set_mpi_options
+    local test_name=bps
 
-    test_name=bps
+    all_args=( --bakeoff $bp \
+               --refine-serial $ser_ref \
+               --refine-parallel $par_ref \
+               --order $order \
+               --basis-type $basistype \
+               --quadrature-order $quadorder \
+               --max-iter $maxiter \
+               --print-level $print_level )
 
-    all_args=(--bakeoff $bp \
-                     --refine-serial $ser_ref \
-                     --refine-parallel $par_ref \
-                     --order $order \
-                     --basis-type $basistype \
-                     --quadrature-order $quadorder \
-                     --max-iter $maxiter \
-                     --print-level $print_level)
     extra_args=()
     if (( $mf )); then
         extra_args+=(--matrix-free)
@@ -44,42 +46,3 @@ function run_test()
     quoted_echo $mpi_run ./$test_name "${all_args[@]}" "${extra_args[@]}"
     $dry_run $mpi_run ./$test_name "${all_args[@]}" "${extra_args[@]}"
 }
-
-function build_and_run_tests()
-{
-    # Copy the mesh into place
-    [ ! -r $test_exe_dir/inline-hex.mesh ] && $dry_run cp $test_dir/inline-hex.mesh $test_exe_dir/
-    mesh_dim=3
-
-    # Build the executable
-    $dry_run cd $test_exe_dir && $dry_run make $test_exe_dir/bps MFEM_DIR=$MFEM_DIR BLD=$test_exe_dir/
-
-
-    # Constant parameters
-    basistype=G
-    maxiter=100
-    print_level=1
-    write_solution=0
-    quadorder=-1
-
-    # Loop through cases
-    bp=1
-    mf=0
-
-    if (( bp % 2 )); then vdim=1; else vdim=$mesh_dim; fi
-    for num_proc_run in 1; do
-        for order in 1 3; do
-            for ser_ref in {0..10}; do
-                for par_ref in 0; do
-                    (( dofs = 2**(mesh_dim + 3*(ser_ref+par_ref)) * (order**mesh_dim) * vdim ))
-                    if (( dofs > 5 )) && (( dofs < 100000 )); then
-                        run_test
-                    fi
-                done
-            done
-        done
-    done
-}
-
-test_required_packages="metis hypre mfem"
-mfem_git_branch="pa-oper-dev"

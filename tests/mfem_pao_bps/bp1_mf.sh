@@ -44,15 +44,13 @@ function build_and_run_tests()
 
     # Loop through cases
     if (( bp % 2 )); then vdim=1; else vdim=$mesh_dim; fi
-    for num_proc_run in 1 2 5 10 20; do
-        for order in 1 3 5 7; do
-            for ser_ref in {0..10}; do
-                for par_ref in 0; do
-                    (( dofs = 2**(mesh_dim + 3*(ser_ref+par_ref)) * (order**mesh_dim) * vdim ))
-                    if (( dofs > 5000 )) && (( dofs < 1000000 )); then
-                        run_test
-                    fi
-                done
+    for order in 1 3 5 7; do
+        for ser_ref in {0..10}; do
+            for par_ref in 0; do
+                (( dofs = 2**(mesh_dim + 3*(ser_ref+par_ref)) * (order**mesh_dim) * vdim ))
+                if (( dofs > 5000 )) && (( dofs < 1000000 )); then
+                    run_test
+                fi
             done
         done
     done
