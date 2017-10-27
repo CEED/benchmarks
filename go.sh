@@ -202,6 +202,9 @@ function print_variables()
    # Write the variable definitions so that they can be sourced from a file.
    # Usage: print_variables PREFIX [VAR_NAME]...
    local pfx="$1" var_name= var_val= var_list=()
+   # replace some characters in pfx with '_'.
+   pfx="${pfx//-/_}"
+   pfx="${pfx// /_}"
    shift
    for var_name; do
       var_list=("${var_list[@]}" "${pfx}${var_name}")
@@ -246,7 +249,7 @@ function get_package_git_version()
    # Used variables: 'pkg_src_dir'
    # Defines the variable: 'pkg_version'
    pkg_version="$(cd "$pkg_sources_dir/$pkg_src_dir" &&
-      git describe --long --abbrev=10 --tags 2> /dev/null ||
+      git describe --all --long --abbrev=40 --dirty --always 2> /dev/null ||
       git rev-parse HEAD 2> /dev/null)"
    pkg_version="${pkg_version:-(not a git repo?)}"
 }
