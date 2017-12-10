@@ -224,7 +224,7 @@ function update_git_package()
       cd "$pkg_src_dir" && \
       git checkout . && \
       git clean -df && {
-         local remote_ref=($(git ls-remote origin $pkg_git_branch))
+         local remote_ref=($(git ls-remote origin refs/heads/$pkg_git_branch))
          if [[ "$?" -ne 0 ]] || [[ -z "${remote_ref[0]}" ]]; then
             echo "Invalid remote branch: $pkg_git_branch. Stop."
             return 1
@@ -240,9 +240,9 @@ function update_git_package()
             }
          fi
       } && \
-      git fetch origin "$pkg_git_brabch" && \
+      git fetch origin --prune && \
       git checkout "$pkg_git_branch" && {
-         git merge --ff-only FETCH_HEAD || \
+         git merge --ff-only "origin/$pkg_git_branch" || \
          git checkout -B "$pkg_git_branch" "origin/$pkg_git_branch"
       } || {
          echo "Error updating $pkg. Stop."
