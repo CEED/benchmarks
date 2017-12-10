@@ -223,14 +223,19 @@ function update_git_package()
       echo "Updating $pkg ..."
       cd "$pkg_src_dir" && {
          local remote_ref=($(git ls-remote origin $pkg_git_branch))
+         if [[ "$?" -ne 0 ]]; then
+            echo "Invalid remote branch: $pkg_git_branch. Stop."
+            return 1
+         fi
          local local_ref="$(git rev-parse $pkg_git_branch)"
-         if [[ "${remote_ref[0]}" = "$local_ref" ]]; then
+         if [[ "$?" -eq 0 ]] && [[ "${remote_ref[0]}" = "$local_ref" ]]; then
             echo "Package $pkg is up to date."
             return 0
          fi
       } && \
       git checkout . && \
       git clean -df && \
+      git fetch origin $pkg_git_brabch && \
       git checkout "$pkg_git_branch" && {
          git pull --ff-only || \
          git checkout -B "$pkg_git_branch" "origin/$pkg_git_branch"
