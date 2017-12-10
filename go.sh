@@ -221,23 +221,28 @@ function update_git_package()
    # Used variables: 'pkg', 'pkg_src_dir', 'pkg_git_branch', 'pkg_bld_dir'
    if [[ "$update_packages" = "yes" ]]; then
       echo "Updating $pkg ..."
-      cd "$pkg_src_dir" && {
+      cd "$pkg_src_dir" && \
+      git checkout . && \
+      git clean -df && {
          local remote_ref=($(git ls-remote origin $pkg_git_branch))
-         if [[ "$?" -ne 0 ]]; then
+         if [[ "$?" -ne 0 ]] || [[ -z "${remote_ref[0]}" ]]; then
             echo "Invalid remote branch: $pkg_git_branch. Stop."
             return 1
          fi
-         local local_ref="$(git rev-parse $pkg_git_branch)"
+         local local_ref="$(git rev-parse $pkg_git_branch 2> /dev/null)"
          if [[ "$?" -eq 0 ]] && [[ "${remote_ref[0]}" = "$local_ref" ]]; then
-            echo "Package $pkg is up to date."
-            return 0
+            git checkout "$pkg_git_branch" && {
+               echo "Package $pkg is up to date."
+               return 0
+            } || {
+               echo "Error checking out branch: $pkg_git_branch. Stop."
+               return 1
+            }
          fi
       } && \
-      git checkout . && \
-      git clean -df && \
-      git fetch origin $pkg_git_brabch && \
+      git fetch origin "$pkg_git_brabch" && \
       git checkout "$pkg_git_branch" && {
-         git pull --ff-only || \
+         git merge --ff-only FETCH_HEAD || \
          git checkout -B "$pkg_git_branch" "origin/$pkg_git_branch"
       } || {
          echo "Error updating $pkg. Stop."
