@@ -28,14 +28,18 @@ pkg_src_dir="occa"
 OCCA_SOURCE_DIR="$pkg_sources_dir/$pkg_src_dir"
 pkg_bld_dir="$OUT_DIR/occa"
 OCCA_DIR="$pkg_bld_dir"
-pkg="OCCA"
+# The OCCA branch can be set on the command line of go.sh too.
+occa_branch="${occa_branch:-1.0}"
+OCCA_BRANCH="${occa_branch}"
+pkg="OCCA (branch ${occa_branch})"
+pkg_var_prefix="occa_"
 
 
 function occa_clone()
 {
    pkg_repo_list=("git@github.com:libocca/occa.git"
                   "https://github.com/libocca/occa.git")
-   pkg_git_branch="1.0"
+   pkg_git_branch="${occa_branch}"
    cd "$pkg_sources_dir" || return 1
    if [[ -d "$pkg_src_dir" ]]; then
       update_git_package
@@ -76,7 +80,9 @@ function occa_build()
       return 1
    }
    echo "Build successful."
-   : > "${pkg_bld_dir}_build_successful"
+   print_variables "$pkg_var_prefix" \
+      OCCA_BRANCH \
+      > "${pkg_bld_dir}_build_successful"
 }
 
 

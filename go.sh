@@ -250,6 +250,18 @@ function update_git_package()
       }
       cd ..
       : > "${pkg_src_dir}_updated"
+   else
+      cd "$pkg_src_dir" || return 1
+      local target_ref="$(git rev-parse $pkg_git_branch 2> /dev/null)"
+      local current_ref="$(git rev-parse HEAD 2> /dev/null)"
+      [[ "${current_ref}" == "${target_ref}" ]] && return 0
+      git checkout "$pkg_git_branch" || {
+         echo "Error checking out branch: $pkg_git_branch. Stop."
+         return 1
+      }
+      # Note: "${pkg_src_dir}_updated" is not touched, so packages need to save
+      #       the name of the build branch in their "*_build_successful" file to
+      #       force re-building.
    fi
 }
 
