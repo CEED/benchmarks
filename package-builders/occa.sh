@@ -29,7 +29,7 @@ OCCA_SOURCE_DIR="$pkg_sources_dir/$pkg_src_dir"
 pkg_bld_dir="$OUT_DIR/occa"
 OCCA_DIR="$pkg_bld_dir"
 # The OCCA branch can be set on the command line of go.sh too.
-occa_branch="${occa_branch:-1.0}"
+occa_branch="${occa_branch:-master}"
 OCCA_BRANCH="${occa_branch}"
 pkg="OCCA (branch ${occa_branch})"
 pkg_var_prefix="occa_"
