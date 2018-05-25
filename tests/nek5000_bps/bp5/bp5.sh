@@ -237,9 +237,9 @@ function build_and_run_tests()
   echo "Generating the box meshes ..."
   $dry_run generate_boxes || return 1
   echo 'Buiding the bp tests ...'
-  $dry_run build_tests bp1 || return 1
+  $dry_run build_tests bp5 || return 1
   echo 'Running the bp tests ...'
-  run_tests bp1
+  run_tests bp5
 }
 
 test_required_packages="nek5000"
