@@ -21,5 +21,5 @@ if [[ -z "$root_dir" ]]; then
    return 1
 fi
 
-nek_bp=bp1
+nek_bp=bp5
 source ${root_dir}/tests/nek5000_bps/bp_main.sh
