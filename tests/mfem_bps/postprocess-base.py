@@ -88,8 +88,8 @@ while True:
          data['mesh-order']=mesh_p
          data['code']="MFEM"
          test_=test.rsplit('/',1)[-1]
-         data['case']='scalar' if (('bp1' in test_) or ('bp3' in test_)) \
-                      else 'vector'
+         data['case']='scalar' if (('bp1' in test_) or ('bp3' in test_) or
+                                   ('bp5' in test_)) else 'vector'
          # out.write('\n'+lnfmt%i+': %s'%line)
          # out.write('*'*len(lnfmt%i)+':    --mesh-p %i\n'%mesh_p)
          state=2
@@ -111,6 +111,8 @@ while True:
       elif 'using integration rule with' in line:
          # out.write(lnfmt%i+': %s'%line)
          data['quadrature-pts']=int(line.split('with ',1)[1].split(' ',1)[0])
+      elif 'Quadrature rule type:' in line:
+         data['quadrature-type']=line.rsplit(' ',1)[1]
       elif ' elements'==line[:9]:
          # out.write(lnfmt%i+': %s'%line)
          data['num-elem']=int(line.rsplit(None,1)[1])

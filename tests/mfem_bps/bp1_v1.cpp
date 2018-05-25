@@ -57,6 +57,11 @@ using namespace mfem;
 #define IR_ORDER 0
 #endif
 
+#ifndef IR_TYPE
+// 0 - Gauss quadrature, 1 - Gauss-Lobatto quadrature
+#define IR_TYPE 0
+#endif
+
 #ifndef PROBLEM
 #define PROBLEM 0
 #endif
@@ -70,13 +75,51 @@ using namespace mfem;
 #define VEC_LAYOUT Ordering::byVDIM
 #endif
 
+IntegrationRules GaussLobattoRules(0, Quadrature1D::GaussLobatto);
+
+template <int Dim, int Q, typename real_t>
+class GaussLobattoIntegrationRule
+   : public TProductIntegrationRule<Dim, Q, 2*Q-3, real_t>
+{
+public:
+   typedef TProductIntegrationRule<Dim,Q,2*Q-3,real_t> base_class;
+
+   using base_class::geom;
+   using base_class::order;
+   using base_class::qpts_1d;
+
+protected:
+   using base_class::weights_1d;
+
+public:
+   GaussLobattoIntegrationRule()
+   {
+      const IntegrationRule &ir_1d = Get1DIntRule();
+      MFEM_ASSERT(ir_1d.GetNPoints() == qpts_1d, "quadrature rule mismatch");
+      for (int j = 0; j < qpts_1d; j++)
+      {
+         weights_1d.data[j] = ir_1d.IntPoint(j).weight;
+      }
+   }
+
+   static const IntegrationRule &Get1DIntRule()
+   {
+      return GaussLobattoRules.Get(Geometry::SEGMENT, order);
+   }
+   static const IntegrationRule &GetIntRule()
+   {
+      return GaussLobattoRules.Get(geom, order);
+   }
+};
+
 
 // Define template parameters for optimized build.
 const Geometry::Type geom     = GEOM;      // mesh elements  (default: hex)
 const int            mesh_p   = MESH_P;    // mesh curvature (default: 3)
 const int            sol_p    = SOL_P;     // solution order (default: 3)
-const int            rdim     = Geometry::Constants<geom>::Dimension;
-const int            ir_order = IR_ORDER ? IR_ORDER : 2*(sol_p+2)-1;
+const int            ir_q     = IR_TYPE ? sol_p+1 : sol_p+2;
+const int            ir_order = IR_ORDER ? IR_ORDER :
+                                (IR_TYPE ? 2*ir_q-3 : 2*ir_q-1);
 
 // Static mesh type
 typedef H1_FiniteElement<geom,mesh_p>         mesh_fe_t;
@@ -88,7 +131,13 @@ typedef H1_FiniteElement<geom,sol_p>          sol_fe_t;
 typedef H1_FiniteElementSpace<sol_fe_t>       sol_fes_t;
 
 // Static quadrature, coefficient and integrator types
+#if (IR_TYPE == 0)
 typedef TIntegrationRule<geom,ir_order>       int_rule_t;
+#else
+const int rdim = Geometry::Constants<geom>::Dimension;
+typedef GaussLobattoIntegrationRule<rdim,ir_order/2+2,double>
+                                              int_rule_t;
+#endif
 typedef TConstantCoefficient<>                coeff_t;
 #if (PROBLEM == 0)
 typedef TIntegrator<coeff_t,TDiffusionKernel> integ_t;
@@ -217,6 +266,8 @@ int main(int argc, char *argv[])
       {
          cout << "High-performance version using integration rule with "
               << int_rule_t::qpts << " points ..." << endl;
+         cout << "Quadrature rule type: "
+              << (IR_TYPE == 0 ? "Gauss" : "Gauss-Lobatto") << endl;
       }
       if (!mesh_t::MatchesGeometry(*mesh))
       {

@@ -48,6 +48,9 @@ function build_tests()
    esac
    local make_extra=("geom=$geom" "mesh_p=$mesh_p" "sol_p=${sol_p_lst:1}")
    make_extra=("${make_extra[@]}" "problem=$problem")
+   if (( ir_type != 0 )); then
+      make_extra=("${make_extra[@]}" "ir_type=$ir_type")
+   fi
    if (( vdim > 1 )); then
       make_extra=("${make_extra[@]}" "vdim=$vdim")
       if [[ "$vec_layout" = "Ordering::byNODES" ]]; then
@@ -137,12 +140,15 @@ test_name=bp1_v1
 problem=${problem:-1}
 geom=Geometry::CUBE
 mesh_p=1
+# quadrature type: 0 - Gauss, 1 - Gauss-Lobatto
+ir_type=${ir_type:-0}
 vdim=${vdim:-1}
 vec_layout=${vec_layout:-}
 # test id:     0   1   2   3   4   5   6   7   8   9
 sol_p_list=(   1   2   3   4   5   6   7   8   1   2)
 ir_order_list=(0   0   0   0   0   0   0   0   3   5)
 enabled_tests_def="0   1   2   3   4   5   6   7   8   9"
+(( ir_type != 0 )) && enabled_tests_def="0 1 2 3 4 5 6 7"
 # enabled_tests_def="1   2   3   4   5   6   7   8"   # for bp3 on vulcan + xlc
 # enabled_tests_def="0"
 enabled_tests="${enabled_tests:-$enabled_tests_def}"
@@ -222,6 +228,7 @@ function set_test_params()
    fi
    suffix=_${geom#Geometry::}_p${sol_p}_m${mesh_p}
    (( ir_order != 0 )) && suffix+="_i${ir_order}"
+   (( ir_type != 0 )) && suffix+="_GLL"
    (( problem != 0 )) && suffix="_Mass$suffix"
    (( vdim != 1 )) && {
       [[ "$vec_layout" = "Ordering::byNODES" ]] && \
