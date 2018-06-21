@@ -34,11 +34,8 @@
 //               http://ceed.exascaleproject.org/bps.
 //==============================================================================
 
-#include "mfem-performance.hpp"
-#include <fstream>
-#include <iostream>
+#include <mfem.hpp>
 
-using namespace std;
 using namespace mfem;
 
 #ifndef GEOM
@@ -74,6 +71,32 @@ using namespace mfem;
 #ifndef VEC_LAYOUT
 #define VEC_LAYOUT Ordering::byVDIM
 #endif
+
+// Define template parameters for optimized build.
+const Geometry::Type geom     = GEOM;      // mesh elements  (default: hex)
+const int            mesh_p   = MESH_P;    // mesh curvature (default: 3)
+const int            sol_p    = SOL_P;     // solution order (default: 3)
+const int            ir_q     = IR_TYPE ? sol_p+1 : sol_p+2;
+const int            ir_order = IR_ORDER ? IR_ORDER :
+                                (IR_TYPE ? 2*ir_q-3 : 2*ir_q-1);
+
+
+// Workaround for a bug in XL C++ on BG/Q version 12.01.0000.0014
+#if defined(__xlC__) && (__xlC__ < 0x0d00)
+#include <../mfem/linalg/tlayout.hpp>
+namespace mfem
+{
+const int mesh_dim = Geometry::Constants<geom>::Dimension;
+template class StridedLayout1D<mesh_dim*VDIM,1>;
+}
+#endif // defined(__xlC__) && (__xlC__ < 0x0d00)
+
+
+#include <mfem-performance.hpp>
+#include <fstream>
+#include <iostream>
+
+using namespace std;
 
 IntegrationRules GaussLobattoRules(0, Quadrature1D::GaussLobatto);
 
@@ -112,14 +135,6 @@ public:
    }
 };
 
-
-// Define template parameters for optimized build.
-const Geometry::Type geom     = GEOM;      // mesh elements  (default: hex)
-const int            mesh_p   = MESH_P;    // mesh curvature (default: 3)
-const int            sol_p    = SOL_P;     // solution order (default: 3)
-const int            ir_q     = IR_TYPE ? sol_p+1 : sol_p+2;
-const int            ir_order = IR_ORDER ? IR_ORDER :
-                                (IR_TYPE ? 2*ir_q-3 : 2*ir_q-1);
 
 // Static mesh type
 typedef H1_FiniteElement<geom,mesh_p>         mesh_fe_t;

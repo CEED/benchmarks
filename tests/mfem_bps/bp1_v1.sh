@@ -65,6 +65,7 @@ function build_tests()
    make_extra=("${make_extra[@]}" "EXTRA_CXXFLAGS=$TEST_EXTRA_CFLAGS")
    make_extra=("${make_extra[@]}" "MFEM_DIR=$MFEM_DIR")
    make_extra=("${make_extra[@]}" "BLD=$test_exe_dir/")
+   make_extra=("${make_extra[@]}" "EXTRA_INCFLAGS=-I$MFEM_SOURCE_DIR")
    quoted_echo make -j $num_proc_build $test_name "${make_extra[@]}"
    [[ -n "$dry_run" ]] || make -j $num_proc_build $test_name "${make_extra[@]}"
 }

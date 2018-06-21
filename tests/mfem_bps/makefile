@@ -28,9 +28,12 @@ MFEM_LIB_FILE = mfem_is_not_built
 # for these flags are set below, based on MFEM_CXX. However, they can be
 # overwritten at the make command line.
 EXTRA_CXXFLAGS =
+# Similar to the above.
+EXTRA_INCFLAGS =
 
 # Add any EXTRA_CXXFLAGS to MFEM_CXXFLAGS, which is part of MFEM_FLAGS.
 MFEM_CXXFLAGS += $(EXTRA_CXXFLAGS)
+MFEM_INCFLAGS += $(EXTRA_INCFLAGS)
 
 BPS = bp1_v1
 ifeq ($(MFEM_USE_MPI),NO)
