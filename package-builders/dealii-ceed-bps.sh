@@ -86,7 +86,7 @@ function dealii_ceed_bps_build()
       return 1
    fi
    echo "Building $pkg, sending output to ${pkg_bld_dir}_build.log ..." && {
-      dealii_ceed_bps_build_aux "bp1" "bp2"
+      dealii_ceed_bps_build_aux "bp1" "bp2" "bp3" "bp4" "bp5" "bp6"
    } &> "${pkg_bld_dir}_build.log" || {
       echo " ... building $pkg FAILED, see log for details."
       return 1

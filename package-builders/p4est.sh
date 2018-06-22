@@ -40,7 +40,7 @@ function p4est_clone()
    cd "$pkg_sources_dir" || return 1
    if [[ -d "$pkg_src_dir" ]]; then
       update_git_package && \
-      cd "$pkg_src_dir" && git submodule init && git submodule update
+      git submodule init && git submodule update
       return
    fi
    for pkg_repo in "${pkg_repo_list[@]}"; do
