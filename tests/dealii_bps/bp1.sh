@@ -16,5 +16,5 @@
 # exascale computing imperative.
 
 
-bp_test="bp1/bench_mass"
+bp_test="bp1/bench"
 source ${root_dir}/tests/dealii_bps/bp-main.sh

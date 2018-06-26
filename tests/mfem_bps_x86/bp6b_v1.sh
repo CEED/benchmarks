@@ -16,5 +16,16 @@
 # exascale computing imperative.
 
 
-bp_test="bp2/bench"
-source ${root_dir}/tests/dealii_bps/bp-main.sh
+if [[ -z "$root_dir" ]]; then
+   echo "This script ($0) should not be called directly. Stop."
+   return 1
+fi
+
+# problem: 0 - diffusion, 1 - mass
+problem=0
+vdim=3
+# Ordering::byVDIM or Ordering::byNODES
+vec_layout="Ordering::byNODES"
+# ir_type: 0 - Gauss quadrature, 1 - Gauss-Lobatto quadrature
+ir_type=1
+source ${root_dir}/tests/mfem_bps_x86/bp1_v1.sh
