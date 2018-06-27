@@ -94,6 +94,25 @@ function setup_gcc()
    NATIVE_CFLAG="-march=native"
 }
 
+function setup_gcc_no_peel()
+{
+   CC=gcc
+   CXX=g++
+   FC=gfortran
+
+   setup_mpi
+
+   CFLAGS="-O3"
+   setup_bigmem
+   FFLAGS="$CFLAGS"
+
+   # The following options assume GCC:
+   TEST_EXTRA_CFLAGS="-march=native"
+   # "-std=c++11 -pedantic -Wall -fdump-tree-optimized-blocks"
+
+   NATIVE_CFLAG="-march=native"
+}
+
 
 function setup_clang()
 {
