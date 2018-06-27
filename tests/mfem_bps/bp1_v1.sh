@@ -276,8 +276,7 @@ echo
 $dry_run cd "$test_exe_dir"
 args_list=('-perf -mf')
 total_memory_required_list=(8)  # guess-timates
-run_tests_if_enabled 4 5 6 7 8 9 10 11 12 13 14 15 16
-#0 1 2 3 4 5 6 7 8 9
+run_tests_if_enabled 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
 
 $dry_run make -f "$test_dir/makefile" clean-exec
 
