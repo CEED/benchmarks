@@ -62,8 +62,7 @@ function build_tests()
    make_extra=("${make_extra[@]}" "use_mpi_wtime=$use_mpi_wtime")
    make_extra=("${make_extra[@]}" "ir_order=${ir_order_lst:1}")
    make_extra=("${make_extra[@]}" "exe_suffix=${exe_sfx_lst:1}")
-   make_extra=("${make_extra[@]}" "EXTRA_CXXFLAGS=-march=native")
-#$TEST_EXTRA_CFLAGS")
+   make_extra=("${make_extra[@]}" "EXTRA_CXXFLAGS=$TEST_EXTRA_CFLAGS")
    make_extra=("${make_extra[@]}" "MFEM_DIR=$MFEM_DIR")
    make_extra=("${make_extra[@]}" "BLD=$test_exe_dir/")
    make_extra=("${make_extra[@]}" "EXTRA_INCFLAGS=-I$MFEM_SOURCE_DIR")
@@ -246,7 +245,6 @@ function run_tests_if_enabled()
 {
    local test_id= enabled_tests_pat=" $enabled_tests " sft=
    for test_id; do
-      echo test_id=$test_id
       if [[ -z "${enabled_tests_pat##* $test_id *}" ]]; then
          for ((sft = mesh_s_reduction_base;
                sft <= mesh_s_reduction_limit; sft++ )); do
