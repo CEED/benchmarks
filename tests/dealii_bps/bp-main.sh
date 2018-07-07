@@ -34,7 +34,7 @@ function build_and_run_tests()
 
    set_mpi_options
 
-   $dry_run $mpi_run $bp_exe
+   $dry_run $mpi_run $bp_exe 
 }
 
 

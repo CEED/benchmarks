@@ -145,10 +145,10 @@ mesh_p=1
 ir_type=${ir_type:-0}
 vdim=${vdim:-1}
 vec_layout=${vec_layout:-}
-# test id:     0   1   2   3   4   5   6   7   8    9   10  11  12
-sol_p_list=(   1   2   3   4   5   6   7   8   9   10   11  12  13)
-ir_order_list=(0   0   0   0   0   0   0   0   0    0    0   0   0)
-enabled_tests_def="0   1   2   3   4   5   6   7    8    9  10  11"
+# test id:     0   1   2   3   4   5   6   7   8   9   10  11  12
+sol_p_list=(   1   2   3   4   5   6   7   8   9   10  11  12  13)
+ir_order_list=(0   0   0   0   0   0   0   0   0    0   0   0  0)
+enabled_tests_def="0   1   2   3   4   5   6   7    8   9  10 11"
 (( ir_type != 0 )) && enabled_tests_def="0 1 2 3 4 5 6 7 8 9 10 11"
 # enabled_tests_def="1   2   3   4   5   6   7   8"   # for bp3 on vulcan + xlc
 # enabled_tests_def="0"
@@ -283,4 +283,4 @@ $dry_run make -f "$test_dir/makefile" clean-exec
 }
 
 
-test_required_packages="metis hypre mfem"
+test_required_packages="metis hypre mfem-x86"

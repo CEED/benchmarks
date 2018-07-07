@@ -46,6 +46,7 @@ if '_segmentdata' in cm.__dict__:
 elif 'colors' in cm.__dict__:
    cm_size=len(cm.__dict__['colors'])
 colors=[cm(1.*i/(cm_size-1)) for i in range(cm_size)]
+print 'Color cm_size=', cm_size
 
 # colors=['blue','green','crimson','turquoise','m','gold','cornflowerblue',
 #         'darkorange']
@@ -57,7 +58,7 @@ sel_runs=[run for run in sel_runs if run['action-type']==action_type]
 
 configs=list(set([run['config'].rsplit('/',1)[-1].rsplit('.sh',1)[0]
                   for run in sel_runs]))
-# print 'Present configurations:', configs
+print 'Present configurations:', configs
 config=configs[0]
 print 'Using configuration:', config
 config_short=config
@@ -66,7 +67,7 @@ sel_runs=[run for run in sel_runs if
 
 tests=list(set([run['test'].rsplit('/',1)[-1].rsplit('.sh',1)[0]
                 for run in sel_runs]))
-# print 'Present tests:', tests
+print 'Present tests:', tests
 test=tests[0]
 print 'Using test:', test
 test_short=test

@@ -18,9 +18,9 @@
 
 #####   Adjustable plot parameters:
 log_y=0               # use log scale on the y-axis?
-x_range=(1e1,2e8)     # plot range for the x-axis; comment out for auto
-y_range=(0,9e8)       # plot range for the y-axis; comment out for auto
-draw_iter_lines=1     # draw the "iter/s" lines?
+x_range=(1e1,1e7)     # plot range for the x-axis; comment out for auto
+y_range=(0,7e7)       # plot range for the y-axis; comment out for auto
+draw_iter_lines=0     # draw the "iter/s" lines?
 ymin_iter_lines=3e5   # minimal y value for the "iter/s" lines
 ymax_iter_lines=8e8   # maximal y value for the "iter/s" lines
 legend_ncol=(2 if log_y else 1)   # number of columns in the legend
@@ -132,7 +132,7 @@ for plt in pl_set:
           max([e[1] for e in d if e[0]==nun])]
          for nun in set([e[0] for e in d])]
       d=asarray(sorted(d))
-      plot(d[:,0],d[:,2],'o-',color=colors[i],
+      plot(d[:,0],d[:,2],'o-',color=colors[i%cm_size],
            label='p=%i, q=p+%i'%(sol_p,qpts_1d[0]-sol_p))
       if list(d[:,1]) != list(d[:,2]):
          plot(d[:,0],d[:,1],'o-',color=colors[i])

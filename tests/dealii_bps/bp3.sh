@@ -16,5 +16,5 @@
 # exascale computing imperative.
 
 
-bp_test="bp2/bench"
+bp_test="bp3/bench"
 source ${root_dir}/tests/dealii_bps/bp-main.sh
