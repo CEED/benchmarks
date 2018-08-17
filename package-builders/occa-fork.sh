@@ -14,7 +14,7 @@
 # software, applications, hardware, advanced system engineering and early
 # testbed platforms, in support of the nation's exascale computing imperative.
 
-# Clone and build OCCA.
+# Clone and build OCCA from forked repository.
 
 if [[ -z "$pkg_sources_dir" ]]; then
    echo "This script ($0) should not be called directly. Stop."
@@ -24,23 +24,25 @@ if [[ -z "$OUT_DIR" ]]; then
    echo "The variable 'OUT_DIR' is not set. Stop."
    return 1
 fi
-pkg_src_dir="occa"
+pkg_src_dir="occa-fork"
 OCCA_SOURCE_DIR="$pkg_sources_dir/$pkg_src_dir"
-pkg_bld_dir="$OUT_DIR/occa"
+pkg_bld_dir="$OUT_DIR/occa-fork"
 OCCA_DIR="$pkg_bld_dir"
+occa_repo="${occa_repo:-https://github.com/v-dobrev/occa.git}"
+OCCA_REPO="${occa_repo}"
 # The OCCA branch can be set on the command line of go.sh too.
-occa_branch="${occa_branch:-master}"
+occa_branch="${occa_branch:-develop}"
 OCCA_BRANCH="${occa_branch}"
-pkg="OCCA (branch ${occa_branch})"
-pkg_var_prefix="occa_"
+pkg="OCCA-fork (repo ${occa_repo} - branch ${occa_branch})"
+pkg_var_prefix="occa_fork_"
 
 
 function occa_clone()
 {
-   pkg_repo_list=("git@github.com:libocca/occa.git"
-                  "https://github.com/libocca/occa.git")
+   pkg_repo_list=("${occa_repo}")
    pkg_git_branch="${occa_branch}"
    cd "$pkg_sources_dir" || return 1
+   git_package_check_source || return 1
    if [[ -d "$pkg_src_dir" ]]; then
       update_git_package
       return
@@ -81,7 +83,7 @@ function occa_build()
    }
    echo "Build successful."
    print_variables "$pkg_var_prefix" \
-      OCCA_BRANCH \
+      OCCA_REPO OCCA_BRANCH \
       > "${pkg_bld_dir}_build_successful"
 }
 

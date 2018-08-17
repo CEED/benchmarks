@@ -216,6 +216,33 @@ function print_variables()
 }
 
 
+function git_package_check_source()
+{
+   # Remove the source directory of a package if the current 'origin' url is not
+   # in the list 'pkg_repo_list'.
+   # Used variables: 'pkg', 'pkg_src_dir', 'pkg_repo_list'
+   [[ -d "${pkg_src_dir}" ]] && cd "${pkg_src_dir}" || return 0
+   # local git_repo="$(git remote get-url origin)" # newer git versions
+   local git_repo="$(git remote -v |
+                     sed -n -e "s/^origin"$'\t'"\(.*\) (fetch)\$/\1/p")"
+   if [[ "$?" -ne 0 ]]; then
+      echo "Error reading the git remote url. Stop."
+      return 1
+   fi
+   cd ..
+   for pkg_repo in "${pkg_repo_list[@]}"; do
+      if [[ "${pkg_repo}" = "${git_repo}" ]]; then
+         return 0
+      fi
+   done
+   echo "Removing the package source for $pkg ..."
+   echo " ... because the current repo ($git_repo) ..."
+   echo " ... is not in the list (${pkg_repo_list[@]})"
+   rm -rf "${pkg_src_dir}" "${pkg_src_dir}_updated"
+   return 0
+}
+
+
 function update_git_package()
 {
    # Used variables: 'pkg', 'pkg_src_dir', 'pkg_git_branch', 'pkg_bld_dir'

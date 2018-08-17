@@ -84,9 +84,9 @@ function set_mpi_options()
 
 
 valid_compilers="xlc gcc clang"
-num_proc_build=${num_proc_build:-40}
-num_proc_run=${num_proc_run:-22}
-num_proc_node=${num_proc_node:-22}
+num_proc_build=${num_proc_build:-16}
+num_proc_run=${num_proc_run:-4}
+num_proc_node=${num_proc_node:-4}
 memory_per_node=256
 
 # Optional (default): MPIEXEC (mpirun), MPIEXEC_OPTS (), MPIEXEC_NP (-np)
@@ -94,4 +94,4 @@ bind_sh=
 MPIEXEC="bsub"
 MPIEXEC_NP="-n"
 
-cuda_path=/usr/local/cuda/bin
+cuda_path=${CUDA_HOME:-/usr/local/cuda}/bin
