@@ -2,7 +2,6 @@
 #include <mfem.hpp>
 #include <fstream>
 #include <iostream>
-#include <stdlib.h>
 
 using namespace std;
 using namespace mfem;
@@ -187,7 +186,7 @@ int main(int argc, char *argv[])
    }
    if (myid == 0)
    {
-      cout << "done." << endl;
+      cout << " done." << endl;
    }
 
    // 16. Run the full CG solver, measuring and reporting the execution time.
