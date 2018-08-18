@@ -75,32 +75,38 @@ function setup_clang()
 
 function set_mpi_options()
 {
+   local BSUB_OPTS=
    MPIEXEC_OPTS="-npernode $num_proc_node"
-   # Q: Is bind.sh equivalent to the mpirun option '-bind-to core'?
-   # MPIEXEC_OPTS="-bind-to core $MPIEXEC_OPTS"
-   # MPIEXEC_OPTS+=" -report-bindings"
-   # echo "$LSB_HOSTS" > hostfile
-   # MPIEXEC_OPTS+=" -hostfile hostfile"
+   MPIEXEC_OPTS+=" -gpu"
    if [ "$num_proc_node" -gt "20" ]; then
       MPIEXEC_OPTS="-oversubscribe $MPIEXEC_OPTS"
    fi
-   local BSUB_OPTS="-q pbatch -G guests -n $((num_nodes*20)) -I"
-   MPIEXEC_OPTS="$BSUB_OPTS mpirun $MPIEXEC_OPTS"
+   # Autodetect if running inside a job
+   if [[ -n "${LSB_JOBID}" ]]; then
+      bind_sh="mpibind"
+      MPIEXEC="mpirun"
+      MPIEXEC_NP="-n"
+   else
+      BSUB_OPTS="-q pbatch -G guests -n $((num_nodes*20)) -I"
+      MPIEXEC_OPTS="$BSUB_OPTS mpirun $MPIEXEC_OPTS"
+      bind_sh="mpibind"
+      MPIEXEC="bsub"
+      MPIEXEC_NP="-n"
+   fi
    compose_mpi_run_command
 }
 
 
 valid_compilers="xlc gcc clang"
-num_proc_build=${num_proc_build:-10}
+num_proc_build=${num_proc_build:-40}
 num_proc_run=${num_proc_run:-20}
 num_proc_node=${num_proc_node:-20}
 memory_per_node=256
 
 # Optional (default): MPIEXEC (mpirun), MPIEXEC_OPTS (), MPIEXEC_NP (-np)
-bind_sh=mpibind
-# bind_sh=bind.sh
-# MPIEXEC=jsrun (under dev)
-MPIEXEC="bsub"
-MPIEXEC_NP="-n"
+# The actual values are set in 'set_mpi_options' above.
+bind_sh=
+MPIEXEC=
+MPIEXEC_NP=
 
-cuda_path=/usr/local/cuda-8.0/bin
+cuda_path=${CUDA_HOME:-/usr/local/cuda}/bin

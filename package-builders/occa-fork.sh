@@ -28,19 +28,20 @@ pkg_src_dir="occa-fork"
 OCCA_SOURCE_DIR="$pkg_sources_dir/$pkg_src_dir"
 pkg_bld_dir="$OUT_DIR/occa-fork"
 OCCA_DIR="$pkg_bld_dir"
-occa_repo="${occa_repo:-https://github.com/v-dobrev/occa.git}"
-OCCA_REPO="${occa_repo}"
-# The OCCA branch can be set on the command line of go.sh too.
-occa_branch="${occa_branch:-develop}"
-OCCA_BRANCH="${occa_branch}"
-pkg="OCCA-fork (repo ${occa_repo} - branch ${occa_branch})"
+# The OCCA-fork repo can be set on the command line of go.sh too.
+occa_fork_repo="${occa_fork_repo:-https://github.com/v-dobrev/occa.git}"
+OCCA_REPO="${occa_fork_repo}"
+# The OCCA-fork branch can be set on the command line of go.sh too.
+occa_fork_branch="${occa_fork_branch:-develop}"
+OCCA_BRANCH="${occa_fork_branch}"
+pkg="OCCA-fork (repo ${occa_fork_repo} - branch ${occa_fork_branch})"
 pkg_var_prefix="occa_fork_"
 
 
 function occa_clone()
 {
-   pkg_repo_list=("${occa_repo}")
-   pkg_git_branch="${occa_branch}"
+   pkg_repo_list=("${occa_fork_repo}")
+   pkg_git_branch="${occa_fork_branch}"
    cd "$pkg_sources_dir" || return 1
    git_package_check_source || return 1
    if [[ -d "$pkg_src_dir" ]]; then

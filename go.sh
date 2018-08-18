@@ -397,7 +397,7 @@ function build_packages()
 function compose_mpi_run_command()
 {
    mpi_run="${MPIEXEC:-mpirun} ${MPIEXEC_OPTS}"
-   mpi_run+=" ${MPIEXEC_NP:--np} ${num_proc_run} $bind_sh"
+   mpi_run+=" ${MPIEXEC_NP:--np} ${num_proc_run} ${MPIEXEC_POST_OPTS} $bind_sh"
 }
 
 
