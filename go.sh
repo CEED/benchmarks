@@ -140,6 +140,12 @@ function search_file_list()
 }
 
 
+function have_command()
+{
+   command -v "$1" > /dev/null 2>&1
+}
+
+
 function add_to_path()
 {
    # Usage: add_to_path POS VAR_NAME ["before:"|"after:"|DIR]...
