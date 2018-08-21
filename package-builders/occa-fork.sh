@@ -104,4 +104,7 @@ function build_package()
    export PATH LD_LIBRARY_PATH DYLD_LIBRARY_PATH
    export OCCA_DIR OCCA_CACHE_DIR OCCA_CXX OCCA_CXXFLAGS
    export OCCA_CUDA_COMPILER_FLAGS
+   # If OCCA_VERBOSE is set (e.g. on the go.sh command line) export it:
+   [[ -n "$OCCA_VERBOSE" ]] && export OCCA_VERBOSE
+   return 0
 }
