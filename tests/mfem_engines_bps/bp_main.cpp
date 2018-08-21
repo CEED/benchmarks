@@ -21,6 +21,7 @@ int main(int argc, char *argv[])
    int par_ref_levels = -1;
    Array<int> nxyz;
    int order = 1;
+   int problem = 1; // 0 - mass, 1 - diffusion
    bool visualization = 1;
    const bool required = true;
 
@@ -35,6 +36,8 @@ int main(int argc, char *argv[])
                   "Use Cartesian partitioning.");
    args.AddOption(&order, "-o", "--order",
                   "Finite element order (polynomial degree).");
+   args.AddOption(&problem, "-p", "--problem",
+                  "Problem type: 0 - mass, 1 - diffusion.");
    args.AddOption(&visualization, "-vis", "--visualization", "-no-vis",
                   "--no-visualization",
                   "Enable or disable GLVis visualization.");
@@ -125,6 +128,20 @@ int main(int argc, char *argv[])
    if (myid == 0)
    {
       cout << "Number of finite element unknowns: " << size << endl;
+
+      const FiniteElement &fe = *fespace->GetFE(0);
+      const IntegrationRule *ir;
+      if (problem == 0)
+      {
+         ElementTransformation &T = *pmesh->GetElementTransformation(0);
+         ir = &MassIntegrator::GetRule(fe, fe, T, 0);
+      }
+      else
+      {
+         ir = &DiffusionIntegrator::GetRule(fe, fe);
+      }
+      cout << "Number of qudrature points per element = " << ir->GetNPoints()
+           << '\n' << endl;
    }
 
    // 8. Define the list of true essential (boundary) dofs.
@@ -151,7 +168,14 @@ int main(int argc, char *argv[])
 
    // 11. Set up the parallel bilinear form a(.,.) on the finite element space.
    ParBilinearForm *a = new ParBilinearForm(fespace);
-   a->AddDomainIntegrator(new DiffusionIntegrator(one));
+   if (problem == 0)
+   {
+      a->AddDomainIntegrator(new MassIntegrator(one));
+   }
+   else
+   {
+      a->AddDomainIntegrator(new DiffusionIntegrator(one));
+   }
 
    // 12. Assemble the parallel bilinear form locally.
    a->Assemble();
@@ -166,8 +190,10 @@ int main(int argc, char *argv[])
    CGSolver *cg = new CGSolver(MPI_COMM_WORLD);
    cg->SetRelTol(1e-6);
    cg->SetAbsTol(0.0);
-   cg->SetMaxIter(1000);
-   cg->SetPrintLevel(3);
+   const int max_iter = 200;
+   const int print_level = 3;
+   cg->SetMaxIter(max_iter);
+   cg->SetPrintLevel(print_level);
    cg->SetOperator(*A.Ptr());
 
    // 15. Run one CG iteration to make sure all kernels are loaded before
@@ -181,12 +207,12 @@ int main(int argc, char *argv[])
       cg->SetMaxIter(1);
       cg->SetPrintLevel(-1);
       cg->Mult(B, X2);
-      cg->SetMaxIter(1000);
-      cg->SetPrintLevel(3);
+      cg->SetMaxIter(max_iter);
+      cg->SetPrintLevel(print_level);
    }
    if (myid == 0)
    {
-      cout << " done." << endl;
+      cout << " done.\n" "Solving the linear system using CG ..." << endl;
    }
 
    // 16. Run the full CG solver, measuring and reporting the execution time.
@@ -199,8 +225,8 @@ int main(int argc, char *argv[])
    MPI_Allreduce(&loc_time, &min_time, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
    if (myid == 0)
    {
-      cout << "CG time: " << max_time << " sec (min: " << min_time << " sec)\n"
-           << "DOFs/sec in CG: "
+      cout << "\nCG time: " << max_time << " sec (min: " << min_time << " sec)"
+           << "\nDOFs/sec in CG: "
            << 1e-6*size*cg->GetNumIterations()/max_time << " ("
            << 1e-6*size*cg->GetNumIterations()/min_time << ") million.\n"
            << endl;

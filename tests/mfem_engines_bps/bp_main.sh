@@ -81,8 +81,8 @@ function run_test()
 {
    set_mpi_options
    local common_args="-no-vis $mesh_opt -rs $ser_ref -rp $par_ref -o $sol_p"
-   local all_args=()
-   all_args=($common_args "${test_extra_args[@]}")
+   common_args+=" -p $problem"
+   local all_args=($common_args "${test_extra_args[@]}")
    # ---=== TODO ===---
    total_memory_required="8"
    if [ -z "$dry_run" ]; then
@@ -106,8 +106,8 @@ function configure_tests()
 # Set variables used by the functions in this file.
 
 test_name=bp_main
-# problem: 0 - diffusion, 1 - mass
-problem=${problem:-0}
+# problem: 0 - mass, 1 - diffusion
+problem=${problem:-1}
 # quadrature type: 0 - Gauss, 1 - Gauss-Lobatto
 ir_type=${ir_type:-0}
 vdim=${vdim:-1}
@@ -120,7 +120,8 @@ enabled_tests_def="1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16"
 enabled_tests="${enabled_tests:-$enabled_tests_def}"
 ser_ref=0
 mesh_s_reduction_base=0     # used in run_tests()
-mesh_s_reduction_limit=30   # used in run_tests()
+# how many coarsenings to use for each test - can be set on the command line:
+coarsen_levels=${coarsen_levels:-30}
 mesh_max_elem=$(( 2**29 )) # 2^30 causes overflow in number of faces/edges
 max_approx_dofs=$((5*(2**20)*num_proc_run))
 # 'max_dofs' can be set on the 'go.sh' command line
@@ -207,7 +208,7 @@ function run_tests()
    local test_id= sft=
    for test_id; do
       for (( sft = mesh_s_reduction_base;
-             sft <= mesh_s_reduction_limit; sft++ )); do
+             sft <= coarsen_levels; sft++ )); do
          (( mesh_s_shift = -sft ))
          set_test_params $test_id && run_test || {
             if (( mesh_s+3*(ser_ref+par_ref) >= 0 )); then
