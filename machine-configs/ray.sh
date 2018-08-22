@@ -77,6 +77,7 @@ function set_mpi_options()
 {
    local BSUB_OPTS=
    MPIEXEC_OPTS="-npernode $num_proc_node"
+   MPIEXEC_OPTS+=" -prot"
    MPIEXEC_OPTS+=" -gpu"
    if [ "$num_proc_node" -gt "20" ]; then
       MPIEXEC_OPTS="-oversubscribe $MPIEXEC_OPTS"

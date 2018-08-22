@@ -115,13 +115,14 @@ vec_layout=${vec_layout:-}
 # test id:     1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
 sol_p_list=(   1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16)
 ir_order_list=(0 0 0 0 0 0 0 0 0  0  0  0  0  0  0  0)
-enabled_tests_def="1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16"
+# enabled_tests_def="1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16"
+enabled_tests_def="1 2 3 4 5 6 7 8"
 # 'enabled_tests' can be set on the 'go.sh' command line
 enabled_tests="${enabled_tests:-$enabled_tests_def}"
 ser_ref=0
 mesh_s_reduction_base=0     # used in run_tests()
 # how many coarsenings to use for each test - can be set on the command line:
-coarsen_levels=${coarsen_levels:-30}
+coarsen_levels=${coarsen_levels:-11}
 mesh_max_elem=$(( 2**29 )) # 2^30 causes overflow in number of faces/edges
 max_approx_dofs=$((5*(2**20)*num_proc_run))
 # 'max_dofs' can be set on the 'go.sh' command line
