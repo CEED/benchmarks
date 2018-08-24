@@ -82,6 +82,9 @@ function run_test()
    set_mpi_options
    local common_args="-no-vis $mesh_opt -rs $ser_ref -rp $par_ref -o $sol_p"
    common_args+=" -p $problem"
+   if [[ "$force_cuda_aware_mpi" == "1" ]]; then
+      common_args+=" -cm"
+   fi
    local all_args=($common_args "${test_extra_args[@]}")
    # ---=== TODO ===---
    total_memory_required="8"
@@ -104,6 +107,8 @@ function configure_tests()
 {
 
 # Set variables used by the functions in this file.
+
+force_cuda_aware_mpi=0
 
 test_name=bp_main
 # problem: 0 - mass, 1 - diffusion
@@ -242,3 +247,4 @@ run_tests $enabled_tests
 
 
 test_required_packages="metis hypre occa-fork mfem-engines"
+# test_required_packages="metis hypre occa mfem-engines"
