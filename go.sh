@@ -33,6 +33,7 @@ update_packages=""
 remove_list=""
 run=""
 post_process=""
+profiler=""
 num_proc_build=${num_proc_build:-""}
 num_proc_run=${num_proc_run:-""}
 num_proc_node=${num_proc_node:-""}
@@ -404,6 +405,9 @@ function compose_mpi_run_command()
 {
    mpi_run="${MPIEXEC:-mpirun} ${MPIEXEC_OPTS}"
    mpi_run+=" ${MPIEXEC_NP:--np} ${num_proc_run} ${MPIEXEC_POST_OPTS} $bind_sh"
+   if [[ -n "$profiler" ]]; then
+      bind_sh+=" $profiler"
+   fi
 }
 
 
