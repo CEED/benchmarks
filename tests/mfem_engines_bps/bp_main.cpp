@@ -22,6 +22,7 @@ int main(int argc, char *argv[])
    Array<int> nxyz;
    int order = 1;
    int problem = 1; // 0 - mass, 1 - diffusion
+   bool force_cuda_aware_mpi = false;
    bool visualization = 1;
    const bool required = true;
 
@@ -38,6 +39,9 @@ int main(int argc, char *argv[])
                   "Finite element order (polynomial degree).");
    args.AddOption(&problem, "-p", "--problem",
                   "Problem type: 0 - mass, 1 - diffusion.");
+   args.AddOption(&force_cuda_aware_mpi, "-cm", "--force-cuda-aware-mpi",
+                  "-no-cm", "--dont-force-cuda-aware-mpi",
+                  "Force/autodetect the use of CUDA-aware MPI.");
    args.AddOption(&visualization, "-vis", "--visualization", "-no-vis",
                   "--no-visualization",
                   "Enable or disable GLVis visualization.");
@@ -72,6 +76,7 @@ int main(int argc, char *argv[])
    // string occa_spec("mode: 'OpenCL', device_id: 0, platform_id: 0");
 
    SharedPtr<Engine> engine(new mfem::occa::Engine(MPI_COMM_WORLD, occa_spec));
+   engine.As<mfem::occa::Engine>()->SetForceCudaAwareMPI(force_cuda_aware_mpi);
 #endif
 
    // 3. Read the (serial) mesh from the given mesh file on all processors.
