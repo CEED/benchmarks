@@ -108,7 +108,7 @@ function configure_tests()
 
 # Set variables used by the functions in this file.
 
-force_cuda_aware_mpi=0
+force_cuda_aware_mpi=${force_cuda_aware_mpi:-0}
 
 test_name=bp_main
 # problem: 0 - mass, 1 - diffusion
