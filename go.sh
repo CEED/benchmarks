@@ -712,6 +712,8 @@ test_required_packages=""
 
 ## Build any packages required by the test
 echo "Packages required by the test: $test_required_packages"
+num_proc_build=${num_proc_build:-4}
+echo "Building packages using $num_proc_build processors."
 build_packages $test_required_packages || $exit_cmd 1
 echo
 
