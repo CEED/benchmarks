@@ -496,7 +496,7 @@ case "$1" in
       [ "$(basename "$1")" = "$1" -a -r "$config" ] || {
          config="$1"
          [ -r "$config" ] || {
-            echo "Configuration file not found: '$1' / '$config'"; $exit_cmd 1
+            echo "Configuration file not found: '$1'"; $exit_cmd 1
          }
       }
       ;;
