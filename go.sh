@@ -275,10 +275,7 @@ function update_git_package()
          fi
       } && \
       git fetch origin --prune && \
-      git checkout "$pkg_git_branch" && {
-         git merge --ff-only "origin/$pkg_git_branch" || \
-         git checkout -B "$pkg_git_branch" "origin/$pkg_git_branch"
-      } || {
+      git checkout -B "$pkg_git_branch" "origin/$pkg_git_branch" || {
          echo "Error updating $pkg. Stop."
          return 1
       }
