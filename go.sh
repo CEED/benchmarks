@@ -495,9 +495,9 @@ case "$1" in
    -c|--config)
       shift
       [ $# -gt 0 ] || { echo "Missing <name> in --config <name>"; $exit_cmd 1; }
-      config="$1"
-      [ -r "$config" ] || {
-         config="$configs_dir/${config}.sh"
+      config="$configs_dir/$1.sh"
+      [ "$(basename "$1")" = "$1" -a -r "$config" ] || {
+         config="$1"
          [ -r "$config" ] || {
             echo "Configuration file not found: '$1' / '$config'"; $exit_cmd 1
          }
