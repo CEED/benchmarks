@@ -13,6 +13,7 @@ int main(int argc, char *argv[])
    MPI_Init(&argc, &argv);
    MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
    MPI_Comm_rank(MPI_COMM_WORLD, &myid);
+   const double start_time = MPI_Wtime();
 
    // 2. Parse command-line options.
    const char *empty_string = "(empty)";
@@ -122,7 +123,11 @@ int main(int argc, char *argv[])
       }
    }
    pmesh->PrintInfo(cout);
-   if (myid == 0) { cout << endl; }
+   if (myid == 0)
+   {
+      cout << "\nMesh refinement done. Elapsed time: "
+           << MPI_Wtime()-start_time << " sec\n" << endl;
+   }
 
    // 7. Define a parallel finite element space on the parallel mesh. Here we
    //    use continuous Lagrange finite elements of the specified order.
@@ -147,6 +152,8 @@ int main(int argc, char *argv[])
       }
       cout << "Number of qudrature points per element = " << ir->GetNPoints()
            << '\n' << endl;
+      cout << "ParFiniteElementSpace construction done. Elapsed time: "
+           << MPI_Wtime()-start_time << " sec" << endl;
    }
 
    // 8. Define the list of true essential (boundary) dofs.
@@ -157,6 +164,11 @@ int main(int argc, char *argv[])
       ess_bdr = 1;
       fespace->GetEssentialTrueDofs(ess_bdr, ess_tdof_list);
    }
+   if (myid == 0)
+   {
+      cout << "\nBoundary conditions done. Elapsed time: "
+           << MPI_Wtime()-start_time << " sec" << endl;
+   }
 
    // 9. Set up the parallel linear form b(.) and assemble it. This is the
    //    right-hand side of the linear system.
@@ -164,6 +176,11 @@ int main(int argc, char *argv[])
    ConstantCoefficient one(1.0);
    b->AddDomainIntegrator(new DomainLFIntegrator(one));
    b->Assemble();
+   if (myid == 0)
+   {
+      cout << "\nRHS assembly done. Elapsed time: "
+           << MPI_Wtime()-start_time << " sec" << endl;
+   }
 
    // 10. Define the solution vector x on the fespace and initialize it with
    //     zero. These values will serve as the initial guess for the CG solver
@@ -184,12 +201,22 @@ int main(int argc, char *argv[])
 
    // 12. Assemble the parallel bilinear form locally.
    a->Assemble();
+   if (myid == 0)
+   {
+      cout << "\nOperator assembly done. Elapsed time: "
+           << MPI_Wtime()-start_time << " sec" << endl;
+   }
 
    // 13. Initialize the linear system components A, X, and B based on their
    //     FE counterparts a, x, and b.
    OperatorHandle A(Operator::ANY_TYPE);
    Vector B, X;
    a->FormLinearSystem(ess_tdof_list, x, *b, A, X, B);
+   if (myid == 0)
+   {
+      cout << "\nFormLinearSystem() done. Elapsed time: "
+           << MPI_Wtime()-start_time << " sec" << endl;
+   }
 
    // 14. Set up the conjugate gradients (CG) solver.
    CGSolver *cg = new CGSolver(MPI_COMM_WORLD);
@@ -205,7 +232,7 @@ int main(int argc, char *argv[])
    //     measuring time.
    if (myid == 0)
    {
-      cout << "Running 1 CG iteration to load all kernels ..." << flush;
+      cout << "\nRunning 1 CG iteration to load all kernels ..." << flush;
    }
    {
       Vector X2(X);
@@ -217,14 +244,16 @@ int main(int argc, char *argv[])
    }
    if (myid == 0)
    {
-      cout << " done.\n" "Solving the linear system using CG ..." << endl;
+      cout << " done.\n"
+           << "Elapsed time: " << MPI_Wtime()-start_time << " sec\n\n"
+           << "Solving the linear system using CG ..." << endl;
    }
 
    // 16. Run the full CG solver, measuring and reporting the execution time.
-   double start_time = MPI_Wtime();
+   double cg_start_time = MPI_Wtime();
    cg->Mult(B, X);
-   double end_time = MPI_Wtime();
-   double loc_time = end_time - start_time;
+   double cg_end_time = MPI_Wtime();
+   double loc_time = cg_end_time - cg_start_time;
    double max_time, min_time;
    MPI_Allreduce(&loc_time, &max_time, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
    MPI_Allreduce(&loc_time, &min_time, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
@@ -279,6 +308,11 @@ int main(int argc, char *argv[])
    delete fespace;
    delete fec;
    delete pmesh;
+   if (myid == 0)
+   {
+      cout << "Memory freed. Elapsed time: "
+           << MPI_Wtime()-start_time << " sec\n" << endl;
+   }
 
    MPI_Finalize();
 
