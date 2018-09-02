@@ -246,5 +246,5 @@ run_tests $enabled_tests
 }
 
 
-test_required_packages="metis hypre occa-fork mfem-engines"
-# test_required_packages="metis hypre occa mfem-engines"
+# test_required_packages="metis hypre occa-fork mfem-engines"
+test_required_packages="metis hypre occa mfem-engines"
