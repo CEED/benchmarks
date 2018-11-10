@@ -68,6 +68,11 @@ function petsc_build()
       echo "The required variable 'HYPRE_DIR' is not set. Stop."
       return 1
    fi
+   local PETSC_LAPACK_CONF=()
+   if [[ -n "$LAPACK_LIB" ]]; then
+      PETSC_LAPACK_CONF=("--with-blas-lib=$LAPACK_LIB"
+                         "--with-lapack-lib=")
+   fi
    echo "Building $pkg, sending output to ${pkg_bld_dir}_build.log ..." && {
       cd "$pkg_bld_dir" && \
       if [[ -e configure.log ]]; then
@@ -85,6 +90,7 @@ function petsc_build()
          --FFLAGS="$FFLAGS" \
          --with-debugging="0" \
          --with-mpi="1" \
+         "${PETSC_LAPACK_CONF[@]}" \
          --with-hypre="1" \
          --with-hypre-dir="$HYPRE_DIR/src/hypre" && \
       make -j $num_proc_build
