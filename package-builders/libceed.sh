@@ -67,6 +67,11 @@ function libceed_build()
       echo "Cloning failed. Stop."
       return 1
    }
+   # Optimization flags
+   local OPT_FLAGS="$CFLAGS"
+   if [[ -n "$NATIVE_CFLAG" ]]; then
+      OPT_FLAGS+=" $NATIVE_CFLAG"
+   fi
    # Check for optional packages used by backends
    local OCCA_MAKE_OPTS=()
    if [[ -n "$OCCA_DIR" ]]; then
@@ -82,7 +87,7 @@ function libceed_build()
          V="$libceed_verbose" \
          CC="$MPICC" \
          FC="$MPIF77" \
-         OPT="$CFLAGS" \
+         OPT="$OPT_FLAGS" \
          "${OCCA_MAKE_OPTS[@]}"
    } &> "${pkg_bld_dir}_build.log" || {
       echo " ... building $pkg FAILED, see log for details."

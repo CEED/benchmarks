@@ -81,7 +81,7 @@ function petsc_build()
       fi && \
       ./configure \
          --with-petsc-arch="$PETSC_ARCH" \
-         --with-shared-libraries="0" \
+         --with-shared-libraries="1" \
          --with-cc="$MPICC" \
          --CFLAGS="$CFLAGS" \
          --with-cxx="$MPICXX" \
