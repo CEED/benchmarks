@@ -18,7 +18,7 @@
 
 function setup_intel()
 {
-   module load intel/16.0.3
+   module load intel/18.0.1
    module load mvapich2/2.2
    MPICC=mpicc
    MPICXX=mpicxx
@@ -36,7 +36,7 @@ function setup_intel()
 
 function setup_gcc()
 {
-   module load gcc/7.1.0
+   module load gcc/7.3.0
    module load mvapich2/2.2
    MPICC=mpicc
    MPICXX=mpicxx
