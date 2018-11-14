@@ -23,10 +23,9 @@ function build_tests()
    # $dry_run make CEED_DIR="${LIBCEED_DIR}" print || return 1
    $dry_run make \
       CEED_DIR="${LIBCEED_DIR}" \
+      BLD="${test_exe_dir}/" \
       OPT="$NATIVE_CFLAG" \
-      -j $num_proc_build \
-      || return 1
-   $dry_run cp -fp bp? "$test_exe_dir"
+      -j $num_proc_build
 }
 
 
@@ -76,4 +75,4 @@ function build_and_run_tests()
 }
 
 
-test_required_packages="petsc libceed"
+test_required_packages="hypre petsc occa libceed"

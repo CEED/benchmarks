@@ -32,13 +32,13 @@ LDFLAGS += $(patsubst -L%, $(call pkgconf, --variable=ldflag_rpath $(PETSc.pc))%
 LDLIBS = $(call pkgconf, --libs-only-l $(PETSc.pc) $(ceed.pc)) -lm
 
 bp.c := $(sort $(wildcard bp*.c))
-bp := $(bp.c:%.c=%)
+bp := $(addprefix $(BLD),$(bp.c:%.c=%))
 
 all: $(bp)
 $(bp): | $(PETSc.pc) $(ceed.pc)
 
 # Rules for building the examples
-%: %.c
+$(BLD)%: %.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) $(abspath $<) -o $@ \
 	  $(LDLIBS)
 
