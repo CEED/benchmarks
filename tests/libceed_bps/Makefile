@@ -27,9 +27,14 @@ ceed.pc := $(CEED_DIR)/lib/pkgconfig/ceed.pc
 CC = $(call pkgconf, --variable=ccompiler $(PETSc.pc) $(ceed.pc))
 CFLAGS = -std=c99 $(call pkgconf, --variable=cflags_extra $(PETSc.pc)) $(call pkgconf, --cflags-only-other $(PETSc.pc)) $(OPT)
 CPPFLAGS = $(call pkgconf, --cflags-only-I $(PETSc.pc) $(ceed.pc))
+## If using PETSc built as a shared library:
 LDFLAGS = $(call pkgconf, --libs-only-L --libs-only-other $(PETSc.pc) $(ceed.pc))
 LDFLAGS += $(patsubst -L%, $(call pkgconf, --variable=ldflag_rpath $(PETSc.pc))%, $(call pkgconf, --libs-only-L $(PETSc.pc) $(ceed.pc)))
 LDLIBS = $(call pkgconf, --libs-only-l $(PETSc.pc) $(ceed.pc)) -lm
+## If using PETSc built as a static library:
+LDFLAGS = $(call pkgconf, --libs-only-L --libs-only-other $(ceed.pc))
+LDFLAGS += $(patsubst -L%, $(call pkgconf, --variable=ldflag_rpath $(PETSc.pc))%, $(call pkgconf, --libs-only-L $(ceed.pc)))
+LDLIBS = $(call pkgconf, --libs-only-l $(ceed.pc)) $(call pkgconf, --libs --static $(PETSc.pc)) -lm
 
 bp.c := $(sort $(wildcard bp*.c))
 bp := $(addprefix $(BLD),$(bp.c:%.c=%))

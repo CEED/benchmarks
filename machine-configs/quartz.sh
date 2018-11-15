@@ -31,6 +31,10 @@ function setup_intel()
    NATIVE_CFLAG="-xHost"
 
    NEK5K_EXTRA_PPLIST=""
+
+   module load mkl
+   LAPACK_LIB="-L$MKLROOT/lib/intel64 -Xlinker -rpath -Xlinker\
+ $MKLROOT/lib/intel64 -mkl=sequential"
 }
 
 
@@ -49,6 +53,10 @@ function setup_gcc()
    NATIVE_CFLAG="-march=native"
 
    NEK5K_EXTRA_PPLIST=""
+
+   module load mkl
+   LAPACK_LIB="-L$MKLROOT/lib/intel64 -Wl,-rpath,$MKLROOT/lib/intel64\
+ -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lm"
 }
 
 

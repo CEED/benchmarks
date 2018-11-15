@@ -34,6 +34,9 @@ execfile('postprocess-base.py')
 
 #####   Sample plot output
 
+from matplotlib import use
+if not show_figures:
+   use('pdf')
 from pylab import *
 
 rcParams['font.sans-serif'].insert(0,'Noto Sans')
