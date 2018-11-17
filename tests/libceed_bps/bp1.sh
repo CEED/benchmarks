@@ -41,12 +41,16 @@ function run_tests()
    # -ceed </cpu/self>: CEED resource specifier
    # -local <1000>: Target number of locally (per rank) owned degrees of freedom
 
+   # The variables 'ceed', 'max_dofs_node', and 'max_p' can be set on the
+   # command line invoking the '../../go.sh' script.
    local ceed="${ceed:-/cpu/self/blocked}"
    local common_args=(-ceed $ceed -qextra 2 -pc_type none)
-   local max_dofs_node=$((3*2**20))
+   local max_dofs_node_def=$((3*2**20))
+   local max_dofs_node=${max_dofs_node:-$max_dofs_node_def}
    local max_loc_dofs=$((max_dofs_node/num_proc_node))
+   local max_p=${max_p:-8}
    local sol_p=
-   for ((sol_p = 1; sol_p <= 8; sol_p++)); do
+   for ((sol_p = 1; sol_p <= max_p; sol_p++)); do
       local loc_el=
       for ((loc_el = 1; loc_el*sol_p**3 <= max_loc_dofs; loc_el = 2*loc_el)); do
          local loc_dofs=$((loc_el*sol_p**3))
