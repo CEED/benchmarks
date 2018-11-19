@@ -79,4 +79,6 @@ function build_and_run_tests()
 }
 
 
+# Note: currently the 'petsc' package-builder script requires 'hypre', otherwise
+# 'hypre' is not really required. Also, the 'occa' package is optional.
 test_required_packages="hypre petsc occa libceed"

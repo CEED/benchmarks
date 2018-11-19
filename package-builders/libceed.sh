@@ -24,14 +24,21 @@ if [[ -z "$OUT_DIR" ]]; then
    echo "The variable 'OUT_DIR' is not set. Stop."
    return 1
 fi
-pkg_src_dir="libceed"
-LIBCEED_SOURCE_DIR="$pkg_sources_dir/$pkg_src_dir"
-pkg_bld_dir="$OUT_DIR/libceed"
-LIBCEED_DIR="$pkg_bld_dir"
-libceed_branch="${libceed_branch:-master}"
-LIBCEED_BRANCH="${libceed_branch}"
-pkg_var_prefix="libceed_"
-pkg="libCEED (branch $libceed_branch)"
+# If LIBCEED_DIR is already set (e.g. from the command line), assume that
+# libCEED is already built in that directory.
+if [[ -z "$LIBCEED_DIR" ]]; then
+   pkg_src_dir="libceed"
+   LIBCEED_SOURCE_DIR="$pkg_sources_dir/$pkg_src_dir"
+   pkg_bld_dir="$OUT_DIR/libceed"
+   LIBCEED_DIR="$pkg_bld_dir"
+   libceed_branch="${libceed_branch:-master}"
+   LIBCEED_BRANCH="${libceed_branch}"
+   pkg_var_prefix="libceed_"
+   pkg="libCEED (branch $libceed_branch)"
+   EXTERNAL_LIBCEED=
+else
+   EXTERNAL_LIBCEED="YES"
+fi
 
 
 function libceed_clone()
@@ -102,5 +109,9 @@ function libceed_build()
 
 function build_package()
 {
+   if [[ -n "$EXTERNAL_LIBCEED" ]]; then
+      echo "Using externally built libCEED from $LIBCEED_DIR"
+      return 0
+   fi
    libceed_clone && get_package_git_version && libceed_build
 }
