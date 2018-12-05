@@ -564,9 +564,9 @@ c-----------------------------------------------------------------------
       include 'CTIMER'  ! ifsync
       include 'FDMH1'
 
-      parameter (lx=lx1*ly1*lz1,lg=3+3*(ldim-2))
-      real         gf(lg,lx,lelt)             ! Equivalence new gf() data
-      equivalence (gf,g1m1)                   ! layout to g1m1...g6m1
+      parameter (lzq=lx1+1)
+      parameter (lx=lx1*ly1*lz1,lg=3+3*(ldim-2),lq=lzq**ldim)
+      common /bpgfactors/ gf(lg*lq,lelt),bmq(lq,lelt),w3mq(lq)
 
       parameter (lt=lx1*ly1*lz1*lelt)
       parameter (ld=lxd*lyd*lzd*lelt)
@@ -577,21 +577,20 @@ c-----------------------------------------------------------------------
       logical ifh3
       integer*8 ndof
 
-      call geodat1n  ! Set up gf() arrays
-
       ifsync = .false.
 
+      n      = nx1*ny1*nz1*nelt
+      nzq    = nx1+1
       ifield = 1
-      n = nx1*ny1*nz1*nelt
 
+      call geodatq   (gf,bmq,w3mq,nzq)
       call rand_fld_h1(e1)
 
-      call copy       (e2,e1,n)
-      call copy       (e3,e1,n)
+      call copy      (e2,e1,n)
+      call copy      (e3,e1,n)
 
-      nxq = nx1+1
-      call set_h2_as_rhoJac_GL (h2,nxq)
-      call copy                (h1,e1,n)  ! Save exact soln in h1
+      call set_h2_as_rhoJac_GL (h2,bmq,nzq)
+      call copy                (h1,e1,n) ! Save exact soln in h1
 
       call axhm3     (pap,r1,r2,r3,e1,e2,e3,h1,h2,'bp2')
       call vec_dssum (r1,r2,r3,nx1,ny1,nz1)
@@ -658,9 +657,9 @@ c-----------------------------------------------------------------------
       include 'CTIMER'  ! ifsync
       include 'FDMH1'
 
-      parameter (lx=lx1*ly1*lz1,lg=3+3*(ldim-2))
-      real         gf(lg,lx,lelt)             ! Equivalence new gf() data
-      equivalence (gf,g1m1)                   ! layout to g1m1...g6m1
+      parameter (lzq=lx1+1)
+      parameter (lx=lx1*ly1*lz1,lg=3+3*(ldim-2),lq=lzq**ldim)
+      common /bpgfactors/ gf(lg*lq,lelt),bmq(lq,lelt),w3mq(lq)
 
       parameter (lt=lx1*ly1*lz1*lelt)
       parameter (ld=lxd*lyd*lzd*lelt)
@@ -671,21 +670,20 @@ c-----------------------------------------------------------------------
       logical ifh3
       integer*8 ndof
 
-      call geodat1n  ! Set up gf() arrays
-
       ifsync = .false.
 
+      n      = nx1*ny1*nz1*nelt
+      nzq    = nx1+1
       ifield = 1
-      n = nx1*ny1*nz1*nelt
 
+      call geodatq   (gf,bmq,w3mq,nzq)
       call rand_fld_h1(e1)
 
-      call copy       (e2,e1,n)
-      call copy       (e3,e1,n)
+      call copy      (e2,e1,n)
+      call copy      (e3,e1,n)
 
-      nxq = nx1+1
-      call set_h2_as_rhoJac_GL (h2,nxq)
-      call copy                (h1,e1,n)  ! Save exact soln in h1
+      call set_h2_as_rhoJac_GL (h2,bmq,nzq)
+      call copy                (h1,e1,n) ! Save exact soln in h1
 
       call axhm3     (pap,r1,r2,r3,e1,e2,e3,h1,h2,'bp2')
       call vec_dssum (r1,r2,r3,nx1,ny1,nz1)
@@ -780,31 +778,19 @@ c-----------------------------------------------------------------------
       return
       end
 c-----------------------------------------------------------------------
-      subroutine set_h2_as_rhoJac_GL(h2,nxq)
+      subroutine set_h2_as_rhoJac_GL(h2,bmq,nxq)
       include 'SIZE'
-      real h2(1)
+      real h2(1),bmq(1)
 
-      common /ctmp77/ wd(lxd),zd(lxd)
-      integer e
-
-      call zwgl(zd,wd,nxq)  ! nxq = number of points
-
+      integer i,lq
 
       q    = 1.0   ! Later, this can be a function of position...
 
-      L=0
-      do e=1,nelt
-      do k=1,nxq
-      do j=1,nxq
-      do i=1,nxq
-         L=L+1
-         h2(L) = q*wd(i)*wd(j)*wd(k)
-      enddo
-      enddo
-      enddo
-      enddo
+      lq = nxq**ldim*nelt
 
-
+      do i=1,lq
+         h2(i) = q*bmq(i)
+      enddo
       return
       end
 c-----------------------------------------------------------------------
@@ -966,7 +952,6 @@ c     (Gauss-Legendre Lobatto mesh).
 
       real gf(lg,nzq**ldim,lelt),bmq(nzq**ldim,lelt),w3mq(nzq,nzq,nzq)
 
-      common /ctmp0/ tmp(lxyd)
       common /ctmp1/ xr(lxyd),xs(lxyd),xt(lxyd)
       common /sxrns/ yr(lxyd),ys(lxyd),yt(lxyd)
      $ ,             zr(lxyd),zs(lxyd),zt(lxyd)
@@ -976,6 +961,7 @@ c     (Gauss-Legendre Lobatto mesh).
 
       integer e
       real jacmq
+      real tmp(lxyd)
 
       if (nzq.gt.lzq) call exitti('ABORT: recompile with lzq=$',nzq)
 
