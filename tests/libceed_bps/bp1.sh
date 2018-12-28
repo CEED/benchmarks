@@ -43,7 +43,7 @@ function run_tests()
 
    # The variables 'ceed', 'max_dofs_node', and 'max_p' can be set on the
    # command line invoking the '../../go.sh' script.
-   local ceed="${ceed:-/cpu/self/blocked}"
+   local ceed="${ceed:-/cpu/self}"
    local common_args=(-ceed $ceed -qextra 2 -pc_type none)
    local max_dofs_node_def=$((3*2**20))
    local max_dofs_node=${max_dofs_node:-$max_dofs_node_def}
