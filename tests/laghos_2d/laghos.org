@@ -1,0 +1,1937 @@
+Reading configuration /g/g91/camier1/home/benchmarks/machine-configs/quartz.sh ...
+Setting up compiler gcc ...
+
+Using OUT_DIR = /g/g91/camier1/home/benchmarks/builds/quartz_gcc
+
+Creating test executables directory: OUT_DIR/laghos_2d
+Reading test file: /g/g91/camier1/home/benchmarks/tests/laghos_2d/laghos.sh
+
+Packages required by the test: metis hypre mfem laghos
+Building packages using 36 processors.
+Using successfully built METIS v4.0.3 from OUT_DIR.
+metis version: 4.0.3
+Using successfully built hypre from OUT_DIR.
+hypre version: v2.15.1-0-g8bc9ad3511086b307f7137f1f9b7a70bbca34d3c
+Using successfully built MFEM from OUT_DIR.
+mfem version: heads/master-0-g81a359dc6d6b495cc27083fbac0f6d48b33788c5
+Using successfully built Laghos (branch master) from OUT_DIR.
+laghos version: heads/master-0-g2e5015804fc51066c53ef3de0734811ee8a1af15
+
+Running the tests using a total of 36 MPI tasks ...
+... with 36 tasks per node ...
+
+Running test:
+srun -N 1 -t 4 -p pdebug -n 36 laghos -p 1 -ok 2 -ot 1 -s 7 -no-vis -cfl 1e-07 -cgt 0 -cgm 15 -ms 1 -m ./data/square_33_quad.mesh -rs 1 -rp 0
+mpibind: found OMP_NUM_THREADS=1
+
+       __                __                 
+      / /   ____  ____  / /_  ____  _____   
+     / /   / __ `/ __ `/ __ \/ __ \/ ___/ 
+    / /___/ /_/ / /_/ / / / / /_/ (__  )    
+   /_____/\__,_/\__, /_/ /_/\____/____/  
+               /____/                       
+
+Options used:
+   --mesh ./data/square_33_quad.mesh
+   --refine-serial 1
+   --refine-parallel 0
+   --problem 1
+   --order-kinematic 2
+   --order-thermo 1
+   --ode-solver 7
+   --t-final 0.6
+   --cfl 1e-07
+   --cg-tol 0
+   --cg-max-steps 15
+   --max-steps 1
+   --partial-assembly
+   --no-impose-viscosity
+   --no-visualization
+   --visualization-steps 5
+   --no-visit
+   --no-print
+   --outputfilename results/Laghos
+   --partition 111
+Zones min/max: 1 1
+Number of kinematic (position, velocity) dofs: 338
+Number of specific internal energy dofs: 144
+   Iteration :   0  (B r, r) = 78.125 ...
+   Iteration :  15  (B r, r) = 1.11413e-41
+PCG: No convergence!
+Average reduction factor = 0.0373082
+   Iteration :   0  (B r, r) = 78.125 ...
+   Iteration :  15  (B r, r) = 4.97535e-29
+PCG: No convergence!
+Average reduction factor = 0.0985072
+   Iteration :   0  (B r, r) = 78.125 ...
+   Iteration :  15  (B r, r) = 6.46233e-29
+PCG: No convergence!
+Average reduction factor = 0.0993695
+   Iteration :   0  (B r, r) = 78.125 ...
+   Iteration :  15  (B r, r) = 1.47305e-28
+PCG: No convergence!
+Average reduction factor = 0.102136
+step     2,	t = 0.0000,	dt = 0.000000,	|e| = 25.0000000000
+
+CG (H1) total time: 0.0110431590
+CG (H1) rate (megadofs x cg_iterations / second): 1.8364310430
+
+CG (L2) total time: 0.0000144020
+CG (L2) rate (megadofs x cg_iterations / second): 4.9993056520
+
+Forces total time: 0.0000457180
+Forces rate (megadofs x timesteps / second): 42.1715735596
+
+UpdateQuadData total time: 0.0001169100
+UpdateQuadData rate (megaquads x timesteps / second): 24.6343341032
+
+Major kernels total time (seconds): 0.0111899560
+Major kernels total rate (megadofs x time steps / second): 0.1722973710
+
+Energy  diff: 0.00e+00
+mpibind: found OMP_NUM_THREADS=1
+Running test:
+srun -N 1 -t 4 -p pdebug -n 36 laghos -p 1 -ok 2 -ot 1 -s 7 -no-vis -cfl 1e-07 -cgt 0 -cgm 15 -ms 1 -m ./data/square_33_quad.mesh -rs 1 -rp 1
+mpibind: found OMP_NUM_THREADS=1
+
+       __                __                 
+      / /   ____  ____  / /_  ____  _____   
+     / /   / __ `/ __ `/ __ \/ __ \/ ___/ 
+    / /___/ /_/ / /_/ / / / / /_/ (__  )    
+   /_____/\__,_/\__, /_/ /_/\____/____/  
+               /____/                       
+
+Options used:
+   --mesh ./data/square_33_quad.mesh
+   --refine-serial 1
+   --refine-parallel 1
+   --problem 1
+   --order-kinematic 2
+   --order-thermo 1
+   --ode-solver 7
+   --t-final 0.6
+   --cfl 1e-07
+   --cg-tol 0
+   --cg-max-steps 15
+   --max-steps 1
+   --partial-assembly
+   --no-impose-viscosity
+   --no-visualization
+   --visualization-steps 5
+   --no-visit
+   --no-print
+   --outputfilename results/Laghos
+   --partition 111
+Zones min/max: 4 4
+Number of kinematic (position, velocity) dofs: 1250
+Number of specific internal energy dofs: 576
+   Iteration :   0  (B r, r) = 1250 ...
+   Iteration :  15  (B r, r) = 1.79842e-37
+PCG: No convergence!
+Average reduction factor = 0.0469821
+   Iteration :   0  (B r, r) = 1250 ...
+   Iteration :  15  (B r, r) = 1.0688e-24
+PCG: No convergence!
+Average reduction factor = 0.125237
+   Iteration :   0  (B r, r) = 1250 ...
+   Iteration :  15  (B r, r) = 4.2752e-24
+PCG: No convergence!
+Average reduction factor = 0.13116
+   Iteration :   0  (B r, r) = 1250 ...
+   Iteration :  15  (B r, r) = 9.74789e-24
+PCG: No convergence!
+Average reduction factor = 0.134813
+step     2,	t = 0.0000,	dt = 0.000000,	|e| = 100.0000000000
+
+CG (H1) total time: 0.0117243590
+CG (H1) rate (megadofs x cg_iterations / second): 6.3969382036
+
+CG (L2) total time: 0.0000588350
+CG (L2) rate (megadofs x cg_iterations / second): 1.4957083369
+
+Forces total time: 0.0001366770
+Forces rate (megadofs x timesteps / second): 53.4398618641
+
+UpdateQuadData total time: 0.0002914660
+UpdateQuadData rate (megaquads x timesteps / second): 39.5243356000
+
+Major kernels total time (seconds): 0.0120731720
+Major kernels total rate (megadofs x time steps / second): 0.6049777142
+
+Energy  diff: 0.00e+00
+mpibind: found OMP_NUM_THREADS=1
+Running test:
+srun -N 1 -t 4 -p pdebug -n 36 laghos -p 1 -ok 2 -ot 1 -s 7 -no-vis -cfl 1e-07 -cgt 0 -cgm 15 -ms 1 -m ./data/square_33_quad.mesh -rs 1 -rp 2
+mpibind: found OMP_NUM_THREADS=1
+
+       __                __                 
+      / /   ____  ____  / /_  ____  _____   
+     / /   / __ `/ __ `/ __ \/ __ \/ ___/ 
+    / /___/ /_/ / /_/ / / / / /_/ (__  )    
+   /_____/\__,_/\__, /_/ /_/\____/____/  
+               /____/                       
+
+Options used:
+   --mesh ./data/square_33_quad.mesh
+   --refine-serial 1
+   --refine-parallel 2
+   --problem 1
+   --order-kinematic 2
+   --order-thermo 1
+   --ode-solver 7
+   --t-final 0.6
+   --cfl 1e-07
+   --cg-tol 0
+   --cg-max-steps 15
+   --max-steps 1
+   --partial-assembly
+   --no-impose-viscosity
+   --no-visualization
+   --visualization-steps 5
+   --no-visit
+   --no-print
+   --outputfilename results/Laghos
+   --partition 111
+Zones min/max: 16 16
+Number of kinematic (position, velocity) dofs: 4802
+Number of specific internal energy dofs: 2304
+   Iteration :   0  (B r, r) = 20000 ...
+   Iteration :  15  (B r, r) = 1.41442e-20
+PCG: No convergence!
+Average reduction factor = 0.15667
+   Iteration :   0  (B r, r) = 20000 ...
+   Iteration :  15  (B r, r) = 3.98985e-20
+PCG: No convergence!
+Average reduction factor = 0.16218
+   Iteration :   0  (B r, r) = 20000 ...
+   Iteration :  15  (B r, r) = 1.2202e-19
+PCG: No convergence!
+Average reduction factor = 0.168337
+   Iteration :   0  (B r, r) = 20000 ...
+   Iteration :  15  (B r, r) = 2.6288e-19
+PCG: No convergence!
+Average reduction factor = 0.172699
+step     2,	t = 0.0000,	dt = 0.000000,	|e| = 400.0000000000
+
+CG (H1) total time: 0.0115466200
+CG (H1) rate (megadofs x cg_iterations / second): 24.9527567375
+
+CG (L2) total time: 0.0003666130
+CG (L2) rate (megadofs x cg_iterations / second): 0.2836778838
+
+Forces total time: 0.0002206410
+Forces rate (megadofs x timesteps / second): 128.8246518100
+
+UpdateQuadData total time: 0.0009230450
+UpdateQuadData rate (megaquads x timesteps / second): 49.9217264597
+
+Major kernels total time (seconds): 0.0126444350
+Major kernels total rate (megadofs x time steps / second): 2.2479454400
+
+Energy  diff: 0.00e+00
+mpibind: found OMP_NUM_THREADS=1
+Running test:
+srun -N 1 -t 4 -p pdebug -n 36 laghos -p 1 -ok 2 -ot 1 -s 7 -no-vis -cfl 1e-07 -cgt 0 -cgm 15 -ms 1 -m ./data/square_33_quad.mesh -rs 1 -rp 3
+mpibind: found OMP_NUM_THREADS=1
+
+       __                __                 
+      / /   ____  ____  / /_  ____  _____   
+     / /   / __ `/ __ `/ __ \/ __ \/ ___/ 
+    / /___/ /_/ / /_/ / / / / /_/ (__  )    
+   /_____/\__,_/\__, /_/ /_/\____/____/  
+               /____/                       
+
+Options used:
+   --mesh ./data/square_33_quad.mesh
+   --refine-serial 1
+   --refine-parallel 3
+   --problem 1
+   --order-kinematic 2
+   --order-thermo 1
+   --ode-solver 7
+   --t-final 0.6
+   --cfl 1e-07
+   --cg-tol 0
+   --cg-max-steps 15
+   --max-steps 1
+   --partial-assembly
+   --no-impose-viscosity
+   --no-visualization
+   --visualization-steps 5
+   --no-visit
+   --no-print
+   --outputfilename results/Laghos
+   --partition 111
+Zones min/max: 64 64
+Number of kinematic (position, velocity) dofs: 18818
+Number of specific internal energy dofs: 9216
+   Iteration :   0  (B r, r) = 320000 ...
+   Iteration :  15  (B r, r) = 2.26307e-19
+PCG: No convergence!
+Average reduction factor = 0.15667
+   Iteration :   0  (B r, r) = 320000 ...
+   Iteration :  15  (B r, r) = 6.38375e-19
+PCG: No convergence!
+Average reduction factor = 0.16218
+   Iteration :   0  (B r, r) = 320000 ...
+   Iteration :  15  (B r, r) = 1.95232e-18
+PCG: No convergence!
+Average reduction factor = 0.168337
+   Iteration :   0  (B r, r) = 320000 ...
+   Iteration :  15  (B r, r) = 4.20607e-18
+PCG: No convergence!
+Average reduction factor = 0.172699
+step     2,	t = 0.0000,	dt = 0.000000,	|e| = 1600.0000000000
+
+CG (H1) total time: 0.0169319460
+CG (H1) rate (megadofs x cg_iterations / second): 66.6834160704
+
+CG (L2) total time: 0.0011945070
+CG (L2) rate (megadofs x cg_iterations / second): 0.1004598550
+
+Forces total time: 0.0007292190
+Forces rate (megadofs x timesteps / second): 153.7754776000
+
+UpdateQuadData total time: 0.0037509410
+UpdateQuadData rate (megaquads x timesteps / second): 49.1396692190
+
+Major kernels total time (seconds): 0.0209916400
+Major kernels total rate (megadofs x time steps / second): 5.3419361231
+
+Energy  diff: 0.00e+00
+mpibind: found OMP_NUM_THREADS=1
+Running test:
+srun -N 1 -t 4 -p pdebug -n 36 laghos -p 1 -ok 2 -ot 1 -s 7 -no-vis -cfl 1e-07 -cgt 0 -cgm 15 -ms 1 -m ./data/square_33_quad.mesh -rs 1 -rp 4
+mpibind: found OMP_NUM_THREADS=1
+
+       __                __                 
+      / /   ____  ____  / /_  ____  _____   
+     / /   / __ `/ __ `/ __ \/ __ \/ ___/ 
+    / /___/ /_/ / /_/ / / / / /_/ (__  )    
+   /_____/\__,_/\__, /_/ /_/\____/____/  
+               /____/                       
+
+Options used:
+   --mesh ./data/square_33_quad.mesh
+   --refine-serial 1
+   --refine-parallel 4
+   --problem 1
+   --order-kinematic 2
+   --order-thermo 1
+   --ode-solver 7
+   --t-final 0.6
+   --cfl 1e-07
+   --cg-tol 0
+   --cg-max-steps 15
+   --max-steps 1
+   --partial-assembly
+   --no-impose-viscosity
+   --no-visualization
+   --visualization-steps 5
+   --no-visit
+   --no-print
+   --outputfilename results/Laghos
+   --partition 111
+Zones min/max: 256 256
+Number of kinematic (position, velocity) dofs: 74498
+Number of specific internal energy dofs: 36864
+   Iteration :   0  (B r, r) = 5.12e+06 ...
+   Iteration :  15  (B r, r) = 3.62091e-18
+PCG: No convergence!
+Average reduction factor = 0.15667
+   Iteration :   0  (B r, r) = 5.12e+06 ...
+   Iteration :  15  (B r, r) = 1.0214e-17
+PCG: No convergence!
+Average reduction factor = 0.16218
+   Iteration :   0  (B r, r) = 5.12e+06 ...
+   Iteration :  15  (B r, r) = 3.12371e-17
+PCG: No convergence!
+Average reduction factor = 0.168337
+   Iteration :   0  (B r, r) = 5.12e+06 ...
+   Iteration :  15  (B r, r) = 6.72972e-17
+PCG: No convergence!
+Average reduction factor = 0.172699
+step     2,	t = 0.0000,	dt = 0.000000,	|e| = 6400.0000000000
+
+CG (H1) total time: 0.0328073820
+CG (H1) rate (megadofs x cg_iterations / second): 136.2461655733
+
+CG (L2) total time: 0.0046258500
+CG (L2) rate (megadofs x cg_iterations / second): 0.0311294141
+
+Forces total time: 0.0024401930
+Forces rate (megadofs x timesteps / second): 182.5462166312
+
+UpdateQuadData total time: 0.0140077650
+UpdateQuadData rate (megaquads x timesteps / second): 52.6336642569
+
+Major kernels total time (seconds): 0.0478208030
+Major kernels total rate (megadofs x time steps / second): 9.3149418675
+
+Energy  diff: 0.00e+00
+mpibind: found OMP_NUM_THREADS=1
+Running test:
+srun -N 1 -t 4 -p pdebug -n 36 laghos -p 1 -ok 2 -ot 1 -s 7 -no-vis -cfl 1e-07 -cgt 0 -cgm 15 -ms 1 -m ./data/square_33_quad.mesh -rs 1 -rp 5
+mpibind: found OMP_NUM_THREADS=1
+
+       __                __                 
+      / /   ____  ____  / /_  ____  _____   
+     / /   / __ `/ __ `/ __ \/ __ \/ ___/ 
+    / /___/ /_/ / /_/ / / / / /_/ (__  )    
+   /_____/\__,_/\__, /_/ /_/\____/____/  
+               /____/                       
+
+Options used:
+   --mesh ./data/square_33_quad.mesh
+   --refine-serial 1
+   --refine-parallel 5
+   --problem 1
+   --order-kinematic 2
+   --order-thermo 1
+   --ode-solver 7
+   --t-final 0.6
+   --cfl 1e-07
+   --cg-tol 0
+   --cg-max-steps 15
+   --max-steps 1
+   --partial-assembly
+   --no-impose-viscosity
+   --no-visualization
+   --visualization-steps 5
+   --no-visit
+   --no-print
+   --outputfilename results/Laghos
+   --partition 111
+Zones min/max: 1024 1024
+Number of kinematic (position, velocity) dofs: 296450
+Number of specific internal energy dofs: 147456
+   Iteration :   0  (B r, r) = 8.192e+07 ...
+   Iteration :  15  (B r, r) = 5.79346e-17
+PCG: No convergence!
+Average reduction factor = 0.15667
+   Iteration :   0  (B r, r) = 8.192e+07 ...
+   Iteration :  15  (B r, r) = 1.63424e-16
+PCG: No convergence!
+Average reduction factor = 0.16218
+   Iteration :   0  (B r, r) = 8.192e+07 ...
+   Iteration :  15  (B r, r) = 4.99794e-16
+PCG: No convergence!
+Average reduction factor = 0.168337
+   Iteration :   0  (B r, r) = 8.192e+07 ...
+   Iteration :  15  (B r, r) = 1.07675e-15
+PCG: No convergence!
+Average reduction factor = 0.172699
+step     2,	t = 0.0000,	dt = 0.000000,	|e| = 25599.9999999999
+
+CG (H1) total time: 0.0775183470
+CG (H1) rate (megadofs x cg_iterations / second): 229.4553571943
+
+CG (L2) total time: 0.0180858630
+CG (L2) rate (megadofs x cg_iterations / second): 0.0092890231
+
+Forces total time: 0.0084495450
+Forces rate (megadofs x timesteps / second): 210.1443332156
+
+UpdateQuadData total time: 0.0546219700
+UpdateQuadData rate (megaquads x timesteps / second): 53.9914616774
+
+Major kernels total time (seconds): 0.1389793750
+Major kernels total rate (megadofs x time steps / second): 12.7761691258
+
+Energy  diff: 0.00e+00
+mpibind: found OMP_NUM_THREADS=1
+Running test:
+srun -N 1 -t 4 -p pdebug -n 36 laghos -p 1 -ok 2 -ot 1 -s 7 -no-vis -cfl 1e-07 -cgt 0 -cgm 15 -ms 1 -m ./data/square_33_quad.mesh -rs 1 -rp 6
+mpibind: found OMP_NUM_THREADS=1
+
+       __                __                 
+      / /   ____  ____  / /_  ____  _____   
+     / /   / __ `/ __ `/ __ \/ __ \/ ___/ 
+    / /___/ /_/ / /_/ / / / / /_/ (__  )    
+   /_____/\__,_/\__, /_/ /_/\____/____/  
+               /____/                       
+
+Options used:
+   --mesh ./data/square_33_quad.mesh
+   --refine-serial 1
+   --refine-parallel 6
+   --problem 1
+   --order-kinematic 2
+   --order-thermo 1
+   --ode-solver 7
+   --t-final 0.6
+   --cfl 1e-07
+   --cg-tol 0
+   --cg-max-steps 15
+   --max-steps 1
+   --partial-assembly
+   --no-impose-viscosity
+   --no-visualization
+   --visualization-steps 5
+   --no-visit
+   --no-print
+   --outputfilename results/Laghos
+   --partition 111
+Zones min/max: 4096 4096
+Number of kinematic (position, velocity) dofs: 1182722
+Number of specific internal energy dofs: 589824
+   Iteration :   0  (B r, r) = 1.31072e+09 ...
+   Iteration :  15  (B r, r) = 9.26954e-16
+PCG: No convergence!
+Average reduction factor = 0.15667
+   Iteration :   0  (B r, r) = 1.31072e+09 ...
+   Iteration :  15  (B r, r) = 2.61479e-15
+PCG: No convergence!
+Average reduction factor = 0.16218
+   Iteration :   0  (B r, r) = 1.31072e+09 ...
+   Iteration :  15  (B r, r) = 7.99671e-15
+PCG: No convergence!
+Average reduction factor = 0.168337
+   Iteration :   0  (B r, r) = 1.31072e+09 ...
+   Iteration :  15  (B r, r) = 1.72281e-14
+PCG: No convergence!
+Average reduction factor = 0.172699
+step     2,	t = 0.0000,	dt = 0.000000,	|e| = 102399.9999999998
+
+CG (H1) total time: 0.2651654960
+CG (H1) rate (megadofs x cg_iterations / second): 267.6189816189
+
+CG (L2) total time: 0.0836251560
+CG (L2) rate (megadofs x cg_iterations / second): 0.0022002948
+
+Forces total time: 0.0345068980
+Forces rate (megadofs x timesteps / second): 205.4714973221
+
+UpdateQuadData total time: 0.2283117400
+UpdateQuadData rate (megaquads x timesteps / second): 51.6683022958
+
+Major kernels total time (seconds): 0.5245014100
+Major kernels total rate (megadofs x time steps / second): 13.5179503140
+
+Energy  diff: 0.00e+00
+mpibind: found OMP_NUM_THREADS=1
+Running test:
+srun -N 1 -t 4 -p pdebug -n 36 laghos -p 1 -ok 2 -ot 1 -s 7 -no-vis -cfl 1e-07 -cgt 0 -cgm 15 -ms 1 -m ./data/square_33_quad.mesh -rs 1 -rp 7
+mpibind: found OMP_NUM_THREADS=1
+
+       __                __                 
+      / /   ____  ____  / /_  ____  _____   
+     / /   / __ `/ __ `/ __ \/ __ \/ ___/ 
+    / /___/ /_/ / /_/ / / / / /_/ (__  )    
+   /_____/\__,_/\__, /_/ /_/\____/____/  
+               /____/                       
+
+Options used:
+   --mesh ./data/square_33_quad.mesh
+   --refine-serial 1
+   --refine-parallel 7
+   --problem 1
+   --order-kinematic 2
+   --order-thermo 1
+   --ode-solver 7
+   --t-final 0.6
+   --cfl 1e-07
+   --cg-tol 0
+   --cg-max-steps 15
+   --max-steps 1
+   --partial-assembly
+   --no-impose-viscosity
+   --no-visualization
+   --visualization-steps 5
+   --no-visit
+   --no-print
+   --outputfilename results/Laghos
+   --partition 111
+Zones min/max: 16384 16384
+Number of kinematic (position, velocity) dofs: 4724738
+Number of specific internal energy dofs: 2359296
+   Iteration :   0  (B r, r) = 2.09715e+10 ...
+   Iteration :  15  (B r, r) = 1.48313e-14
+PCG: No convergence!
+Average reduction factor = 0.15667
+   Iteration :   0  (B r, r) = 2.09715e+10 ...
+   Iteration :  15  (B r, r) = 4.18366e-14
+PCG: No convergence!
+Average reduction factor = 0.16218
+   Iteration :   0  (B r, r) = 2.09715e+10 ...
+   Iteration :  15  (B r, r) = 1.27947e-13
+PCG: No convergence!
+Average reduction factor = 0.168337
+   Iteration :   0  (B r, r) = 2.09715e+10 ...
+   Iteration :  15  (B r, r) = 2.75649e-13
+PCG: No convergence!
+Average reduction factor = 0.172699
+step     2,	t = 0.0000,	dt = 0.000000,	|e| = 409599.9999999991
+
+CG (H1) total time: 1.2310579920
+CG (H1) rate (megadofs x cg_iterations / second): 230.2769502673
+
+CG (L2) total time: 0.3554619900
+CG (L2) rate (megadofs x cg_iterations / second): 0.0005626481
+
+Forces total time: 0.1365525900
+Forces rate (megadofs x timesteps / second): 207.5107912636
+
+UpdateQuadData total time: 0.8914929570
+UpdateQuadData rate (megaquads x timesteps / second): 52.9291001454
+
+Major kernels total time (seconds): 2.2586334150
+Major kernels total rate (megadofs x time steps / second): 12.5456994534
+
+Energy  diff: 0.00e+00
+mpibind: found OMP_NUM_THREADS=1
+Running test:
+srun -N 1 -t 4 -p pdebug -n 36 laghos -p 1 -ok 2 -ot 1 -s 7 -no-vis -cfl 1e-07 -cgt 0 -cgm 15 -ms 1 -m ./data/square_33_quad.mesh -rs 1 -rp 8
+mpibind: found OMP_NUM_THREADS=1
+
+       __                __                 
+      / /   ____  ____  / /_  ____  _____   
+     / /   / __ `/ __ `/ __ \/ __ \/ ___/ 
+    / /___/ /_/ / /_/ / / / / /_/ (__  )    
+   /_____/\__,_/\__, /_/ /_/\____/____/  
+               /____/                       
+
+Options used:
+   --mesh ./data/square_33_quad.mesh
+   --refine-serial 1
+   --refine-parallel 8
+   --problem 1
+   --order-kinematic 2
+   --order-thermo 1
+   --ode-solver 7
+   --t-final 0.6
+   --cfl 1e-07
+   --cg-tol 0
+   --cg-max-steps 15
+   --max-steps 1
+   --partial-assembly
+   --no-impose-viscosity
+   --no-visualization
+   --visualization-steps 5
+   --no-visit
+   --no-print
+   --outputfilename results/Laghos
+   --partition 111
+Zones min/max: 65536 65536
+Number of kinematic (position, velocity) dofs: 18886658
+Number of specific internal energy dofs: 9437184
+   Iteration :   0  (B r, r) = 3.35544e+11 ...
+   Iteration :  15  (B r, r) = 2.373e-13
+PCG: No convergence!
+Average reduction factor = 0.15667
+   Iteration :   0  (B r, r) = 3.35544e+11 ...
+   Iteration :  15  (B r, r) = 6.69385e-13
+PCG: No convergence!
+Average reduction factor = 0.16218
+   Iteration :   0  (B r, r) = 3.35544e+11 ...
+   Iteration :  15  (B r, r) = 2.04716e-12
+PCG: No convergence!
+Average reduction factor = 0.168337
+   Iteration :   0  (B r, r) = 3.35544e+11 ...
+   Iteration :  15  (B r, r) = 4.41039e-12
+PCG: No convergence!
+Average reduction factor = 0.172699
+step     2,	t = 0.0000,	dt = 0.000000,	|e| = 1638399.9999999963
+
+CG (H1) total time: 5.6643456540
+CG (H1) rate (megadofs x cg_iterations / second): 200.0583208053
+
+CG (L2) total time: 1.1188282220
+CG (L2) rate (megadofs x cg_iterations / second): 0.0002002095
+
+Forces total time: 0.5553615890
+Forces rate (megadofs x timesteps / second): 204.0028879275
+
+UpdateQuadData total time: 3.5328435010
+UpdateQuadData rate (megaquads x timesteps / second): 53.4254291045
+
+Major kernels total time (seconds): 9.7491621500
+Major kernels total rate (megadofs x time steps / second): 11.6210363780
+
+Energy  diff: 0.00e+00
+mpibind: found OMP_NUM_THREADS=1
+Running test:
+srun -N 1 -t 4 -p pdebug -n 36 laghos -p 1 -ok 2 -ot 1 -s 7 -no-vis -cfl 1e-07 -cgt 0 -cgm 15 -ms 1 -m ./data/square_33_quad.mesh -rs 1 -rp 9
+mpibind: found OMP_NUM_THREADS=1
+
+       __                __                 
+      / /   ____  ____  / /_  ____  _____   
+     / /   / __ `/ __ `/ __ \/ __ \/ ___/ 
+    / /___/ /_/ / /_/ / / / / /_/ (__  )    
+   /_____/\__,_/\__, /_/ /_/\____/____/  
+               /____/                       
+
+Options used:
+   --mesh ./data/square_33_quad.mesh
+   --refine-serial 1
+   --refine-parallel 9
+   --problem 1
+   --order-kinematic 2
+   --order-thermo 1
+   --ode-solver 7
+   --t-final 0.6
+   --cfl 1e-07
+   --cg-tol 0
+   --cg-max-steps 15
+   --max-steps 1
+   --partial-assembly
+   --no-impose-viscosity
+   --no-visualization
+   --visualization-steps 5
+   --no-visit
+   --no-print
+   --outputfilename results/Laghos
+   --partition 111
+Zones min/max: 262144 262144
+Number of kinematic (position, velocity) dofs: 75522050
+Number of specific internal energy dofs: 37748736
+   Iteration :   0  (B r, r) = 5.36871e+12 ...
+   Iteration :  15  (B r, r) = 3.7968e-12
+PCG: No convergence!
+Average reduction factor = 0.15667
+   Iteration :   0  (B r, r) = 5.36871e+12 ...
+   Iteration :  15  (B r, r) = 1.07102e-11
+PCG: No convergence!
+Average reduction factor = 0.16218
+   Iteration :   0  (B r, r) = 5.36871e+12 ...
+   Iteration :  15  (B r, r) = 3.27545e-11
+PCG: No convergence!
+Average reduction factor = 0.168337
+   Iteration :   0  (B r, r) = 5.36871e+12 ...
+   Iteration :  15  (B r, r) = 7.05662e-11
+PCG: No convergence!
+Average reduction factor = 0.172699
+step     2,	t = 0.0000,	dt = 0.000000,	|e| = 6553599.9999999851
+
+CG (H1) total time: 23.1919526130
+CG (H1) rate (megadofs x cg_iterations / second): 195.3834192236
+
+CG (L2) total time: 4.9742122350
+CG (L2) rate (megadofs x cg_iterations / second): 0.0000482488
+
+Forces total time: 2.2233835650
+Forces rate (megadofs x timesteps / second): 203.7809180262
+
+UpdateQuadData total time: 14.5898823530
+UpdateQuadData rate (megaquads x timesteps / second): 51.7464570127
+
+Major kernels total time (seconds): 39.7329722850
+Major kernels total rate (megadofs x time steps / second): 11.4032028802
+
+Energy  diff: 0.00e+00
+mpibind: found OMP_NUM_THREADS=1
+Running test:
+srun -N 1 -t 4 -p pdebug -n 36 laghos -p 1 -ok 3 -ot 2 -s 7 -no-vis -cfl 1e-07 -cgt 0 -cgm 15 -ms 1 -m ./data/square_33_quad.mesh -rs 1 -rp 0
+mpibind: found OMP_NUM_THREADS=1
+
+       __                __                 
+      / /   ____  ____  / /_  ____  _____   
+     / /   / __ `/ __ `/ __ \/ __ \/ ___/ 
+    / /___/ /_/ / /_/ / / / / /_/ (__  )    
+   /_____/\__,_/\__, /_/ /_/\____/____/  
+               /____/                       
+
+Options used:
+   --mesh ./data/square_33_quad.mesh
+   --refine-serial 1
+   --refine-parallel 0
+   --problem 1
+   --order-kinematic 3
+   --order-thermo 2
+   --ode-solver 7
+   --t-final 0.6
+   --cfl 1e-07
+   --cg-tol 0
+   --cg-max-steps 15
+   --max-steps 1
+   --partial-assembly
+   --no-impose-viscosity
+   --no-visualization
+   --visualization-steps 5
+   --no-visit
+   --no-print
+   --outputfilename results/Laghos
+   --partition 111
+Zones min/max: 1 1
+Number of kinematic (position, velocity) dofs: 722
+Number of specific internal energy dofs: 324
+   Iteration :   0  (B r, r) = 275.625 ...
+   Iteration :  15  (B r, r) = 2.88309e-42
+PCG: No convergence!
+Average reduction factor = 0.0341967
+   Iteration :   0  (B r, r) = 275.625 ...
+   Iteration :  15  (B r, r) = 1.86148e-30
+PCG: No convergence!
+Average reduction factor = 0.0846547
+   Iteration :   0  (B r, r) = 275.625 ...
+   Iteration :  15  (B r, r) = 7.44631e-30
+PCG: No convergence!
+Average reduction factor = 0.0886586
+   Iteration :   0  (B r, r) = 275.625 ...
+   Iteration :  15  (B r, r) = 1.69801e-29
+PCG: No convergence!
+Average reduction factor = 0.0911285
+step     2,	t = 0.0000,	dt = 0.000000,	|e| = 56.2500000000
+
+CG (H1) total time: 0.0114029040
+CG (H1) rate (megadofs x cg_iterations / second): 3.7990322465
+
+CG (L2) total time: 0.0000306200
+CG (L2) rate (megadofs x cg_iterations / second): 7.0542129327
+
+Forces total time: 0.0000672630
+Forces rate (megadofs x timesteps / second): 62.2035888973
+
+UpdateQuadData total time: 0.0001868940
+UpdateQuadData rate (megaquads x timesteps / second): 34.6720600982
+
+Major kernels total time (seconds): 0.0116340440
+Major kernels total rate (megadofs x time steps / second): 0.3596341908
+
+Energy  diff: 5.55e-17
+Running test:
+srun -N 1 -t 4 -p pdebug -n 36 laghos -p 1 -ok 3 -ot 2 -s 7 -no-vis -cfl 1e-07 -cgt 0 -cgm 15 -ms 1 -m ./data/square_33_quad.mesh -rs 1 -rp 1
+mpibind: found OMP_NUM_THREADS=1
+
+       __                __                 
+      / /   ____  ____  / /_  ____  _____   
+     / /   / __ `/ __ `/ __ \/ __ \/ ___/ 
+    / /___/ /_/ / /_/ / / / / /_/ (__  )    
+   /_____/\__,_/\__, /_/ /_/\____/____/  
+               /____/                       
+
+Options used:
+   --mesh ./data/square_33_quad.mesh
+   --refine-serial 1
+   --refine-parallel 1
+   --problem 1
+   --order-kinematic 3
+   --order-thermo 2
+   --ode-solver 7
+   --t-final 0.6
+   --cfl 1e-07
+   --cg-tol 0
+   --cg-max-steps 15
+   --max-steps 1
+   --partial-assembly
+   --no-impose-viscosity
+   --no-visualization
+   --visualization-steps 5
+   --no-visit
+   --no-print
+   --outputfilename results/Laghos
+   --partition 111
+Zones min/max: 4 4
+Number of kinematic (position, velocity) dofs: 2738
+Number of specific internal energy dofs: 1296
+   Iteration :   0  (B r, r) = 4410 ...
+   Iteration :  15  (B r, r) = 4.03089e-37
+PCG: No convergence!
+Average reduction factor = 0.046277
+   Iteration :   0  (B r, r) = 4410 ...
+   Iteration :  15  (B r, r) = 3.06191e-25
+PCG: No convergence!
+Average reduction factor = 0.115182
+   Iteration :   0  (B r, r) = 4410 ...
+   Iteration :  15  (B r, r) = 1.22474e-24
+PCG: No convergence!
+Average reduction factor = 0.120629
+   Iteration :   0  (B r, r) = 4410 ...
+   Iteration :  15  (B r, r) = 2.79251e-24
+PCG: No convergence!
+Average reduction factor = 0.12399
+step     2,	t = 0.0000,	dt = 0.000000,	|e| = 225.0000000000
+
+CG (H1) total time: 0.0115657610
+CG (H1) rate (megadofs x cg_iterations / second): 14.2039940130
+
+CG (L2) total time: 0.0000621880
+CG (L2) rate (megadofs x cg_iterations / second): 4.6311185438
+
+Forces total time: 0.0001038630
+Forces rate (megadofs x timesteps / second): 155.3585011024
+
+UpdateQuadData total time: 0.0005321750
+UpdateQuadData rate (megaquads x timesteps / second): 48.7057828722
+
+Major kernels total time (seconds): 0.0121880120
+Major kernels total rate (megadofs x time steps / second): 1.3239238688
+
+Energy  diff: 5.55e-17
+Running test:
+srun -N 1 -t 4 -p pdebug -n 36 laghos -p 1 -ok 3 -ot 2 -s 7 -no-vis -cfl 1e-07 -cgt 0 -cgm 15 -ms 1 -m ./data/square_33_quad.mesh -rs 1 -rp 2
+mpibind: found OMP_NUM_THREADS=1
+
+       __                __                 
+      / /   ____  ____  / /_  ____  _____   
+     / /   / __ `/ __ `/ __ \/ __ \/ ___/ 
+    / /___/ /_/ / /_/ / / / / /_/ (__  )    
+   /_____/\__,_/\__, /_/ /_/\____/____/  
+               /____/                       
+
+Options used:
+   --mesh ./data/square_33_quad.mesh
+   --refine-serial 1
+   --refine-parallel 2
+   --problem 1
+   --order-kinematic 3
+   --order-thermo 2
+   --ode-solver 7
+   --t-final 0.6
+   --cfl 1e-07
+   --cg-tol 0
+   --cg-max-steps 15
+   --max-steps 1
+   --partial-assembly
+   --no-impose-viscosity
+   --no-visualization
+   --visualization-steps 5
+   --no-visit
+   --no-print
+   --outputfilename results/Laghos
+   --partition 111
+Zones min/max: 16 16
+Number of kinematic (position, velocity) dofs: 10658
+Number of specific internal energy dofs: 5184
+   Iteration :   0  (B r, r) = 70560 ...
+   Iteration :  15  (B r, r) = 9.00739e-23
+PCG: No convergence!
+Average reduction factor = 0.126921
+   Iteration :   0  (B r, r) = 70560 ...
+   Iteration :  15  (B r, r) = 5.59496e-21
+PCG: No convergence!
+Average reduction factor = 0.145649
+   Iteration :   0  (B r, r) = 70560 ...
+   Iteration :  15  (B r, r) = 1.07927e-20
+PCG: No convergence!
+Average reduction factor = 0.148874
+   Iteration :   0  (B r, r) = 70560 ...
+   Iteration :  15  (B r, r) = 1.31961e-20
+PCG: No convergence!
+Average reduction factor = 0.149875
+step     2,	t = 0.0000,	dt = 0.000000,	|e| = 900.0000000000
+
+CG (H1) total time: 0.0138220510
+CG (H1) rate (megadofs x cg_iterations / second): 46.2652033334
+
+CG (L2) total time: 0.0002908090
+CG (L2) rate (megadofs x cg_iterations / second): 1.2998222201
+
+Forces total time: 0.0002875310
+Forces rate (megadofs x timesteps / second): 220.3866713502
+
+UpdateQuadData total time: 0.0018839120
+UpdateQuadData rate (megaquads x timesteps / second): 55.0344177435
+
+Major kernels total time (seconds): 0.0159481820
+Major kernels total rate (megadofs x time steps / second): 3.9733682497
+
+Energy  diff: 5.55e-17
+Running test:
+srun -N 1 -t 4 -p pdebug -n 36 laghos -p 1 -ok 3 -ot 2 -s 7 -no-vis -cfl 1e-07 -cgt 0 -cgm 15 -ms 1 -m ./data/square_33_quad.mesh -rs 1 -rp 3
+mpibind: found OMP_NUM_THREADS=1
+
+       __                __                 
+      / /   ____  ____  / /_  ____  _____   
+     / /   / __ `/ __ `/ __ \/ __ \/ ___/ 
+    / /___/ /_/ / /_/ / / / / /_/ (__  )    
+   /_____/\__,_/\__, /_/ /_/\____/____/  
+               /____/                       
+
+Options used:
+   --mesh ./data/square_33_quad.mesh
+   --refine-serial 1
+   --refine-parallel 3
+   --problem 1
+   --order-kinematic 3
+   --order-thermo 2
+   --ode-solver 7
+   --t-final 0.6
+   --cfl 1e-07
+   --cg-tol 0
+   --cg-max-steps 15
+   --max-steps 1
+   --partial-assembly
+   --no-impose-viscosity
+   --no-visualization
+   --visualization-steps 5
+   --no-visit
+   --no-print
+   --outputfilename results/Laghos
+   --partition 111
+Zones min/max: 64 64
+Number of kinematic (position, velocity) dofs: 42050
+Number of specific internal energy dofs: 20736
+   Iteration :   0  (B r, r) = 1.12896e+06 ...
+   Iteration :  15  (B r, r) = 1.44118e-21
+PCG: No convergence!
+Average reduction factor = 0.126921
+   Iteration :   0  (B r, r) = 1.12896e+06 ...
+   Iteration :  15  (B r, r) = 8.95194e-20
+PCG: No convergence!
+Average reduction factor = 0.145649
+   Iteration :   0  (B r, r) = 1.12896e+06 ...
+   Iteration :  15  (B r, r) = 1.72683e-19
+PCG: No convergence!
+Average reduction factor = 0.148874
+   Iteration :   0  (B r, r) = 1.12896e+06 ...
+   Iteration :  15  (B r, r) = 2.11138e-19
+PCG: No convergence!
+Average reduction factor = 0.149875
+step     2,	t = 0.0000,	dt = 0.000000,	|e| = 3600.0000000000
+
+CG (H1) total time: 0.0312067240
+CG (H1) rate (megadofs x cg_iterations / second): 80.8479608433
+
+CG (L2) total time: 0.0012379020
+CG (L2) rate (megadofs x cg_iterations / second): 0.3780590063
+
+Forces total time: 0.0019948930
+Forces rate (megadofs x timesteps / second): 125.8934689730
+
+UpdateQuadData total time: 0.0087230990
+UpdateQuadData rate (megaquads x timesteps / second): 47.5427368186
+
+Major kernels total time (seconds): 0.0416339370
+Major kernels total rate (megadofs x time steps / second): 6.0321943611
+
+Energy  diff: 5.55e-17
+Running test:
+srun -N 1 -t 4 -p pdebug -n 36 laghos -p 1 -ok 3 -ot 2 -s 7 -no-vis -cfl 1e-07 -cgt 0 -cgm 15 -ms 1 -m ./data/square_33_quad.mesh -rs 1 -rp 4
+mpibind: found OMP_NUM_THREADS=1
+
+       __                __                 
+      / /   ____  ____  / /_  ____  _____   
+     / /   / __ `/ __ `/ __ \/ __ \/ ___/ 
+    / /___/ /_/ / /_/ / / / / /_/ (__  )    
+   /_____/\__,_/\__, /_/ /_/\____/____/  
+               /____/                       
+
+Options used:
+   --mesh ./data/square_33_quad.mesh
+   --refine-serial 1
+   --refine-parallel 4
+   --problem 1
+   --order-kinematic 3
+   --order-thermo 2
+   --ode-solver 7
+   --t-final 0.6
+   --cfl 1e-07
+   --cg-tol 0
+   --cg-max-steps 15
+   --max-steps 1
+   --partial-assembly
+   --no-impose-viscosity
+   --no-visualization
+   --visualization-steps 5
+   --no-visit
+   --no-print
+   --outputfilename results/Laghos
+   --partition 111
+Zones min/max: 256 256
+Number of kinematic (position, velocity) dofs: 167042
+Number of specific internal energy dofs: 82944
+   Iteration :   0  (B r, r) = 1.80634e+07 ...
+   Iteration :  15  (B r, r) = 2.30589e-20
+PCG: No convergence!
+Average reduction factor = 0.126921
+   Iteration :   0  (B r, r) = 1.80634e+07 ...
+   Iteration :  15  (B r, r) = 1.43231e-18
+PCG: No convergence!
+Average reduction factor = 0.145649
+   Iteration :   0  (B r, r) = 1.80634e+07 ...
+   Iteration :  15  (B r, r) = 2.76293e-18
+PCG: No convergence!
+Average reduction factor = 0.148874
+   Iteration :   0  (B r, r) = 1.80634e+07 ...
+   Iteration :  15  (B r, r) = 3.3782e-18
+PCG: No convergence!
+Average reduction factor = 0.149875
+step     2,	t = 0.0000,	dt = 0.000000,	|e| = 14400.0000000000
+
+CG (H1) total time: 0.0706913360
+CG (H1) rate (megadofs x cg_iterations / second): 141.7786190941
+
+CG (L2) total time: 0.0045789250
+CG (L2) rate (megadofs x cg_iterations / second): 0.1100695032
+
+Forces total time: 0.0057422230
+Forces rate (megadofs x timesteps / second): 174.1388309022
+
+UpdateQuadData total time: 0.0311909630
+UpdateQuadData rate (megaquads x timesteps / second): 53.1846355626
+
+Major kernels total time (seconds): 0.1040771650
+Major kernels total rate (megadofs x time steps / second): 9.6077175046
+
+Energy  diff: 5.55e-17
+Running test:
+srun -N 1 -t 4 -p pdebug -n 36 laghos -p 1 -ok 3 -ot 2 -s 7 -no-vis -cfl 1e-07 -cgt 0 -cgm 15 -ms 1 -m ./data/square_33_quad.mesh -rs 1 -rp 5
+mpibind: found OMP_NUM_THREADS=1
+
+       __                __                 
+      / /   ____  ____  / /_  ____  _____   
+     / /   / __ `/ __ `/ __ \/ __ \/ ___/ 
+    / /___/ /_/ / /_/ / / / / /_/ (__  )    
+   /_____/\__,_/\__, /_/ /_/\____/____/  
+               /____/                       
+
+Options used:
+   --mesh ./data/square_33_quad.mesh
+   --refine-serial 1
+   --refine-parallel 5
+   --problem 1
+   --order-kinematic 3
+   --order-thermo 2
+   --ode-solver 7
+   --t-final 0.6
+   --cfl 1e-07
+   --cg-tol 0
+   --cg-max-steps 15
+   --max-steps 1
+   --partial-assembly
+   --no-impose-viscosity
+   --no-visualization
+   --visualization-steps 5
+   --no-visit
+   --no-print
+   --outputfilename results/Laghos
+   --partition 111
+Zones min/max: 1024 1024
+Number of kinematic (position, velocity) dofs: 665858
+Number of specific internal energy dofs: 331776
+   Iteration :   0  (B r, r) = 2.89014e+08 ...
+   Iteration :  15  (B r, r) = 3.68942e-19
+PCG: No convergence!
+Average reduction factor = 0.126921
+   Iteration :   0  (B r, r) = 2.89014e+08 ...
+   Iteration :  15  (B r, r) = 2.2917e-17
+PCG: No convergence!
+Average reduction factor = 0.145649
+   Iteration :   0  (B r, r) = 2.89014e+08 ...
+   Iteration :  15  (B r, r) = 4.42068e-17
+PCG: No convergence!
+Average reduction factor = 0.148874
+   Iteration :   0  (B r, r) = 2.89014e+08 ...
+   Iteration :  15  (B r, r) = 5.40512e-17
+PCG: No convergence!
+Average reduction factor = 0.149875
+step     2,	t = 0.0000,	dt = 0.000000,	|e| = 57599.9999999999
+
+CG (H1) total time: 0.1781796760
+CG (H1) rate (megadofs x cg_iterations / second): 224.2201854717
+
+CG (L2) total time: 0.0180704560
+CG (L2) rate (megadofs x cg_iterations / second): 0.0298830312
+
+Forces total time: 0.0209826970
+Forces rate (megadofs x timesteps / second): 190.1822249066
+
+UpdateQuadData total time: 0.1231644440
+UpdateQuadData rate (megaquads x timesteps / second): 53.8752888780
+
+Major kernels total time (seconds): 0.3177350150
+Major kernels total rate (megadofs x time steps / second): 12.5593208542
+
+Energy  diff: 5.55e-17
+Running test:
+srun -N 1 -t 4 -p pdebug -n 36 laghos -p 1 -ok 3 -ot 2 -s 7 -no-vis -cfl 1e-07 -cgt 0 -cgm 15 -ms 1 -m ./data/square_33_quad.mesh -rs 1 -rp 6
+mpibind: found OMP_NUM_THREADS=1
+
+       __                __                 
+      / /   ____  ____  / /_  ____  _____   
+     / /   / __ `/ __ `/ __ \/ __ \/ ___/ 
+    / /___/ /_/ / /_/ / / / / /_/ (__  )    
+   /_____/\__,_/\__, /_/ /_/\____/____/  
+               /____/                       
+
+Options used:
+   --mesh ./data/square_33_quad.mesh
+   --refine-serial 1
+   --refine-parallel 6
+   --problem 1
+   --order-kinematic 3
+   --order-thermo 2
+   --ode-solver 7
+   --t-final 0.6
+   --cfl 1e-07
+   --cg-tol 0
+   --cg-max-steps 15
+   --max-steps 1
+   --partial-assembly
+   --no-impose-viscosity
+   --no-visualization
+   --visualization-steps 5
+   --no-visit
+   --no-print
+   --outputfilename results/Laghos
+   --partition 111
+Zones min/max: 4096 4096
+Number of kinematic (position, velocity) dofs: 2658818
+Number of specific internal energy dofs: 1327104
+   Iteration :   0  (B r, r) = 4.62422e+09 ...
+   Iteration :  15  (B r, r) = 5.90308e-18
+PCG: No convergence!
+Average reduction factor = 0.126921
+   Iteration :   0  (B r, r) = 4.62422e+09 ...
+   Iteration :  15  (B r, r) = 3.66672e-16
+PCG: No convergence!
+Average reduction factor = 0.145649
+   Iteration :   0  (B r, r) = 4.62422e+09 ...
+   Iteration :  15  (B r, r) = 7.07309e-16
+PCG: No convergence!
+Average reduction factor = 0.148874
+   Iteration :   0  (B r, r) = 4.62422e+09 ...
+   Iteration :  15  (B r, r) = 8.6482e-16
+PCG: No convergence!
+Average reduction factor = 0.149875
+step     2,	t = 0.0000,	dt = 0.000000,	|e| = 230399.9999999994
+
+CG (H1) total time: 0.7224621190
+CG (H1) rate (megadofs x cg_iterations / second): 220.8130721384
+
+CG (L2) total time: 0.0850310340
+CG (L2) rate (megadofs x cg_iterations / second): 0.0063506225
+
+Forces total time: 0.0798764690
+Forces rate (megadofs x timesteps / second): 199.6043165103
+
+UpdateQuadData total time: 0.4922354730
+UpdateQuadData rate (megaquads x timesteps / second): 53.9215100412
+
+Major kernels total time (seconds): 1.2791508950
+Major kernels total rate (megadofs x time steps / second): 12.4642745921
+
+Energy  diff: 5.55e-17
+Running test:
+srun -N 1 -t 4 -p pdebug -n 36 laghos -p 1 -ok 3 -ot 2 -s 7 -no-vis -cfl 1e-07 -cgt 0 -cgm 15 -ms 1 -m ./data/square_33_quad.mesh -rs 1 -rp 7
+mpibind: found OMP_NUM_THREADS=1
+
+       __                __                 
+      / /   ____  ____  / /_  ____  _____   
+     / /   / __ `/ __ `/ __ \/ __ \/ ___/ 
+    / /___/ /_/ / /_/ / / / / /_/ (__  )    
+   /_____/\__,_/\__, /_/ /_/\____/____/  
+               /____/                       
+
+Options used:
+   --mesh ./data/square_33_quad.mesh
+   --refine-serial 1
+   --refine-parallel 7
+   --problem 1
+   --order-kinematic 3
+   --order-thermo 2
+   --ode-solver 7
+   --t-final 0.6
+   --cfl 1e-07
+   --cg-tol 0
+   --cg-max-steps 15
+   --max-steps 1
+   --partial-assembly
+   --no-impose-viscosity
+   --no-visualization
+   --visualization-steps 5
+   --no-visit
+   --no-print
+   --outputfilename results/Laghos
+   --partition 111
+Zones min/max: 16384 16384
+Number of kinematic (position, velocity) dofs: 10626050
+Number of specific internal energy dofs: 5308416
+   Iteration :   0  (B r, r) = 7.39875e+10 ...
+   Iteration :  15  (B r, r) = 9.44493e-17
+PCG: No convergence!
+Average reduction factor = 0.126921
+   Iteration :   0  (B r, r) = 7.39875e+10 ...
+   Iteration :  15  (B r, r) = 5.86675e-15
+PCG: No convergence!
+Average reduction factor = 0.145649
+   Iteration :   0  (B r, r) = 7.39875e+10 ...
+   Iteration :  15  (B r, r) = 1.13169e-14
+PCG: No convergence!
+Average reduction factor = 0.148874
+   Iteration :   0  (B r, r) = 7.39875e+10 ...
+   Iteration :  15  (B r, r) = 1.38371e-14
+PCG: No convergence!
+Average reduction factor = 0.149875
+step     2,	t = 0.0000,	dt = 0.000000,	|e| = 921599.9999999977
+
+CG (H1) total time: 3.1438514030
+CG (H1) rate (megadofs x cg_iterations / second): 202.7967986628
+
+CG (L2) total time: 0.2921725550
+CG (L2) rate (megadofs x cg_iterations / second): 0.0018482229
+
+Forces total time: 0.2920917440
+Forces rate (megadofs x timesteps / second): 218.2117958117
+
+UpdateQuadData total time: 1.8962047990
+UpdateQuadData rate (megaquads x timesteps / second): 55.9899015423
+
+Major kernels total time (seconds): 5.3247210330
+Major kernels total rate (megadofs x time steps / second): 11.9701790206
+
+Energy  diff: 5.55e-17
+Running test:
+srun -N 1 -t 4 -p pdebug -n 36 laghos -p 1 -ok 3 -ot 2 -s 7 -no-vis -cfl 1e-07 -cgt 0 -cgm 15 -ms 1 -m ./data/square_33_quad.mesh -rs 1 -rp 8
+mpibind: found OMP_NUM_THREADS=1
+
+       __                __                 
+      / /   ____  ____  / /_  ____  _____   
+     / /   / __ `/ __ `/ __ \/ __ \/ ___/ 
+    / /___/ /_/ / /_/ / / / / /_/ (__  )    
+   /_____/\__,_/\__, /_/ /_/\____/____/  
+               /____/                       
+
+Options used:
+   --mesh ./data/square_33_quad.mesh
+   --refine-serial 1
+   --refine-parallel 8
+   --problem 1
+   --order-kinematic 3
+   --order-thermo 2
+   --ode-solver 7
+   --t-final 0.6
+   --cfl 1e-07
+   --cg-tol 0
+   --cg-max-steps 15
+   --max-steps 1
+   --partial-assembly
+   --no-impose-viscosity
+   --no-visualization
+   --visualization-steps 5
+   --no-visit
+   --no-print
+   --outputfilename results/Laghos
+   --partition 111
+Zones min/max: 65536 65536
+Number of kinematic (position, velocity) dofs: 42485762
+Number of specific internal energy dofs: 21233664
+   Iteration :   0  (B r, r) = 1.1838e+12 ...
+   Iteration :  15  (B r, r) = 1.51119e-15
+PCG: No convergence!
+Average reduction factor = 0.126921
+   Iteration :   0  (B r, r) = 1.1838e+12 ...
+   Iteration :  15  (B r, r) = 9.38679e-14
+PCG: No convergence!
+Average reduction factor = 0.145649
+   Iteration :   0  (B r, r) = 1.1838e+12 ...
+   Iteration :  15  (B r, r) = 1.81071e-13
+PCG: No convergence!
+Average reduction factor = 0.148874
+   Iteration :   0  (B r, r) = 1.1838e+12 ...
+   Iteration :  15  (B r, r) = 2.21394e-13
+PCG: No convergence!
+Average reduction factor = 0.149875
+step     2,	t = 0.0000,	dt = 0.000000,	|e| = 3686399.9999999907
+
+CG (H1) total time: 12.7044284300
+CG (H1) rate (megadofs x cg_iterations / second): 200.6501696669
+
+CG (L2) total time: 1.1882206870
+CG (L2) rate (megadofs x cg_iterations / second): 0.0004847584
+
+Forces total time: 1.1358769060
+Forces rate (megadofs x timesteps / second): 224.3884902085
+
+UpdateQuadData total time: 7.4957044380
+UpdateQuadData rate (megaquads x timesteps / second): 56.6555529921
+
+Major kernels total time (seconds): 21.2012682320
+Major kernels total rate (megadofs x time steps / second): 12.0218140354
+
+Energy  diff: 5.55e-17
+Running test:
+srun -N 1 -t 4 -p pdebug -n 36 laghos -p 1 -ok 4 -ot 3 -s 7 -no-vis -cfl 1e-07 -cgt 0 -cgm 15 -ms 1 -m ./data/square_33_quad.mesh -rs 1 -rp 0
+mpibind: found OMP_NUM_THREADS=1
+
+       __                __                 
+      / /   ____  ____  / /_  ____  _____   
+     / /   / __ `/ __ `/ __ \/ __ \/ ___/ 
+    / /___/ /_/ / /_/ / / / / /_/ (__  )    
+   /_____/\__,_/\__, /_/ /_/\____/____/  
+               /____/                       
+
+Options used:
+   --mesh ./data/square_33_quad.mesh
+   --refine-serial 1
+   --refine-parallel 0
+   --problem 1
+   --order-kinematic 4
+   --order-thermo 3
+   --ode-solver 7
+   --t-final 0.6
+   --cfl 1e-07
+   --cg-tol 0
+   --cg-max-steps 15
+   --max-steps 1
+   --partial-assembly
+   --no-impose-viscosity
+   --no-visualization
+   --visualization-steps 5
+   --no-visit
+   --no-print
+   --outputfilename results/Laghos
+   --partition 111
+Zones min/max: 1 1
+Number of kinematic (position, velocity) dofs: 1250
+Number of specific internal energy dofs: 576
+   Iteration :   0  (B r, r) = 781.071 ...
+   Iteration :  15  (B r, r) = 2.75427e-43
+PCG: No convergence!
+Average reduction factor = 0.0305429
+   Iteration :   0  (B r, r) = 781.071 ...
+   Iteration :  15  (B r, r) = 1.00761e-30
+PCG: No convergence!
+Average reduction factor = 0.08011
+   Iteration :   0  (B r, r) = 781.071 ...
+   Iteration :  15  (B r, r) = 4.03045e-30
+PCG: No convergence!
+Average reduction factor = 0.0838987
+   Iteration :   0  (B r, r) = 781.071 ...
+   Iteration :  15  (B r, r) = 9.18991e-30
+PCG: No convergence!
+Average reduction factor = 0.0862358
+step     2,	t = 0.0000,	dt = 0.000000,	|e| = 100.0000000000
+
+CG (H1) total time: 0.0116932700
+CG (H1) rate (megadofs x cg_iterations / second): 6.4139457996
+
+CG (L2) total time: 0.0000903200
+CG (L2) rate (megadofs x cg_iterations / second): 8.5031000886
+
+Forces total time: 0.0000680640
+Forces rate (megadofs x timesteps / second): 107.3107663376
+
+UpdateQuadData total time: 0.0002597400
+UpdateQuadData rate (megaquads x timesteps / second): 44.3520443520
+
+Major kernels total time (seconds): 0.0120027830
+Major kernels total rate (megadofs x time steps / second): 0.6085255395
+
+Energy  diff: 5.55e-17
+Running test:
+srun -N 1 -t 4 -p pdebug -n 36 laghos -p 1 -ok 4 -ot 3 -s 7 -no-vis -cfl 1e-07 -cgt 0 -cgm 15 -ms 1 -m ./data/square_33_quad.mesh -rs 1 -rp 1
+mpibind: found OMP_NUM_THREADS=1
+
+       __                __                 
+      / /   ____  ____  / /_  ____  _____   
+     / /   / __ `/ __ `/ __ \/ __ \/ ___/ 
+    / /___/ /_/ / /_/ / / / / /_/ (__  )    
+   /_____/\__,_/\__, /_/ /_/\____/____/  
+               /____/                       
+
+Options used:
+   --mesh ./data/square_33_quad.mesh
+   --refine-serial 1
+   --refine-parallel 1
+   --problem 1
+   --order-kinematic 4
+   --order-thermo 3
+   --ode-solver 7
+   --t-final 0.6
+   --cfl 1e-07
+   --cg-tol 0
+   --cg-max-steps 15
+   --max-steps 1
+   --partial-assembly
+   --no-impose-viscosity
+   --no-visualization
+   --visualization-steps 5
+   --no-visit
+   --no-print
+   --outputfilename results/Laghos
+   --partition 111
+Zones min/max: 4 4
+Number of kinematic (position, velocity) dofs: 4802
+Number of specific internal energy dofs: 2304
+   Iteration :   0  (B r, r) = 12497.1 ...
+   Iteration :  15  (B r, r) = 7.19282e-38
+PCG: No convergence!
+Average reduction factor = 0.0422023
+   Iteration :   0  (B r, r) = 12497.1 ...
+   Iteration :  15  (B r, r) = 2.62104e-25
+PCG: No convergence!
+Average reduction factor = 0.110677
+   Iteration :   0  (B r, r) = 12497.1 ...
+   Iteration :  15  (B r, r) = 1.04739e-24
+PCG: No convergence!
+Average reduction factor = 0.115907
+   Iteration :   0  (B r, r) = 12497.1 ...
+   Iteration :  15  (B r, r) = 2.38675e-24
+PCG: No convergence!
+Average reduction factor = 0.119133
+step     2,	t = 0.0000,	dt = 0.000000,	|e| = 400.0000000000
+
+CG (H1) total time: 0.0127888280
+CG (H1) rate (megadofs x cg_iterations / second): 22.5290386265
+
+CG (L2) total time: 0.0001388380
+CG (L2) rate (megadofs x cg_iterations / second): 5.5316267881
+
+Forces total time: 0.0001709540
+Forces rate (megadofs x timesteps / second): 166.2669490038
+
+UpdateQuadData total time: 0.0008932090
+UpdateQuadData rate (megaquads x timesteps / second): 51.5892697006
+
+Major kernels total time (seconds): 0.0138190240
+Major kernels total rate (megadofs x time steps / second): 2.0568746389
+
+Energy  diff: 5.55e-17
+Running test:
+srun -N 1 -t 4 -p pdebug -n 36 laghos -p 1 -ok 4 -ot 3 -s 7 -no-vis -cfl 1e-07 -cgt 0 -cgm 15 -ms 1 -m ./data/square_33_quad.mesh -rs 1 -rp 2
+mpibind: found OMP_NUM_THREADS=1
+
+       __                __                 
+      / /   ____  ____  / /_  ____  _____   
+     / /   / __ `/ __ `/ __ \/ __ \/ ___/ 
+    / /___/ /_/ / /_/ / / / / /_/ (__  )    
+   /_____/\__,_/\__, /_/ /_/\____/____/  
+               /____/                       
+
+Options used:
+   --mesh ./data/square_33_quad.mesh
+   --refine-serial 1
+   --refine-parallel 2
+   --problem 1
+   --order-kinematic 4
+   --order-thermo 3
+   --ode-solver 7
+   --t-final 0.6
+   --cfl 1e-07
+   --cg-tol 0
+   --cg-max-steps 15
+   --max-steps 1
+   --partial-assembly
+   --no-impose-viscosity
+   --no-visualization
+   --visualization-steps 5
+   --no-visit
+   --no-print
+   --outputfilename results/Laghos
+   --partition 111
+Zones min/max: 16 16
+Number of kinematic (position, velocity) dofs: 18818
+Number of specific internal energy dofs: 9216
+   Iteration :   0  (B r, r) = 199954 ...
+   Iteration :  15  (B r, r) = 3.56864e-25
+PCG: No convergence!
+Average reduction factor = 0.10195
+   Iteration :   0  (B r, r) = 199954 ...
+   Iteration :  15  (B r, r) = 1.68052e-22
+PCG: No convergence!
+Average reduction factor = 0.125165
+   Iteration :   0  (B r, r) = 199954 ...
+   Iteration :  15  (B r, r) = 4.65729e-22
+PCG: No convergence!
+Average reduction factor = 0.129491
+   Iteration :   0  (B r, r) = 199954 ...
+   Iteration :  15  (B r, r) = 9.63372e-22
+PCG: No convergence!
+Average reduction factor = 0.132667
+step     2,	t = 0.0000,	dt = 0.000000,	|e| = 1600.0000000000
+
+CG (H1) total time: 0.0153534940
+CG (H1) rate (megadofs x cg_iterations / second): 73.5389612293
+
+CG (L2) total time: 0.0002779230
+CG (L2) rate (megadofs x cg_iterations / second): 2.7057854154
+
+Forces total time: 0.0007620130
+Forces rate (megadofs x timesteps / second): 147.1575944242
+
+UpdateQuadData total time: 0.0032663060
+UpdateQuadData rate (megaquads x timesteps / second): 56.4307202081
+
+Major kernels total time (seconds): 0.0191247620
+Major kernels total rate (megadofs x time steps / second): 5.8633932281
+
+Energy  diff: 5.55e-17
+Running test:
+srun -N 1 -t 4 -p pdebug -n 36 laghos -p 1 -ok 4 -ot 3 -s 7 -no-vis -cfl 1e-07 -cgt 0 -cgm 15 -ms 1 -m ./data/square_33_quad.mesh -rs 1 -rp 3
+mpibind: found OMP_NUM_THREADS=1
+
+       __                __                 
+      / /   ____  ____  / /_  ____  _____   
+     / /   / __ `/ __ `/ __ \/ __ \/ ___/ 
+    / /___/ /_/ / /_/ / / / / /_/ (__  )    
+   /_____/\__,_/\__, /_/ /_/\____/____/  
+               /____/                       
+
+Options used:
+   --mesh ./data/square_33_quad.mesh
+   --refine-serial 1
+   --refine-parallel 3
+   --problem 1
+   --order-kinematic 4
+   --order-thermo 3
+   --ode-solver 7
+   --t-final 0.6
+   --cfl 1e-07
+   --cg-tol 0
+   --cg-max-steps 15
+   --max-steps 1
+   --partial-assembly
+   --no-impose-viscosity
+   --no-visualization
+   --visualization-steps 5
+   --no-visit
+   --no-print
+   --outputfilename results/Laghos
+   --partition 111
+Zones min/max: 64 64
+Number of kinematic (position, velocity) dofs: 74498
+Number of specific internal energy dofs: 36864
+   Iteration :   0  (B r, r) = 3.19927e+06 ...
+   Iteration :  15  (B r, r) = 5.70983e-24
+PCG: No convergence!
+Average reduction factor = 0.10195
+   Iteration :   0  (B r, r) = 3.19927e+06 ...
+   Iteration :  15  (B r, r) = 2.68884e-21
+PCG: No convergence!
+Average reduction factor = 0.125165
+   Iteration :   0  (B r, r) = 3.19927e+06 ...
+   Iteration :  15  (B r, r) = 7.45166e-21
+PCG: No convergence!
+Average reduction factor = 0.129491
+   Iteration :   0  (B r, r) = 3.19927e+06 ...
+   Iteration :  15  (B r, r) = 1.54139e-20
+PCG: No convergence!
+Average reduction factor = 0.132667
+step     2,	t = 0.0000,	dt = 0.000000,	|e| = 6400.0000000000
+
+CG (H1) total time: 0.0558303180
+CG (H1) rate (megadofs x cg_iterations / second): 80.0618760581
+
+CG (L2) total time: 0.0014258950
+CG (L2) rate (megadofs x cg_iterations / second): 0.5834931745
+
+Forces total time: 0.0037344640
+Forces rate (megadofs x timesteps / second): 119.2803036795
+
+UpdateQuadData total time: 0.0155170630
+UpdateQuadData rate (megaquads x timesteps / second): 47.5141462015
+
+Major kernels total time (seconds): 0.0720768450
+Major kernels total rate (megadofs x time steps / second): 6.1801817213
+
+Energy  diff: 5.55e-17
+Running test:
+srun -N 1 -t 4 -p pdebug -n 36 laghos -p 1 -ok 4 -ot 3 -s 7 -no-vis -cfl 1e-07 -cgt 0 -cgm 15 -ms 1 -m ./data/square_33_quad.mesh -rs 1 -rp 4
+mpibind: found OMP_NUM_THREADS=1
+
+       __                __                 
+      / /   ____  ____  / /_  ____  _____   
+     / /   / __ `/ __ `/ __ \/ __ \/ ___/ 
+    / /___/ /_/ / /_/ / / / / /_/ (__  )    
+   /_____/\__,_/\__, /_/ /_/\____/____/  
+               /____/                       
+
+Options used:
+   --mesh ./data/square_33_quad.mesh
+   --refine-serial 1
+   --refine-parallel 4
+   --problem 1
+   --order-kinematic 4
+   --order-thermo 3
+   --ode-solver 7
+   --t-final 0.6
+   --cfl 1e-07
+   --cg-tol 0
+   --cg-max-steps 15
+   --max-steps 1
+   --partial-assembly
+   --no-impose-viscosity
+   --no-visualization
+   --visualization-steps 5
+   --no-visit
+   --no-print
+   --outputfilename results/Laghos
+   --partition 111
+Zones min/max: 256 256
+Number of kinematic (position, velocity) dofs: 296450
+Number of specific internal energy dofs: 147456
+   Iteration :   0  (B r, r) = 5.11883e+07 ...
+   Iteration :  15  (B r, r) = 9.13573e-23
+PCG: No convergence!
+Average reduction factor = 0.10195
+   Iteration :   0  (B r, r) = 5.11883e+07 ...
+   Iteration :  15  (B r, r) = 4.30214e-20
+PCG: No convergence!
+Average reduction factor = 0.125165
+   Iteration :   0  (B r, r) = 5.11883e+07 ...
+   Iteration :  15  (B r, r) = 1.19227e-19
+PCG: No convergence!
+Average reduction factor = 0.129491
+   Iteration :   0  (B r, r) = 5.11883e+07 ...
+   Iteration :  15  (B r, r) = 2.46623e-19
+PCG: No convergence!
+Average reduction factor = 0.132667
+step     2,	t = 0.0000,	dt = 0.000000,	|e| = 25599.9999999999
+
+CG (H1) total time: 0.1254429340
+CG (H1) rate (megadofs x cg_iterations / second): 141.7935584957
+
+CG (L2) total time: 0.0042496920
+CG (L2) rate (megadofs x cg_iterations / second): 0.2484885964
+
+Forces total time: 0.0113509670
+Forces rate (megadofs x timesteps / second): 156.4293156698
+
+UpdateQuadData total time: 0.0556405050
+UpdateQuadData rate (megaquads x timesteps / second): 53.0031134692
+
+Major kernels total time (seconds): 0.1868400050
+Major kernels total rate (megadofs x time steps / second): 9.5034465451
+
+Energy  diff: 5.55e-17
+Running test:
+srun -N 1 -t 4 -p pdebug -n 36 laghos -p 1 -ok 4 -ot 3 -s 7 -no-vis -cfl 1e-07 -cgt 0 -cgm 15 -ms 1 -m ./data/square_33_quad.mesh -rs 1 -rp 5
+mpibind: found OMP_NUM_THREADS=1
+
+       __                __                 
+      / /   ____  ____  / /_  ____  _____   
+     / /   / __ `/ __ `/ __ \/ __ \/ ___/ 
+    / /___/ /_/ / /_/ / / / / /_/ (__  )    
+   /_____/\__,_/\__, /_/ /_/\____/____/  
+               /____/                       
+
+Options used:
+   --mesh ./data/square_33_quad.mesh
+   --refine-serial 1
+   --refine-parallel 5
+   --problem 1
+   --order-kinematic 4
+   --order-thermo 3
+   --ode-solver 7
+   --t-final 0.6
+   --cfl 1e-07
+   --cg-tol 0
+   --cg-max-steps 15
+   --max-steps 1
+   --partial-assembly
+   --no-impose-viscosity
+   --no-visualization
+   --visualization-steps 5
+   --no-visit
+   --no-print
+   --outputfilename results/Laghos
+   --partition 111
+Zones min/max: 1024 1024
+Number of kinematic (position, velocity) dofs: 1182722
+Number of specific internal energy dofs: 589824
+   Iteration :   0  (B r, r) = 8.19013e+08 ...
+   Iteration :  15  (B r, r) = 1.46172e-21
+PCG: No convergence!
+Average reduction factor = 0.10195
+   Iteration :   0  (B r, r) = 8.19013e+08 ...
+   Iteration :  15  (B r, r) = 6.88342e-19
+PCG: No convergence!
+Average reduction factor = 0.125165
+   Iteration :   0  (B r, r) = 8.19013e+08 ...
+   Iteration :  15  (B r, r) = 1.90763e-18
+PCG: No convergence!
+Average reduction factor = 0.129491
+   Iteration :   0  (B r, r) = 8.19013e+08 ...
+   Iteration :  15  (B r, r) = 3.94597e-18
+PCG: No convergence!
+Average reduction factor = 0.132667
+step     2,	t = 0.0000,	dt = 0.000000,	|e| = 102399.9999999996
+
+CG (H1) total time: 0.3509597240
+CG (H1) rate (megadofs x cg_iterations / second): 202.1979023439
+
+CG (L2) total time: 0.0186965810
+CG (L2) rate (megadofs x cg_iterations / second): 0.0667501721
+
+Forces total time: 0.0434210640
+Forces rate (megadofs x timesteps / second): 163.2890433086
+
+UpdateQuadData total time: 0.2165378230
+UpdateQuadData rate (megaquads x timesteps / second): 54.4776881774
+
+Major kernels total time (seconds): 0.5979825260
+Major kernels total rate (megadofs x time steps / second): 11.8568414489
+
+Energy  diff: 5.55e-17
+Running test:
+srun -N 1 -t 4 -p pdebug -n 36 laghos -p 1 -ok 4 -ot 3 -s 7 -no-vis -cfl 1e-07 -cgt 0 -cgm 15 -ms 1 -m ./data/square_33_quad.mesh -rs 1 -rp 6
+mpibind: found OMP_NUM_THREADS=1
+
+       __                __                 
+      / /   ____  ____  / /_  ____  _____   
+     / /   / __ `/ __ `/ __ \/ __ \/ ___/ 
+    / /___/ /_/ / /_/ / / / / /_/ (__  )    
+   /_____/\__,_/\__, /_/ /_/\____/____/  
+               /____/                       
+
+Options used:
+   --mesh ./data/square_33_quad.mesh
+   --refine-serial 1
+   --refine-parallel 6
+   --problem 1
+   --order-kinematic 4
+   --order-thermo 3
+   --ode-solver 7
+   --t-final 0.6
+   --cfl 1e-07
+   --cg-tol 0
+   --cg-max-steps 15
+   --max-steps 1
+   --partial-assembly
+   --no-impose-viscosity
+   --no-visualization
+   --visualization-steps 5
+   --no-visit
+   --no-print
+   --outputfilename results/Laghos
+   --partition 111
+Zones min/max: 4096 4096
+Number of kinematic (position, velocity) dofs: 4724738
+Number of specific internal energy dofs: 2359296
+   Iteration :   0  (B r, r) = 1.31042e+10 ...
+   Iteration :  15  (B r, r) = 2.33875e-20
+PCG: No convergence!
+Average reduction factor = 0.10195
+   Iteration :   0  (B r, r) = 1.31042e+10 ...
+   Iteration :  15  (B r, r) = 1.10135e-17
+PCG: No convergence!
+Average reduction factor = 0.125165
+   Iteration :   0  (B r, r) = 1.31042e+10 ...
+   Iteration :  15  (B r, r) = 3.0522e-17
+PCG: No convergence!
+Average reduction factor = 0.129491
+   Iteration :   0  (B r, r) = 1.31042e+10 ...
+   Iteration :  15  (B r, r) = 6.31355e-17
+PCG: No convergence!
+Average reduction factor = 0.132667
+step     2,	t = 0.0000,	dt = 0.000000,	|e| = 409599.9999999983
+
+CG (H1) total time: 1.3994002400
+CG (H1) rate (megadofs x cg_iterations / second): 202.5755547962
+
+CG (L2) total time: 0.0793885060
+CG (L2) rate (megadofs x cg_iterations / second): 0.0177355649
+
+Forces total time: 0.1573888640
+Forces rate (megadofs x timesteps / second): 180.0390147044
+
+UpdateQuadData total time: 0.8513793650
+UpdateQuadData rate (megaquads x timesteps / second): 55.4229077422
+
+Major kernels total time (seconds): 2.3741828260
+Major kernels total rate (megadofs x time steps / second): 11.9351111842
+
+Energy  diff: 5.55e-17
+mpibind: found OMP_NUM_THREADS=1
+Running test:
+srun -N 1 -t 4 -p pdebug -n 36 laghos -p 1 -ok 4 -ot 3 -s 7 -no-vis -cfl 1e-07 -cgt 0 -cgm 15 -ms 1 -m ./data/square_33_quad.mesh -rs 1 -rp 7
+mpibind: found OMP_NUM_THREADS=1
+
+       __                __                 
+      / /   ____  ____  / /_  ____  _____   
+     / /   / __ `/ __ `/ __ \/ __ \/ ___/ 
+    / /___/ /_/ / /_/ / / / / /_/ (__  )    
+   /_____/\__,_/\__, /_/ /_/\____/____/  
+               /____/                       
+
+Options used:
+   --mesh ./data/square_33_quad.mesh
+   --refine-serial 1
+   --refine-parallel 7
+   --problem 1
+   --order-kinematic 4
+   --order-thermo 3
+   --ode-solver 7
+   --t-final 0.6
+   --cfl 1e-07
+   --cg-tol 0
+   --cg-max-steps 15
+   --max-steps 1
+   --partial-assembly
+   --no-impose-viscosity
+   --no-visualization
+   --visualization-steps 5
+   --no-visit
+   --no-print
+   --outputfilename results/Laghos
+   --partition 111
+Zones min/max: 16384 16384
+Number of kinematic (position, velocity) dofs: 18886658
+Number of specific internal energy dofs: 9437184
+   Iteration :   0  (B r, r) = 2.09667e+11 ...
+   Iteration :  15  (B r, r) = 3.742e-19
+PCG: No convergence!
+Average reduction factor = 0.10195
+   Iteration :   0  (B r, r) = 2.09667e+11 ...
+   Iteration :  15  (B r, r) = 1.76216e-16
+PCG: No convergence!
+Average reduction factor = 0.125165
+   Iteration :   0  (B r, r) = 2.09667e+11 ...
+   Iteration :  15  (B r, r) = 4.88352e-16
+PCG: No convergence!
+Average reduction factor = 0.129491
+   Iteration :   0  (B r, r) = 2.09667e+11 ...
+   Iteration :  15  (B r, r) = 1.01017e-15
+PCG: No convergence!
+Average reduction factor = 0.132667
+step     2,	t = 0.0000,	dt = 0.000000,	|e| = 1638399.9999999930
+
+CG (H1) total time: 6.5153399790
+CG (H1) rate (megadofs x cg_iterations / second): 173.9279122275
+
+CG (L2) total time: 0.2825567850
+CG (L2) rate (megadofs x cg_iterations / second): 0.0056625786
+
+Forces total time: 0.6075036940
+Forces rate (megadofs x timesteps / second): 186.4932989198
+
+UpdateQuadData total time: 4.0762820100
+UpdateQuadData rate (megaquads x timesteps / second): 46.3029004217
+
+Major kernels total time (seconds): 10.7617730640
+Major kernels total rate (megadofs x time steps / second): 10.5275745294
+
+Energy  diff: 5.55e-17
+mpibind: found OMP_NUM_THREADS=1
+Running test:
+srun -N 1 -t 4 -p pdebug -n 36 laghos -p 1 -ok 4 -ot 3 -s 7 -no-vis -cfl 1e-07 -cgt 0 -cgm 15 -ms 1 -m ./data/square_33_quad.mesh -rs 1 -rp 8
+mpibind: found OMP_NUM_THREADS=1
+
+       __                __                 
+      / /   ____  ____  / /_  ____  _____   
+     / /   / __ `/ __ `/ __ \/ __ \/ ___/ 
+    / /___/ /_/ / /_/ / / / / /_/ (__  )    
+   /_____/\__,_/\__, /_/ /_/\____/____/  
+               /____/                       
+
+Options used:
+   --mesh ./data/square_33_quad.mesh
+   --refine-serial 1
+   --refine-parallel 8
+   --problem 1
+   --order-kinematic 4
+   --order-thermo 3
+   --ode-solver 7
+   --t-final 0.6
+   --cfl 1e-07
+   --cg-tol 0
+   --cg-max-steps 15
+   --max-steps 1
+   --partial-assembly
+   --no-impose-viscosity
+   --no-visualization
+   --visualization-steps 5
+   --no-visit
+   --no-print
+   --outputfilename results/Laghos
+   --partition 111
+Zones min/max: 65536 65536
+Number of kinematic (position, velocity) dofs: 75522050
+Number of specific internal energy dofs: 37748736
+mpibind: found OMP_NUM_THREADS=1
+
+Error in the test, error code: 1
+
+

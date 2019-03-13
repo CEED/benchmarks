@@ -76,8 +76,8 @@ while True:
          ##
          ## This is the beginning of a new run.
          ##
-         #out.write('\033[33mcg-iteration-dps\033[m')
-         if 'cg-iteration-dps' in data:
+         #out.write('\033[33mcg-H1-rate\033[m')
+         if 'cg-H1-rate' in data:
             runs.append(data)
          #print
          #pprint.pprint(data)
@@ -93,21 +93,28 @@ while True:
          test_=test.rsplit('/',1)[-1]
          data['case']='scalar'
          data['action-type']='partial-assembly'
-         data['quadrature-pts']=0
+         data['quadrature-pts']=1
          data['quadrature-type']=1
          state=2
       elif 'CG (H1) rate' in line:
          #out.write(lnfmt%i+'\033[31m: %s\033[m'%line)
-         data['cg-iteration-dps']=1e6*float(line.split(' ')[8])
+         data['cg-H1-rate']=1e6*float(line.split(' ')[8])
          #out.write(lnfmt%i+'\033[31m: %s\033[m'%line.split(' ')[8])
+      elif 'Number of local/global kinematic' in line:
+         #out.write(lnfmt%i+'\033[31m: %s\033[m'%line)
+         data['kinematic-dofs']=long(line.split(' ')[7].split('/')[1])
+         #print data['kinematic-dofs']
       elif 'Number of kinematic' in line:
          #out.write(lnfmt%i+'\033[31m: %s\033[m'%line)
-         data['num-unknowns']=long(line.split(' ')[6])
+         data['kinematic-dofs']=long(line.split(' ')[6])
+         #print data['kinematic-dofs']
       elif 'Zones' in line:
          #out.write(lnfmt%i+'\033[31m: %s\033[m'%line)
          data['num-elem']=long(line.split(' ')[2])
          data['num-elem-min']=long(line.split(' ')[2])
          data['num-elem-max']=long(line.split(' ')[3])
+         if (data['num-elem-min'] != data['num-elem-max']) :
+            raise ValueError('num-elem-min != num-elem-max!')
       ##
    elif state==3:
       ##
@@ -128,7 +135,7 @@ while True:
       else:
          state=1
 
-if 'cg-iteration-dps' in data:
+if 'cg-H1-rate' in data:
    runs.append(data)
 
 #print

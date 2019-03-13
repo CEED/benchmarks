@@ -1,0 +1,851 @@
+Reading configuration /g/g91/camier1/home/benchmarks/machine-configs/quartz.sh ...
+Setting up compiler gcc ...
+
+Using OUT_DIR = /g/g91/camier1/home/benchmarks/builds/quartz_gcc
+
+Creating test executables directory: OUT_DIR/laghos_2d
+Reading test file: /g/g91/camier1/home/benchmarks/tests/laghos_2d/laghos.sh
+
+Packages required by the test: metis hypre mfem laghos
+Building packages using 36 processors.
+Using successfully built METIS v4.0.3 from OUT_DIR.
+metis version: 4.0.3
+Using successfully built hypre from OUT_DIR.
+hypre version: v2.15.1-0-g8bc9ad3511086b307f7137f1f9b7a70bbca34d3c
+Using successfully built MFEM from OUT_DIR.
+mfem version: heads/master-0-g81a359dc6d6b495cc27083fbac0f6d48b33788c5
+Using successfully built Laghos (branch master) from OUT_DIR.
+laghos version: heads/master-0-g2e5015804fc51066c53ef3de0734811ee8a1af15
+
+Running the tests using a total of 36 MPI tasks ...
+... with 36 tasks per node ...
+
+Running test:
+srun -N 1 -t 4 -p pdebug -n 36 laghos -mb -o -q -ra -pa -p 1 -ok 3 -ot 2 -s 7 -no-vis -cgt 0 -cgm 50 -ms 1 -m ./data/square_10x9_quad.mesh -rs 1 -rp 0 -pt 49
+mpibind: found OMP_NUM_THREADS=1
+
+       __                __                 
+      / /   ____  ____  / /_  ____  _____   
+     / /   / __ `/ __ `/ __ \/ __ \/ ___/ 
+    / /___/ /_/ / /_/ / / / / /_/ (__  )    
+   /_____/\__,_/\__, /_/ /_/\____/____/  
+               /____/                       
+
+Options used:
+   --mesh ./data/square_10x9_quad.mesh
+   --refine-serial 1
+   --refine-parallel 0
+   --cartesian-partitioning ''
+   --problem 1
+   --order-kinematic 3
+   --order-thermo 2
+   --ode-solver 7
+   --t-final 0.6
+   --cfl 0.5
+   --cg-tol 0
+   --cg-max-steps 50
+   --max-steps 1
+   --partial-assembly
+   --no-impose-viscosity
+   --no-visualization
+   --visualization-steps 5
+   --no-visit
+   --no-print
+   --outputfilename results/Laghos
+   --partition 49
+   --okina
+   --qupdate
+   --no-cuda
+   --no-occa
+   --raja
+   --no-omp
+   --no-chk
+   --mem
+Number of zones in the serial mesh: 360
+Zones min/max: 10 10
+Number of local/global kinematic (position, velocity) dofs: 224/6710
+Number of local/global specific internal energy dofs: 90/3240
+step     2,	t = 0.0004,	dt = 0.000180,	|e| = 863.7578870401, mem: 32/1120 MB
+
+CG (H1) total time: 0.0089224880 (0.0088648660)
+CG (H1) rate (megadofs x cg_iterations / second): 300.8129571034 (302.7682539138)
+
+CG (L2) total time: 0.0006672260 (0.0005757330)
+CG (L2) rate (megadofs x cg_iterations / second): 116.5422210765 (135.0626071460)
+
+Forces total time: 0.0001839740
+Forces rate (megadofs x timesteps / second): 216.3349168904
+
+UpdateQuadData total time: 0.0004684340
+UpdateQuadData rate (megaquads x timesteps / second): 138.3332550583
+
+Major kernels total time (seconds): 0.0095172740
+Major kernels total rate (megadofs x time steps / second): 4.1818697245
+
+Energy  diff: 2.04e-14
+Maximum memory resident set size: 32/1120 MB
+mpibind: found OMP_NUM_THREADS=1
+Running test:
+srun -N 1 -t 4 -p pdebug -n 36 laghos -mb -o -q -ra -pa -p 1 -ok 3 -ot 2 -s 7 -no-vis -cgt 0 -cgm 50 -ms 1 -m ./data/square_10x9_quad.mesh -rs 1 -rp 1 -pt 49
+mpibind: found OMP_NUM_THREADS=1
+
+       __                __                 
+      / /   ____  ____  / /_  ____  _____   
+     / /   / __ `/ __ `/ __ \/ __ \/ ___/ 
+    / /___/ /_/ / /_/ / / / / /_/ (__  )    
+   /_____/\__,_/\__, /_/ /_/\____/____/  
+               /____/                       
+
+Options used:
+   --mesh ./data/square_10x9_quad.mesh
+   --refine-serial 1
+   --refine-parallel 1
+   --cartesian-partitioning ''
+   --problem 1
+   --order-kinematic 3
+   --order-thermo 2
+   --ode-solver 7
+   --t-final 0.6
+   --cfl 0.5
+   --cg-tol 0
+   --cg-max-steps 50
+   --max-steps 1
+   --partial-assembly
+   --no-impose-viscosity
+   --no-visualization
+   --visualization-steps 5
+   --no-visit
+   --no-print
+   --outputfilename results/Laghos
+   --partition 49
+   --okina
+   --qupdate
+   --no-cuda
+   --no-occa
+   --raja
+   --no-omp
+   --no-chk
+   --mem
+Number of zones in the serial mesh: 360
+Zones min/max: 40 40
+Number of local/global kinematic (position, velocity) dofs: 806/26378
+Number of local/global specific internal energy dofs: 360/12960
+step     2,	t = 0.0001,	dt = 0.000045,	|e| = 3455.0315481604, mem: 33/1183 MB
+
+CG (H1) total time: 0.0187046870 (0.0184368620)
+CG (H1) rate (megadofs x cg_iterations / second): 564.0939086551 (572.2882776906)
+
+CG (L2) total time: 0.0010563080 (0.0009051430)
+CG (L2) rate (megadofs x cg_iterations / second): 294.4595705041 (343.6363094009)
+
+Forces total time: 0.0004846190
+Forces rate (megadofs x timesteps / second): 324.6921808679
+
+UpdateQuadData total time: 0.0018283360
+UpdateQuadData rate (megaquads x timesteps / second): 141.7682526625
+
+Major kernels total time (seconds): 0.0207498170
+Major kernels total rate (megadofs x time steps / second): 7.5832957948
+
+Energy  diff: 2.11e-14
+Maximum memory resident set size: 33/1184 MB
+mpibind: found OMP_NUM_THREADS=1
+Running test:
+srun -N 1 -t 4 -p pdebug -n 36 laghos -mb -o -q -ra -pa -p 1 -ok 3 -ot 2 -s 7 -no-vis -cgt 0 -cgm 50 -ms 1 -m ./data/square_10x9_quad.mesh -rs 1 -rp 2 -pt 49
+mpibind: found OMP_NUM_THREADS=1
+
+       __                __                 
+      / /   ____  ____  / /_  ____  _____   
+     / /   / __ `/ __ `/ __ \/ __ \/ ___/ 
+    / /___/ /_/ / /_/ / / / / /_/ (__  )    
+   /_____/\__,_/\__, /_/ /_/\____/____/  
+               /____/                       
+
+Options used:
+   --mesh ./data/square_10x9_quad.mesh
+   --refine-serial 1
+   --refine-parallel 2
+   --cartesian-partitioning ''
+   --problem 1
+   --order-kinematic 3
+   --order-thermo 2
+   --ode-solver 7
+   --t-final 0.6
+   --cfl 0.5
+   --cg-tol 0
+   --cg-max-steps 50
+   --max-steps 1
+   --partial-assembly
+   --no-impose-viscosity
+   --no-visualization
+   --visualization-steps 5
+   --no-visit
+   --no-print
+   --outputfilename results/Laghos
+   --partition 49
+   --okina
+   --qupdate
+   --no-cuda
+   --no-occa
+   --raja
+   --no-omp
+   --no-chk
+   --mem
+Number of zones in the serial mesh: 360
+Zones min/max: 160 160
+Number of local/global kinematic (position, velocity) dofs: 3050/104594
+Number of local/global specific internal energy dofs: 1440/51840
+step     2,	t = 0.0000,	dt = 0.000011,	|e| = 13820.1261926417, mem: 37/1332 MB
+
+CG (H1) total time: 0.0803934380 (0.0775140760)
+CG (H1) rate (megadofs x cg_iterations / second): 520.4106335146 (539.7419689296)
+
+CG (L2) total time: 0.0132784570 (0.0121586420)
+CG (L2) rate (megadofs x cg_iterations / second): 93.6976336934 (102.3272171349)
+
+Forces total time: 0.0026659970
+Forces rate (megadofs x timesteps / second): 234.7099415341
+
+UpdateQuadData total time: 0.0069082010
+UpdateQuadData rate (megaquads x timesteps / second): 150.0824889143
+
+Major kernels total time (seconds): 0.0874603160
+Major kernels total rate (megadofs x time steps / second): 7.1545133681
+
+Energy  diff: 2.52e-14
+Maximum memory resident set size: 37/1332 MB
+mpibind: found OMP_NUM_THREADS=1
+Running test:
+srun -N 1 -t 4 -p pdebug -n 36 laghos -mb -o -q -ra -pa -p 1 -ok 3 -ot 2 -s 7 -no-vis -cgt 0 -cgm 50 -ms 1 -m ./data/square_10x9_quad.mesh -rs 1 -rp 3 -pt 49
+mpibind: found OMP_NUM_THREADS=1
+
+       __                __                 
+      / /   ____  ____  / /_  ____  _____   
+     / /   / __ `/ __ `/ __ \/ __ \/ ___/ 
+    / /___/ /_/ / /_/ / / / / /_/ (__  )    
+   /_____/\__,_/\__, /_/ /_/\____/____/  
+               /____/                       
+
+Options used:
+   --mesh ./data/square_10x9_quad.mesh
+   --refine-serial 1
+   --refine-parallel 3
+   --cartesian-partitioning ''
+   --problem 1
+   --order-kinematic 3
+   --order-thermo 2
+   --ode-solver 7
+   --t-final 0.6
+   --cfl 0.5
+   --cg-tol 0
+   --cg-max-steps 50
+   --max-steps 1
+   --partial-assembly
+   --no-impose-viscosity
+   --no-visualization
+   --visualization-steps 5
+   --no-visit
+   --no-print
+   --outputfilename results/Laghos
+   --partition 49
+   --okina
+   --qupdate
+   --no-cuda
+   --no-occa
+   --raja
+   --no-omp
+   --no-chk
+   --mem
+Number of zones in the serial mesh: 360
+Zones min/max: 640 640
+Number of local/global kinematic (position, velocity) dofs: 11858/416546
+Number of local/global specific internal energy dofs: 5760/207360
+step     2,	t = 0.0000,	dt = 0.000003,	|e| = 55280.5047705664, mem: 56/1981 MB
+
+CG (H1) total time: 0.6369631250 (0.6288456220)
+CG (H1) rate (megadofs x cg_iterations / second): 261.5824895672 (264.9591476364)
+
+CG (L2) total time: 0.0397654530 (0.0306274850)
+CG (L2) rate (megadofs x cg_iterations / second): 125.1498379762 (162.4893457625)
+
+Forces total time: 0.0129374110
+Forces rate (megadofs x timesteps / second): 192.8998004315
+
+UpdateQuadData total time: 0.0350698210
+UpdateQuadData rate (megaquads x timesteps / second): 118.2555223193
+
+Major kernels total time (seconds): 0.6786848920
+Major kernels total rate (megadofs x time steps / second): 3.6771468312
+
+Energy  diff: 1.30e-14
+Maximum memory resident set size: 56/1981 MB
+mpibind: found OMP_NUM_THREADS=1
+Running test:
+srun -N 1 -t 4 -p pdebug -n 36 laghos -mb -o -q -ra -pa -p 1 -ok 3 -ot 2 -s 7 -no-vis -cgt 0 -cgm 50 -ms 1 -m ./data/square_10x9_quad.mesh -rs 1 -rp 4 -pt 49
+mpibind: found OMP_NUM_THREADS=1
+
+       __                __                 
+      / /   ____  ____  / /_  ____  _____   
+     / /   / __ `/ __ `/ __ \/ __ \/ ___/ 
+    / /___/ /_/ / /_/ / / / / /_/ (__  )    
+   /_____/\__,_/\__, /_/ /_/\____/____/  
+               /____/                       
+
+Options used:
+   --mesh ./data/square_10x9_quad.mesh
+   --refine-serial 1
+   --refine-parallel 4
+   --cartesian-partitioning ''
+   --problem 1
+   --order-kinematic 3
+   --order-thermo 2
+   --ode-solver 7
+   --t-final 0.6
+   --cfl 0.5
+   --cg-tol 0
+   --cg-max-steps 50
+   --max-steps 1
+   --partial-assembly
+   --no-impose-viscosity
+   --no-visualization
+   --visualization-steps 5
+   --no-visit
+   --no-print
+   --outputfilename results/Laghos
+   --partition 49
+   --okina
+   --qupdate
+   --no-cuda
+   --no-occa
+   --raja
+   --no-omp
+   --no-chk
+   --mem
+Number of zones in the serial mesh: 360
+Zones min/max: 2560 2560
+Number of local/global kinematic (position, velocity) dofs: 46754/1662530
+Number of local/global specific internal energy dofs: 23040/829440
+step     2,	t = 0.0000,	dt = 0.000001,	|e| = 221122.0190822667, mem: 128/4594 MB
+
+CG (H1) total time: 1.4343193120 (1.4083127560)
+CG (H1) rate (megadofs x cg_iterations / second): 463.6429241636 (472.2047692650)
+
+CG (L2) total time: 0.0882755220 (0.0723505980)
+CG (L2) rate (megadofs x cg_iterations / second): 225.5048687223 (275.1402275901)
+
+Forces total time: 0.0338266620
+Forces rate (megadofs x timesteps / second): 294.6752475902
+
+UpdateQuadData total time: 0.1116413150
+UpdateQuadData rate (megaquads x timesteps / second): 148.5901523105
+
+Major kernels total time (seconds): 1.5589461970
+Major kernels total rate (megadofs x time steps / second): 6.3939858984
+
+Energy  diff: 2.42e-14
+Maximum memory resident set size: 128/4594 MB
+mpibind: found OMP_NUM_THREADS=1
+Running test:
+srun -N 1 -t 4 -p pdebug -n 36 laghos -mb -o -q -ra -pa -p 1 -ok 3 -ot 2 -s 7 -no-vis -cgt 0 -cgm 50 -ms 1 -m ./data/square_10x9_quad.mesh -rs 1 -rp 5 -pt 49
+mpibind: found OMP_NUM_THREADS=1
+
+       __                __                 
+      / /   ____  ____  / /_  ____  _____   
+     / /   / __ `/ __ `/ __ \/ __ \/ ___/ 
+    / /___/ /_/ / /_/ / / / / /_/ (__  )    
+   /_____/\__,_/\__, /_/ /_/\____/____/  
+               /____/                       
+
+Options used:
+   --mesh ./data/square_10x9_quad.mesh
+   --refine-serial 1
+   --refine-parallel 5
+   --cartesian-partitioning ''
+   --problem 1
+   --order-kinematic 3
+   --order-thermo 2
+   --ode-solver 7
+   --t-final 0.6
+   --cfl 0.5
+   --cg-tol 0
+   --cg-max-steps 50
+   --max-steps 1
+   --partial-assembly
+   --no-impose-viscosity
+   --no-visualization
+   --visualization-steps 5
+   --no-visit
+   --no-print
+   --outputfilename results/Laghos
+   --partition 49
+   --okina
+   --qupdate
+   --no-cuda
+   --no-occa
+   --raja
+   --no-omp
+   --no-chk
+   --mem
+Number of zones in the serial mesh: 360
+Zones min/max: 10240 10240
+Number of local/global kinematic (position, velocity) dofs: 185666/6642818
+Number of local/global specific internal energy dofs: 92160/3317760
+step     2,	t = 0.0000,	dt = 0.000000,	|e| = 884488.0763290684, mem: 416/14974 MB
+
+CG (H1) total time: 5.2213912840 (5.1638728850)
+CG (H1) rate (megadofs x cg_iterations / second): 508.8925643520 (514.5609233950)
+
+CG (L2) total time: 0.2652763140 (0.2363157840)
+CG (L2) rate (megadofs x cg_iterations / second): 300.1633986817 (336.9484621476)
+
+Forces total time: 0.1236429690
+Forces rate (megadofs x timesteps / second): 322.2367783808
+
+UpdateQuadData total time: 0.4475593310
+UpdateQuadData rate (megaquads x timesteps / second): 148.2601197292
+
+Major kernels total time (seconds): 5.7358515670
+Major kernels total rate (megadofs x time steps / second): 6.9461895125
+
+Energy  diff: 2.59e-14
+Maximum memory resident set size: 416/14974 MB
+mpibind: found OMP_NUM_THREADS=1
+
+Reading configuration /g/g91/camier1/home/benchmarks/machine-configs/quartz.sh ...
+Setting up compiler gcc ...
+
+Using OUT_DIR = /g/g91/camier1/home/benchmarks/builds/quartz_gcc
+
+Creating test executables directory: OUT_DIR/laghos_2d
+Reading test file: /g/g91/camier1/home/benchmarks/tests/laghos_2d/laghos.sh
+
+Packages required by the test: metis hypre mfem laghos
+Building packages using 36 processors.
+Using successfully built METIS v4.0.3 from OUT_DIR.
+metis version: 4.0.3
+Using successfully built hypre from OUT_DIR.
+hypre version: v2.15.1-0-g8bc9ad3511086b307f7137f1f9b7a70bbca34d3c
+Using successfully built MFEM from OUT_DIR.
+mfem version: heads/master-0-g81a359dc6d6b495cc27083fbac0f6d48b33788c5
+Using successfully built Laghos (branch master) from OUT_DIR.
+laghos version: heads/master-0-g2e5015804fc51066c53ef3de0734811ee8a1af15
+
+Running the tests using a total of 36 MPI tasks ...
+... with 36 tasks per node ...
+
+Running test:
+srun -N 1 -t 4 -p pdebug -n 36 laghos -pa -p 1 -ok 3 -ot 2 -s 7 -no-vis -cgt 0 -cgm 50 -ms 1 -m ./data/square_10x9_quad.mesh -rs 1 -rp 0 -pt 49
+mpibind: found OMP_NUM_THREADS=1
+
+       __                __                 
+      / /   ____  ____  / /_  ____  _____   
+     / /   / __ `/ __ `/ __ \/ __ \/ ___/ 
+    / /___/ /_/ / /_/ / / / / /_/ (__  )    
+   /_____/\__,_/\__, /_/ /_/\____/____/  
+               /____/                       
+
+Options used:
+   --mesh ./data/square_10x9_quad.mesh
+   --refine-serial 1
+   --refine-parallel 0
+   --problem 1
+   --order-kinematic 3
+   --order-thermo 2
+   --ode-solver 7
+   --t-final 0.6
+   --cfl 0.5
+   --cg-tol 0
+   --cg-max-steps 50
+   --max-steps 1
+   --partial-assembly
+   --no-impose-viscosity
+   --no-visualization
+   --visualization-steps 5
+   --no-visit
+   --no-print
+   --outputfilename results/Laghos
+   --partition 49
+Zones min/max: 10 10
+Number of kinematic (position, velocity) dofs: 6710
+Number of specific internal energy dofs: 3240
+   Iteration :   0  (B r, r) = 70560 ...
+   Iteration :  50  (B r, r) = 4.71298e-66
+PCG: No convergence!
+Average reduction factor = 0.198723
+   Iteration :   0  (B r, r) = 62061.7 ...
+   Iteration :  50  (B r, r) = 1.38932e-47
+PCG: No convergence!
+Average reduction factor = 0.304439
+   Iteration :   0  (B r, r) = 53346.5 ...
+   Iteration :  50  (B r, r) = 5.14934e-48
+PCG: No convergence!
+Average reduction factor = 0.301888
+   Iteration :   0  (B r, r) = 41719.5 ...
+   Iteration :  50  (B r, r) = 1.08065e-46
+PCG: No convergence!
+Average reduction factor = 0.311985
+step     2,	t = 0.0004,	dt = 0.000180,	|e| = 863.7578870401
+
+CG (H1) total time: 0.0072765560
+CG (H1) rate (megadofs x cg_iterations / second): 184.4279079279
+
+CG (L2) total time: 0.0003178470
+CG (L2) rate (megadofs x cg_iterations / second): 15.2337445375
+
+Forces total time: 0.0001873910
+Forces rate (megadofs x timesteps / second): 212.3901361325
+
+UpdateQuadData total time: 0.0016337790
+UpdateQuadData rate (megaquads x timesteps / second): 39.6626471512
+
+Major kernels total time (seconds): 0.0090604290
+Major kernels total rate (megadofs x time steps / second): 4.3927279823
+
+Energy  diff: 6.19e-15
+mpibind: found OMP_NUM_THREADS=1
+Running test:
+srun -N 1 -t 4 -p pdebug -n 36 laghos -pa -p 1 -ok 3 -ot 2 -s 7 -no-vis -cgt 0 -cgm 50 -ms 1 -m ./data/square_10x9_quad.mesh -rs 1 -rp 1 -pt 49
+mpibind: found OMP_NUM_THREADS=1
+
+       __                __                 
+      / /   ____  ____  / /_  ____  _____   
+     / /   / __ `/ __ `/ __ \/ __ \/ ___/ 
+    / /___/ /_/ / /_/ / / / / /_/ (__  )    
+   /_____/\__,_/\__, /_/ /_/\____/____/  
+               /____/                       
+
+Options used:
+   --mesh ./data/square_10x9_quad.mesh
+   --refine-serial 1
+   --refine-parallel 1
+   --problem 1
+   --order-kinematic 3
+   --order-thermo 2
+   --ode-solver 7
+   --t-final 0.6
+   --cfl 0.5
+   --cg-tol 0
+   --cg-max-steps 50
+   --max-steps 1
+   --partial-assembly
+   --no-impose-viscosity
+   --no-visualization
+   --visualization-steps 5
+   --no-visit
+   --no-print
+   --outputfilename results/Laghos
+   --partition 49
+Zones min/max: 40 40
+Number of kinematic (position, velocity) dofs: 26378
+Number of specific internal energy dofs: 12960
+   Iteration :   0  (B r, r) = 1.12896e+06 ...
+   Iteration :  50  (B r, r) = 3.6162e-62
+PCG: No convergence!
+Average reduction factor = 0.211376
+   Iteration :   0  (B r, r) = 992986 ...
+   Iteration :  50  (B r, r) = 3.17785e-46
+PCG: No convergence!
+Average reduction factor = 0.305529
+   Iteration :   0  (B r, r) = 853543 ...
+   Iteration :  50  (B r, r) = 1.27913e-46
+PCG: No convergence!
+Average reduction factor = 0.303219
+   Iteration :   0  (B r, r) = 667512 ...
+   Iteration :  50  (B r, r) = 1.71621e-45
+PCG: No convergence!
+Average reduction factor = 0.311962
+step     2,	t = 0.0001,	dt = 0.000045,	|e| = 3455.0315481604
+
+CG (H1) total time: 0.0176956980
+CG (H1) rate (megadofs x cg_iterations / second): 298.1289576710
+
+CG (L2) total time: 0.0011676110
+CG (L2) rate (megadofs x cg_iterations / second): 4.2085934442
+
+Forces total time: 0.0005601200
+Forces rate (megadofs x timesteps / second): 280.9255159609
+
+UpdateQuadData total time: 0.0063333590
+UpdateQuadData rate (megaquads x timesteps / second): 40.9261499309
+
+Major kernels total time (seconds): 0.0245045490
+Major kernels total rate (megadofs x time steps / second): 6.4213383401
+
+Energy  diff: 1.29e-14
+Running test:
+srun -N 1 -t 4 -p pdebug -n 36 laghos -pa -p 1 -ok 3 -ot 2 -s 7 -no-vis -cgt 0 -cgm 50 -ms 1 -m ./data/square_10x9_quad.mesh -rs 1 -rp 2 -pt 49
+mpibind: found OMP_NUM_THREADS=1
+
+       __                __                 
+      / /   ____  ____  / /_  ____  _____   
+     / /   / __ `/ __ `/ __ \/ __ \/ ___/ 
+    / /___/ /_/ / /_/ / / / / /_/ (__  )    
+   /_____/\__,_/\__, /_/ /_/\____/____/  
+               /____/                       
+
+Options used:
+   --mesh ./data/square_10x9_quad.mesh
+   --refine-serial 1
+   --refine-parallel 2
+   --problem 1
+   --order-kinematic 3
+   --order-thermo 2
+   --ode-solver 7
+   --t-final 0.6
+   --cfl 0.5
+   --cg-tol 0
+   --cg-max-steps 50
+   --max-steps 1
+   --partial-assembly
+   --no-impose-viscosity
+   --no-visualization
+   --visualization-steps 5
+   --no-visit
+   --no-print
+   --outputfilename results/Laghos
+   --partition 49
+Zones min/max: 160 160
+Number of kinematic (position, velocity) dofs: 104594
+Number of specific internal energy dofs: 51840
+   Iteration :   0  (B r, r) = 1.80634e+07 ...
+   Iteration :  50  (B r, r) = 5.77528e-61
+PCG: No convergence!
+Average reduction factor = 0.211372
+   Iteration :   0  (B r, r) = 1.58878e+07 ...
+   Iteration :  50  (B r, r) = 4.80199e-45
+PCG: No convergence!
+Average reduction factor = 0.305354
+   Iteration :   0  (B r, r) = 1.36567e+07 ...
+   Iteration :  50  (B r, r) = 2.02692e-45
+PCG: No convergence!
+Average reduction factor = 0.30319
+   Iteration :   0  (B r, r) = 1.06802e+07 ...
+   Iteration :  50  (B r, r) = 2.89128e-44
+PCG: No convergence!
+Average reduction factor = 0.312123
+step     2,	t = 0.0000,	dt = 0.000011,	|e| = 13820.1261926415
+
+CG (H1) total time: 0.0841715840
+CG (H1) rate (megadofs x cg_iterations / second): 248.5256782146
+
+CG (L2) total time: 0.0042677020
+CG (L2) rate (megadofs x cg_iterations / second): 1.1936166115
+
+Forces total time: 0.0032992020
+Forces rate (megadofs x timesteps / second): 189.6628336186
+
+UpdateQuadData total time: 0.0264042080
+UpdateQuadData rate (megaquads x timesteps / second): 39.2664684356
+
+Major kernels total time (seconds): 0.1116331580
+Major kernels total rate (megadofs x time steps / second): 5.6052879916
+
+Energy  diff: 3.94e-15
+Running test:
+srun -N 1 -t 4 -p pdebug -n 36 laghos -pa -p 1 -ok 3 -ot 2 -s 7 -no-vis -cgt 0 -cgm 50 -ms 1 -m ./data/square_10x9_quad.mesh -rs 1 -rp 3 -pt 49
+mpibind: found OMP_NUM_THREADS=1
+
+       __                __                 
+      / /   ____  ____  / /_  ____  _____   
+     / /   / __ `/ __ `/ __ \/ __ \/ ___/ 
+    / /___/ /_/ / /_/ / / / / /_/ (__  )    
+   /_____/\__,_/\__, /_/ /_/\____/____/  
+               /____/                       
+
+Options used:
+   --mesh ./data/square_10x9_quad.mesh
+   --refine-serial 1
+   --refine-parallel 3
+   --problem 1
+   --order-kinematic 3
+   --order-thermo 2
+   --ode-solver 7
+   --t-final 0.6
+   --cfl 0.5
+   --cg-tol 0
+   --cg-max-steps 50
+   --max-steps 1
+   --partial-assembly
+   --no-impose-viscosity
+   --no-visualization
+   --visualization-steps 5
+   --no-visit
+   --no-print
+   --outputfilename results/Laghos
+   --partition 49
+Zones min/max: 640 640
+Number of kinematic (position, velocity) dofs: 416546
+Number of specific internal energy dofs: 207360
+   Iteration :   0  (B r, r) = 2.89014e+08 ...
+   Iteration :  50  (B r, r) = 9.24032e-60
+PCG: No convergence!
+Average reduction factor = 0.211372
+   Iteration :   0  (B r, r) = 2.54205e+08 ...
+   Iteration :  50  (B r, r) = 8.7179e-44
+PCG: No convergence!
+Average reduction factor = 0.30574
+   Iteration :   0  (B r, r) = 2.18507e+08 ...
+   Iteration :  50  (B r, r) = 3.238e-44
+PCG: No convergence!
+Average reduction factor = 0.303185
+   Iteration :   0  (B r, r) = 1.70883e+08 ...
+   Iteration :  50  (B r, r) = 4.6344e-43
+PCG: No convergence!
+Average reduction factor = 0.312128
+step     2,	t = 0.0000,	dt = 0.000003,	|e| = 55280.5047705662
+
+CG (H1) total time: 0.5153142360
+CG (H1) rate (megadofs x cg_iterations / second): 161.6667931526
+
+CG (L2) total time: 0.0105162850
+CG (L2) rate (megadofs x cg_iterations / second): 0.4963730062
+
+Forces total time: 0.0149986700
+Forces rate (megadofs x timesteps / second): 166.3896865522
+
+UpdateQuadData total time: 0.1143334660
+UpdateQuadData rate (megaquads x timesteps / second): 36.2728442082
+
+Major kernels total time (seconds): 0.6369274070
+Major kernels total rate (megadofs x time steps / second): 3.9182236038
+
+Energy  diff: 1.64e-15
+Running test:
+srun -N 1 -t 4 -p pdebug -n 36 laghos -pa -p 1 -ok 3 -ot 2 -s 7 -no-vis -cgt 0 -cgm 50 -ms 1 -m ./data/square_10x9_quad.mesh -rs 1 -rp 4 -pt 49
+mpibind: found OMP_NUM_THREADS=1
+
+       __                __                 
+      / /   ____  ____  / /_  ____  _____   
+     / /   / __ `/ __ `/ __ \/ __ \/ ___/ 
+    / /___/ /_/ / /_/ / / / / /_/ (__  )    
+   /_____/\__,_/\__, /_/ /_/\____/____/  
+               /____/                       
+
+Options used:
+   --mesh ./data/square_10x9_quad.mesh
+   --refine-serial 1
+   --refine-parallel 4
+   --problem 1
+   --order-kinematic 3
+   --order-thermo 2
+   --ode-solver 7
+   --t-final 0.6
+   --cfl 0.5
+   --cg-tol 0
+   --cg-max-steps 50
+   --max-steps 1
+   --partial-assembly
+   --no-impose-viscosity
+   --no-visualization
+   --visualization-steps 5
+   --no-visit
+   --no-print
+   --outputfilename results/Laghos
+   --partition 49
+Zones min/max: 2560 2560
+Number of kinematic (position, velocity) dofs: 1662530
+Number of specific internal energy dofs: 829440
+   Iteration :   0  (B r, r) = 4.62422e+09 ...
+   Iteration :  50  (B r, r) = 1.47845e-58
+PCG: No convergence!
+Average reduction factor = 0.211372
+   Iteration :   0  (B r, r) = 4.06727e+09 ...
+   Iteration :  50  (B r, r) = 1.45363e-42
+PCG: No convergence!
+Average reduction factor = 0.305866
+   Iteration :   0  (B r, r) = 3.49611e+09 ...
+   Iteration :  50  (B r, r) = 5.33085e-43
+PCG: No convergence!
+Average reduction factor = 0.303272
+   Iteration :   0  (B r, r) = 2.73413e+09 ...
+   Iteration :  50  (B r, r) = 9.04231e-42
+PCG: No convergence!
+Average reduction factor = 0.312748
+step     2,	t = 0.0000,	dt = 0.000001,	|e| = 221122.0190822652
+
+CG (H1) total time: 1.4387683720
+CG (H1) rate (megadofs x cg_iterations / second): 231.1046075733
+
+CG (L2) total time: 0.0445537280
+CG (L2) rate (megadofs x cg_iterations / second): 0.1207979723
+
+Forces total time: 0.0464517350
+Forces rate (megadofs x timesteps / second): 214.5857415229
+
+UpdateQuadData total time: 0.4244927550
+UpdateQuadData rate (megaquads x timesteps / second): 39.0791121983
+
+Major kernels total time (seconds): 1.8901822930
+Major kernels total rate (megadofs x time steps / second): 5.2735019458
+
+Energy  diff: 1.20e-14
+Running test:
+srun -N 1 -t 4 -p pdebug -n 36 laghos -pa -p 1 -ok 3 -ot 2 -s 7 -no-vis -cgt 0 -cgm 50 -ms 1 -m ./data/square_10x9_quad.mesh -rs 1 -rp 5 -pt 49
+mpibind: found OMP_NUM_THREADS=1
+
+       __                __                 
+      / /   ____  ____  / /_  ____  _____   
+     / /   / __ `/ __ `/ __ \/ __ \/ ___/ 
+    / /___/ /_/ / /_/ / / / / /_/ (__  )    
+   /_____/\__,_/\__, /_/ /_/\____/____/  
+               /____/                       
+
+Options used:
+   --mesh ./data/square_10x9_quad.mesh
+   --refine-serial 1
+   --refine-parallel 5
+   --problem 1
+   --order-kinematic 3
+   --order-thermo 2
+   --ode-solver 7
+   --t-final 0.6
+   --cfl 0.5
+   --cg-tol 0
+   --cg-max-steps 50
+   --max-steps 1
+   --partial-assembly
+   --no-impose-viscosity
+   --no-visualization
+   --visualization-steps 5
+   --no-visit
+   --no-print
+   --outputfilename results/Laghos
+   --partition 49
+Zones min/max: 10240 10240
+Number of kinematic (position, velocity) dofs: 6642818
+Number of specific internal energy dofs: 3317760
+   Iteration :   0  (B r, r) = 7.39875e+10 ...
+   Iteration :  50  (B r, r) = 2.36552e-57
+PCG: No convergence!
+Average reduction factor = 0.211372
+   Iteration :   0  (B r, r) = 6.50764e+10 ...
+   Iteration :  50  (B r, r) = 2.09429e-41
+PCG: No convergence!
+Average reduction factor = 0.305546
+   Iteration :   0  (B r, r) = 5.59378e+10 ...
+   Iteration :  50  (B r, r) = 8.26301e-42
+PCG: No convergence!
+Average reduction factor = 0.303176
+   Iteration :   0  (B r, r) = 4.37461e+10 ...
+   Iteration :  50  (B r, r) = 1.26582e-40
+PCG: No convergence!
+Average reduction factor = 0.31233
+step     2,	t = 0.0000,	dt = 0.000000,	|e| = 884488.0763290630
+
+CG (H1) total time: 5.8443491810
+CG (H1) rate (megadofs x cg_iterations / second): 227.3244734109
+
+CG (L2) total time: 0.2642962360
+CG (L2) rate (megadofs x cg_iterations / second): 0.0213850946
+
+Forces total time: 0.1769975220
+Forces rate (megadofs x timesteps / second): 225.1009593230
+
+UpdateQuadData total time: 1.6594845870
+UpdateQuadData rate (megaquads x timesteps / second): 39.9854271138
+
+Major kernels total time (seconds): 7.6107493910
+Major kernels total rate (megadofs x time steps / second): 5.2350051162
+
+Energy  diff: 1.20e-14
+

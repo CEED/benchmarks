@@ -18,13 +18,13 @@
 
 #####   Adjustable plot parameters:
 log_y=0               # use log scale on the y-axis?
-x_range=(1e1,4e6)     # plot range for the x-axis; comment out for auto
-y_range=(0,5e7)       # plot range for the y-axis; comment out for auto
+x_range=(1e3,1e7)     # plot range for the x-axis; comment out for auto
+#y_range=(1e8,6e8)       # plot range for the y-axis; comment out for auto
 draw_iter_lines=0     # draw the "iter/s" lines?
 ymin_iter_lines=3e5   # minimal y value for the "iter/s" lines
 ymax_iter_lines=8e8   # maximal y value for the "iter/s" lines
 legend_ncol=(2 if log_y else 1)   # number of columns in the legend
-write_figures=0       # save the figures to files?
+write_figures=1       # save the figures to files?
 show_figures=1        # display the figures on the screen?
 
 
@@ -100,6 +100,7 @@ for plt in pl_set:
    num_procs=plt[1]
    num_procs_node=plt[2]
    num_nodes=num_procs/num_procs_node
+   print "num_nodes:",num_nodes
    pl_runs=[run for run in sel_runs
             if run['compiler']==compiler and
                run['num-procs']==num_procs and
@@ -118,21 +119,15 @@ for plt in pl_set:
    sol_p_set=sorted(set([run['order'] for run in pl_runs]))
    #print "sol_p_set:",sol_p_set
    for sol_p in sol_p_set:
-      qpts=sorted(list(set([run['quadrature-pts'] for run in pl_runs
-                            if run['order']==sol_p])))
-      qpts.reverse()
-      #print "qpts:",qpts
-      #print 'Order: %i, quadrature points:'%sol_p, qpts
-      qpts_1d=[int(q**(1./2)+0.5) for q in qpts]
-
-      d=[[run['order'],run['num-elem'],1.*run['num-unknowns']/num_nodes/vdim,
-          run['cg-iteration-dps']/num_nodes]
+      d=[[run['order'], # order
+          run['num-elem'], # number of elements
+          1.*run['kinematic-dofs']/vdim,
+          run['cg-H1-rate']]
          for run in pl_runs
-         if run['order']==sol_p and
-            run['quadrature-pts']==qpts[0]]
-      # print
-      # print 'order = %i'%sol_p
-      # pprint.pprint(sorted(d))
+         if run['order']==sol_p]
+      #print
+      #print 'order = %i'%sol_p
+      #pprint.pprint(sorted(d))
       d=[[e[2],e[3]] for e in d if e[0]==sol_p]
       # (DOFs/[sec/iter]/node)/(DOFs/node) = iter/sec
       d=[[nun,
@@ -140,32 +135,13 @@ for plt in pl_set:
           max([e[1] for e in d if e[0]==nun])]
          for nun in set([e[0] for e in d])]
       d=asarray(sorted(d))
+      #print
+      #pprint.pprint(d)
       plot(d[:,0],d[:,2],'o-',color=colors[i%cm_size],
            label='Q%iQ%i'%(sol_p,sol_p-1))
       if list(d[:,1]) != list(d[:,2]):
          plot(d[:,0],d[:,1],'o-',color=colors[i])
          fill_between(d[:,0],d[:,1],d[:,2],facecolor=colors[i],alpha=0.2)
-      ##
-      if len(qpts)==1:
-         i=i+1
-         continue
-      d=[[run['order'],run['num-elem'],1.*run['num-unknowns']/num_nodes/vdim,
-          run['cg-iteration-dps']/num_nodes]
-         for run in pl_runs
-         if run['order']==sol_p and (run['quadrature-pts']==qpts[1])]
-      d=[[e[2],e[3]] for e in d if e[0]==sol_p]
-      if len(d)==0:
-         i=i+1
-         continue
-      d=[[nun,
-          min([e[1] for e in d if e[0]==nun]),
-          max([e[1] for e in d if e[0]==nun])]
-         for nun in set([e[0] for e in d])]
-      d=asarray(sorted(d))
-      plot(d[:,0],d[:,2],'s--',color=colors[i],
-           label='p=%i, q=p+%i'%(sol_p,qpts_1d[1]-sol_p))
-      if list(d[:,1]) != list(d[:,2]):
-         plot(d[:,0],d[:,1],'s--',color=colors[i])
       ##
       i=i+1
    ##
@@ -195,8 +171,8 @@ for plt in pl_set:
    grid('on', color='gray', ls='dotted')
    grid('on', axis='both', which='minor', color='gray', ls='dotted')
    gca().set_axisbelow(True)
-   xlabel('Points per compute node')
-   ylabel('[DOFs x CG iterations] / [compute nodes x seconds]')
+   xlabel('Global kinematic DOFs')
+   ylabel('[DOFs x CG iterations] / [seconds]')
    legend(ncol=legend_ncol, loc='best')
 
    if write_figures: # write .pdf file?
