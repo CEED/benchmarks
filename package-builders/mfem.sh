@@ -53,6 +53,7 @@ function mfem_clone()
 
 function mfem_build()
 {
+   local cxx11_flag="${CXX11FLAG:--std=c++11}"
    if package_build_is_good; then
       echo "Using successfully built $pkg from OUT_DIR."
       return 0
@@ -86,7 +87,7 @@ function mfem_build()
          MFEM_USE_MPI=YES \
          $MFEM_EXTRA_CONFIG \
          MPICXX="$MPICXX" \
-         CXXFLAGS="$CFLAGS" \
+         CXXFLAGS="$cxx11_flag $CFLAGS" \
          HYPRE_DIR="$HYPRE_DIR/src/hypre" \
          METIS_DIR="$METIS_DIR" \
          MFEM_USE_METIS_5="$METIS_5" \
