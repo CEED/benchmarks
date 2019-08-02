@@ -68,6 +68,15 @@ function occa_build()
          return 1
       }
    fi
+   if [[ -n "$cuda_home" ]]; then
+      OCCA_INCLUDE_PATH=$cuda_home/include
+      if [[ -e "$cuda_home/lib64" ]]; then
+         OCCA_LIBRARY_PATH=$cuda_home/lib64:$cuda_home/lib64/stubs
+      else
+         OCCA_LIBRARY_PATH=$cuda_home/lib:$cuda_home/lib/stubs
+      fi
+      export OCCA_INCLUDE_PATH OCCA_LIBRARY_PATH
+   fi
    echo "Building $pkg, sending output to ${pkg_bld_dir}_build.log ..." && {
       cd "$pkg_bld_dir" && \
       make \

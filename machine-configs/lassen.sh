@@ -21,7 +21,8 @@ function setup_xlc()
    MPIF77=mpixlf
    mpi_info_flag="-qversion=verbose"
 
-   CFLAGS="-O3 -qarch=auto -qcache=auto -qhot -qtune=auto"
+   CFLAGS="-O2 -qmaxmem=-1 -qarch=auto -qcache=auto -qtune=auto"
+   # CFLAGS="-O3 -qarch=auto -qcache=auto -qhot -qtune=auto"
    # CFLAGS+=" -qipa=threads"
 
    FFLAGS="$CFLAGS"
@@ -31,6 +32,9 @@ function setup_xlc()
 
    add_to_path after PATH "$cuda_path"
    CUFLAGS="-O3"
+
+   # OpenMP
+   # omp_flag="-qsmp=omp"
 }
 
 
@@ -131,3 +135,4 @@ MPIEXEC_NP=
 
 cuda_home=${CUDA_HOME:-/usr/local/cuda}
 cuda_path=${cuda_home}/bin
+cuda_arch=sm_70

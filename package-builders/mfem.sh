@@ -28,15 +28,17 @@ pkg_src_dir="mfem"
 MFEM_SOURCE_DIR="$pkg_sources_dir/$pkg_src_dir"
 pkg_bld_dir="$OUT_DIR/mfem"
 MFEM_DIR="$pkg_bld_dir"
+mfem_branch="${mfem_branch:-master}"
+MFEM_BRANCH="${mfem_branch}"
 pkg_var_prefix="mfem_"
-pkg="MFEM"
+pkg="MFEM (branch $mfem_branch)"
 
 
 function mfem_clone()
 {
    pkg_repo_list=("git@github.com:mfem/mfem.git"
                   "https://github.com/mfem/mfem.git")
-   pkg_git_branch="master"
+   pkg_git_branch="${mfem_branch:-master}"
    cd "$pkg_sources_dir" || return 1
    if [[ -d "$pkg_src_dir" ]]; then
       update_git_package
@@ -53,7 +55,6 @@ function mfem_clone()
 
 function mfem_build()
 {
-   local cxx11_flag="${CXX11FLAG:--std=c++11}"
    if package_build_is_good; then
       echo "Using successfully built $pkg from OUT_DIR."
       return 0
@@ -68,15 +69,61 @@ function mfem_build()
       echo "The required variable 'METIS_DIR' is not set. Stop."
       return 1
    fi
+   local cxx11_flag="${CXX11FLAG:--std=c++11}"
+   local optim_flags="$cxx11_flag $CFLAGS"
+   local xcompiler=""
    local METIS_5="NO"
    [[ "$METIS_VERSION" = "5" ]] && METIS_5="YES"
+   local CUDA_MAKE_OPTS=()
+   if [[ -n "$cuda_home" ]]; then
+      CUDA_MAKE_OPTS=(
+         "MFEM_USE_CUDA=YES"
+         "CUDA_CXX=$cuda_home/bin/nvcc"
+         "CUDA_ARCH=${cuda_arch:-sm_60}")
+      xcompiler="-Xcompiler="
+      optim_flags="$cxx11_flag $xcompiler\"$CFLAGS\""
+   else
+      echo "${magenta}INFO: Building $pkg without CUDA ...${none}"
+   fi
+   local OCCA_MAKE_OPTS=()
+   if [[ -n "$OCCA_DIR" ]]; then
+      OCCA_MAKE_OPTS=(
+         "MFEM_USE_OCCA=YES"
+         "OCCA_DIR=$OCCA_DIR")
+   else
+      echo "${magenta}INFO: Building $pkg without OCCA ...${none}"
+   fi
+   local RAJA_MAKE_OPTS=()
+   if [[ -n "$RAJA_DIR" ]]; then
+      RAJA_MAKE_OPTS=(
+         "MFEM_USE_RAJA=YES"
+         "RAJA_DIR=$RAJA_DIR")
+   else
+      echo "${magenta}INFO: Building $pkg without RAJA ...${none}"
+   fi
+   local OMP_MAKE_OPTS=()
+   if [[ -n "$omp_flag" ]]; then
+      OMP_MAKE_OPTS=(
+         "MFEM_USE_OPENMP=YES"
+         "OPENMP_OPT=$xcompiler\"$omp_flag\"")
+   else
+      echo "${magenta}INFO: Building $pkg without OpenMP ...${none}"
+   fi
+   local LIBCEED_MAKE_OPTS=()
+   if [[ -n "$LIBCEED_DIR" ]]; then
+      LIBCEED_MAKE_OPTS=(
+         "MFEM_USE_CEED=YES"
+         "CEED_DIR=$LIBCEED_DIR")
+   else
+      echo "${magenta}INFO: Building $pkg without libCEED ...${none}"
+   fi
    local SUNDIALS_MAKE_OPTS=()
    if [[ -n "$SUNDIALS_DIR" ]]; then
       SUNDIALS_MAKE_OPTS=(
          "MFEM_USE_SUNDIALS=YES"
          "SUNDIALS_DIR=$SUNDIALS_DIR")
    else
-      echo "${magenta}Warning: Building $pkg without SUNDIALS ...${none}"
+      echo "${magenta}INFO: Building $pkg without SUNDIALS ...${none}"
    fi
    echo "Building $pkg, sending output to ${pkg_bld_dir}_build.log ..." && {
       local num_nodes=1  # for 'make check' or 'make test'
@@ -87,14 +134,20 @@ function mfem_build()
          MFEM_USE_MPI=YES \
          $MFEM_EXTRA_CONFIG \
          MPICXX="$MPICXX" \
-         CXXFLAGS="$cxx11_flag $CFLAGS" \
+         OPTIM_FLAGS="$optim_flags" \
          HYPRE_DIR="$HYPRE_DIR/src/hypre" \
          METIS_DIR="$METIS_DIR" \
          MFEM_USE_METIS_5="$METIS_5" \
+         "${CUDA_MAKE_OPTS[@]}" \
+         "${OCCA_MAKE_OPTS[@]}" \
+         "${RAJA_MAKE_OPTS[@]}" \
+         "${OMP_MAKE_OPTS[@]}" \
+         "${LIBCEED_MAKE_OPTS[@]}" \
          "${SUNDIALS_MAKE_OPTS[@]}" \
          LDFLAGS="${LDFLAGS[*]}" \
          MFEM_MPIEXEC="${MPIEXEC:-mpirun}" \
          MFEM_MPIEXEC_NP="${MPIEXEC_OPTS} ${MPIEXEC_NP:--np}" && \
+      make info && \
       make -j $num_proc_build
    } &> "${pkg_bld_dir}_build.log" || {
       echo " ... building $pkg FAILED, see log for details."
@@ -102,7 +155,8 @@ function mfem_build()
    }
    echo "Build successful."
    print_variables "$pkg_var_prefix" \
-      HYPRE_DIR METIS_DIR METIS_VERSION SUNDIALS_DIR \
+      HYPRE_DIR METIS_DIR METIS_VERSION cuda_home OCCA_DIR RAJA_DIR omp_flag \
+      LIBCEED_DIR SUNDIALS_DIR MFEM_BRANCH \
       > "${pkg_bld_dir}_build_successful"
 }
 

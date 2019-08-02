@@ -111,3 +111,5 @@ memory_per_node=256
 # Optional (default): MPIEXEC (mpirun), MPIEXEC_OPTS (), MPIEXEC_NP (-np)
 MPIEXEC=srun
 MPIEXEC_NP=-n
+
+cuda_arch=sm_60

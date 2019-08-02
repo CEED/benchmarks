@@ -80,11 +80,14 @@ function libceed_build()
       OPT_FLAGS+=" $NATIVE_CFLAG"
    fi
    # Check for optional packages used by backends
+   # Note: If OCCA already is built in OUT_DIR, libCEED will find it in ../occa
+   #       and use it; in particular, the next INFO message will be incorrect in
+   #       this case.
    local OCCA_MAKE_OPTS=()
    if [[ -n "$OCCA_DIR" ]]; then
       OCCA_MAKE_OPTS=("OCCA_DIR=${OCCA_DIR}")
    else
-      echo "${magenta}Warning: Building $pkg without OCCA ...${none}"
+      echo "${magenta}INFO: Building $pkg without OCCA ...${none}"
    fi
    # TODO: other packages: magma, ...
    libceed_verbose=${libceed_verbose:-1}
@@ -93,6 +96,7 @@ function libceed_build()
       make -j $num_proc_build \
          V="$libceed_verbose" \
          CC="$MPICC" \
+         CXX="$MPICXX" \
          FC="$MPIF77" \
          OPT="$OPT_FLAGS" \
          "${OCCA_MAKE_OPTS[@]}"
