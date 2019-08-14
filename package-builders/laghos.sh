@@ -69,19 +69,52 @@ function laghos_build()
       echo "The required variable 'MFEM_DIR' is not set. Stop."
       return 1
    fi
-   echo "Building $pkg, sending output to ${pkg_bld_dir}_build.log ..." && {
-      cd "$pkg_bld_dir" && \
-      make \
-         MFEM_DIR="$MFEM_DIR" \
-         TEST_MK="$MFEM_SOURCE_DIR/config/test.mk" \
-         -j $num_proc_build
-   } &> "${pkg_bld_dir}_build.log" || {
-      echo " ... building $pkg FAILED, see log for details."
-      return 1
-   }
+   if [[ -z "$laghos_skip_main" ]]; then
+      echo "Building $pkg (main version), sending output to" \
+           " ${pkg_bld_dir}_build.log ..." && {
+         cd "$pkg_bld_dir" && \
+         make \
+            MFEM_DIR="$MFEM_DIR" \
+            CONFIG_MK="$MFEM_DIR/share/mfem/config.mk" \
+            TEST_MK="$MFEM_DIR/share/mfem/test.mk" \
+            -j $num_proc_build
+      } &> "${pkg_bld_dir}_build.log" || {
+         echo " ... building $pkg FAILED, see log for details."
+         return 1
+      }
+   else
+      echo "Building $pkg (main version) SKIPPED"
+      : > "${pkg_bld_dir}_build.log"
+   fi
+   if [[ -n "$CUDA_ENABLED" ]]; then
+      local mpi_exe="$(which $MPICXX)"
+      local mpi_home="$(dirname $mpi_exe)/.."
+      local nvcc_flags="-x=cu -std=c++11 -m64 --restrict -Xcompiler -Wall"
+      nvcc_flags+=" -arch=${cuda_arch:-sm_60}"
+      local nvcc_libs="-Wl,-rpath,$cuda_home/lib64 -L$cuda_home/lib64"
+      nvcc_libs+=" -lcuda -lcudart -lcudadevrt -lnvToolsExt"
+      echo "Building $pkg (CUDA version), appending output to" \
+           "${pkg_bld_dir}_build.log ..." && {
+         cd "$pkg_bld_dir/cuda" && \
+         make \
+            CXX="nvcc -ccbin $MPICXX" \
+            CXXFLAGS="-Xcompiler=\"$CFLAGS\" -I$MFEM_DIR/include/mfem" \
+            MFEM_DIR="$MFEM_DIR" \
+            CONFIG_MK="$MFEM_DIR/share/mfem/config.mk" \
+            TEST_MK="$MFEM_DIR/share/mfem/test.mk" \
+            NVCC_CXXFLAGS="$nvcc_flags" \
+            NVCC_LIBS="$nvcc_libs" \
+            -j $num_proc_build
+      } &>> "${pkg_bld_dir}_build.log" || {
+         echo " ... building $pkg FAILED, see log for details."
+         return 1
+      }
+   fi
    echo "Build successful."
    print_variables "$pkg_var_prefix" \
-      MFEM_DIR > "${pkg_bld_dir}_build_successful"
+      laghos_branch \
+      MFEM_DIR laghos_skip_main CUDA_ENABLED cuda_home \
+      > "${pkg_bld_dir}_build_successful"
 }
 
 
