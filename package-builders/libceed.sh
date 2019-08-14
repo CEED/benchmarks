@@ -24,9 +24,9 @@ if [[ -z "$OUT_DIR" ]]; then
    echo "The variable 'OUT_DIR' is not set. Stop."
    return 1
 fi
-# If LIBCEED_DIR is already set (e.g. from the command line), assume that
+# If 'libceed_dir' is set (e.g. from the command line), assume that
 # libCEED is already built in that directory.
-if [[ -z "$LIBCEED_DIR" ]]; then
+if [[ -z "$libceed_dir" ]]; then
    pkg_src_dir="libceed"
    LIBCEED_SOURCE_DIR="$pkg_sources_dir/$pkg_src_dir"
    pkg_bld_dir="$OUT_DIR/libceed"
@@ -37,6 +37,7 @@ if [[ -z "$LIBCEED_DIR" ]]; then
    pkg="libCEED (branch $libceed_branch)"
    EXTERNAL_LIBCEED=
 else
+   LIBCEED_DIR="$libceed_dir"
    EXTERNAL_LIBCEED="YES"
 fi
 
