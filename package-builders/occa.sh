@@ -68,7 +68,7 @@ function occa_build()
          return 1
       }
    fi
-   if [[ -n "$cuda_home" ]]; then
+   if [[ -n "$CUDA_ENABLED" ]]; then
       OCCA_INCLUDE_PATH=$cuda_home/include
       if [[ -e "$cuda_home/lib64" ]]; then
          OCCA_LIBRARY_PATH=$cuda_home/lib64:$cuda_home/lib64/stubs
@@ -76,6 +76,9 @@ function occa_build()
          OCCA_LIBRARY_PATH=$cuda_home/lib:$cuda_home/lib/stubs
       fi
       export OCCA_INCLUDE_PATH OCCA_LIBRARY_PATH
+   else
+      export OCCA_CUDA_ENABLED=0
+      echo "${magenta}INFO: Building $pkg without CUDA ...${none}"
    fi
    echo "Building $pkg, sending output to ${pkg_bld_dir}_build.log ..." && {
       cd "$pkg_bld_dir" && \
@@ -90,7 +93,7 @@ function occa_build()
    }
    echo "Build successful."
    print_variables "$pkg_var_prefix" \
-      OCCA_BRANCH \
+      OCCA_BRANCH CUDA_ENABLED cuda_home \
       > "${pkg_bld_dir}_build_successful"
 }
 
