@@ -34,12 +34,14 @@ function setup_xlc()
    CUFLAGS="-O3"
 
    # OpenMP
-   # omp_flag="-qsmp=omp"
+   omp_flag="-qsmp=omp"
 }
 
 
 function setup_gcc()
 {
+   module load gcc/7.3.1
+
    MPICC=mpigcc
    MPICXX=mpig++
    MPIF77=mpigfortran
@@ -52,6 +54,9 @@ function setup_gcc()
 
    add_to_path after PATH "$cuda_path"
    CUFLAGS="-O3"
+
+   # OpenMP
+   omp_flag="-fopenmp"
 }
 
 
@@ -108,11 +113,12 @@ function set_mpi_options()
          echo "   ($job_num_nodes < $num_nodes)"
          exit 1
       fi
-      if (( LSB_DJOB_NUMPROC-1 < num_proc_run )); then
-         echo "Insufficient number of processors in the job allocation:"
-         echo "   ($LSB_DJOB_NUMPROC - 1 < $num_proc_run)"
-         exit 1
-      fi
+      # Note: The following check is disabled to allow oversubscription.
+      # if (( LSB_DJOB_NUMPROC-1 < num_proc_run )); then
+      #    echo "Insufficient number of processors in the job allocation:"
+      #    echo "   ($LSB_DJOB_NUMPROC - 1 < $num_proc_run)"
+      #    exit 1
+      # fi
       MPIEXEC_OPTS="-N $num_nodes"
       MPIEXEC_POST_OPTS="${LRUN_GPU_OPT}"
       MPIEXEC="lrun"
