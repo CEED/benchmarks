@@ -57,22 +57,32 @@ function raja_build()
       echo "Using successfully built $pkg from OUT_DIR."
       return 0
    fi
-   if [[ -z "$cuda_home" ]]; then
-      # For now, require CUDA.
-      echo "The variable 'cuda_home' is not defined! Stop."
-      return 1
+   # Start the build process from scratch.
+   rm -rf "$pkg_bld_dir"
+   local raja_cuda_opts=()
+   if [[ -n "$CUDA_ENABLED" ]]; then
+      raja_cuda_opts=(
+         -DENABLE_CUDA="ON"
+         -DCUDA_TOOLKIT_ROOT_DIR="$cuda_home"
+         -DCMAKE_CUDA_COMPILER="$cuda_home/bin/nvcc"
+         -DCUDA_ARCH="${cuda_arch:-sm_35}")
+   else
+      raja_cuda_opts=(-DENABLE_CUDA="OFF")
+      echo "${magenta}INFO: Building $pkg without CUDA ...${none}"
    fi
    local raja_openmp="OFF"
-   if [[ -n "$omp_flag" ]]; then
+   if [[ -n "$OMP_ENABLED" ]]; then
       raja_openmp="ON"
+   else
+      echo "${magenta}INFO: Building $pkg without OpenMP ...${none}"
    fi
    mkdir -p "$pkg_bld_dir" || {
       echo "Error creating directory $pkg_bld_dir. Stop."
       return 1
    }
-   local raja_cuda_arch="${cuda_arch:-sm_35}"
    # Note: RAJA does not seem to use the values of variables like
-   #       CMAKE_CXX_FLAGS, CMAKE_CXX_FLAGS_RELEASE, etc.
+   #       CMAKE_CXX_FLAGS, CMAKE_CXX_FLAGS_RELEASE, etc, at least when CUDA
+   #       support is enabled.
    echo "Building $pkg, sending output to ${pkg_bld_dir}_build.log ..." && {
       cd "$pkg_bld_dir" && \
       cmake "$RAJA_SOURCE_DIR" \
@@ -86,12 +96,9 @@ function raja_build()
          -DENABLE_EXAMPLES=OFF \
          -DENABLE_EXERCISES=OFF \
          -DENABLE_MPI=ON \
+         "${raja_cuda_opts[@]}" \
          -DENABLE_OPENMP="$raja_openmp" \
-         -DENABLE_CUDA=ON \
-         -DCUDA_TOOLKIT_ROOT_DIR="$cuda_home" \
-         -DCMAKE_CUDA_COMPILER="$cuda_home/bin/nvcc" \
-         -DCUDA_ARCH="$raja_cuda_arch" \
-         -DCMAKE_VERBOSE_MAKEFILE=0 && \
+         -DCMAKE_VERBOSE_MAKEFILE=1 && \
       make -j $num_proc_build && \
       make install
    } &> "${pkg_bld_dir}_build.log" || {
@@ -100,7 +107,7 @@ function raja_build()
    }
    echo "Build successful."
    print_variables "$pkg_var_prefix" \
-      cuda_home omp_flag \
+      CUDA_ENABLED cuda_home OMP_ENABLED omp_flag \
       > "${pkg_bld_dir}_build_successful"
 }
 
