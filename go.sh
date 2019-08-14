@@ -331,7 +331,8 @@ function package_build_is_good()
             eval "var_val=\"\${$var_name}\""
             var_name="${var_name#${pkg_var_prefix}}"
             eval "cur_var_val=\"\${$var_name}\""
-            [[ -n "$cur_var_val" ]] || cur_var_val="$var_val"
+            # Note: disable the following check to allow empty variable values.
+            # [[ -n "$cur_var_val" ]] || cur_var_val="$var_val"
             if [[ "$cur_var_val" != "$var_val" ]]; then
                echo "Package $pkg needs to be updated (modified $var_name) ..."
                remove_package
