@@ -27,7 +27,8 @@ fi
 pkg_src_dir="mfem"
 MFEM_SOURCE_DIR="$pkg_sources_dir/$pkg_src_dir"
 pkg_bld_dir="$OUT_DIR/mfem"
-MFEM_DIR="$pkg_bld_dir"
+MFEM_DIR="$pkg_bld_dir/install"
+# 'mfem_branch' can be set at the command line of the go.sh call
 mfem_branch="${mfem_branch:-master}"
 MFEM_BRANCH="${mfem_branch}"
 pkg_var_prefix="mfem_"
@@ -75,7 +76,7 @@ function mfem_build()
    local METIS_5="NO"
    [[ "$METIS_VERSION" = "5" ]] && METIS_5="YES"
    local CUDA_MAKE_OPTS=()
-   if [[ -n "$cuda_home" ]]; then
+   if [[ -n "$CUDA_ENABLED" ]]; then
       CUDA_MAKE_OPTS=(
          "MFEM_USE_CUDA=YES"
          "CUDA_CXX=$cuda_home/bin/nvcc"
@@ -102,7 +103,7 @@ function mfem_build()
       echo "${magenta}INFO: Building $pkg without RAJA ...${none}"
    fi
    local OMP_MAKE_OPTS=()
-   if [[ -n "$omp_flag" ]]; then
+   if [[ -n "$OMP_ENABLED" ]]; then
       OMP_MAKE_OPTS=(
          "MFEM_USE_OPENMP=YES"
          "OPENMP_OPT=$xcompiler\"$omp_flag\"")
@@ -131,6 +132,7 @@ function mfem_build()
       cd "$pkg_bld_dir" && \
       make config \
          -f "$MFEM_SOURCE_DIR/makefile" \
+         PREFIX="$MFEM_DIR" \
          MFEM_USE_MPI=YES \
          $MFEM_EXTRA_CONFIG \
          MPICXX="$MPICXX" \
@@ -148,15 +150,17 @@ function mfem_build()
          MFEM_MPIEXEC="${MPIEXEC:-mpirun}" \
          MFEM_MPIEXEC_NP="${MPIEXEC_OPTS} ${MPIEXEC_NP:--np}" && \
       make info && \
-      make -j $num_proc_build
+      make -j $num_proc_build && \
+      make install
    } &> "${pkg_bld_dir}_build.log" || {
       echo " ... building $pkg FAILED, see log for details."
       return 1
    }
    echo "Build successful."
    print_variables "$pkg_var_prefix" \
-      HYPRE_DIR METIS_DIR METIS_VERSION cuda_home OCCA_DIR RAJA_DIR omp_flag \
-      LIBCEED_DIR SUNDIALS_DIR MFEM_BRANCH \
+      MFEM_BRANCH \
+      HYPRE_DIR METIS_DIR METIS_VERSION CUDA_ENABLED cuda_home OCCA_DIR \
+      RAJA_DIR OMP_ENABLED omp_flag LIBCEED_DIR SUNDIALS_DIR \
       > "${pkg_bld_dir}_build_successful"
 }
 
