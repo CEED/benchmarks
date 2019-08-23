@@ -159,4 +159,4 @@ memory_per_node=8
 
 cuda_home=${CUDA_HOME:-/usr/local/cuda}
 cuda_path=${cuda_home}/bin
-cuda_arch=sm_60
+cuda_arch=${cuda_arch:-sm_60}
