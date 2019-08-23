@@ -148,7 +148,7 @@ search_file_list LAPACK_LIB \
 
 valid_compilers="gcc clang intel"
 # Number of processors to use for building packages and tests:
-num_proc_build=8
+num_proc_build=${num_proc_build:-8}
 # Default number of processors and processors per node for running tests:
 num_proc_run=${num_proc_run:-4}
 num_proc_node=${num_proc_run}
@@ -156,3 +156,7 @@ num_proc_node=${num_proc_run}
 memory_per_node=8
 
 # Optional (default): MPIEXEC (mpirun), MPIEXEC_OPTS (), MPIEXEC_NP (-np)
+
+cuda_home=${CUDA_HOME:-/usr/local/cuda}
+cuda_path=${cuda_home}/bin
+cuda_arch=sm_60
