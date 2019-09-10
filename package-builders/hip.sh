@@ -14,36 +14,34 @@
 # software, applications, hardware, advanced system engineering and early
 # testbed platforms, in support of the nation's exascale computing imperative.
 
-# Configuration for LLNL's Corona system, HSA Agents:
-#     - 8 Agents: AMD EPYC 7401 24-Core Processor
-#     - 4 Agents: AMD/ATI Vega 10 [Radeon Instinct MI25] (rev 01) - gfx900
+# Pseudo-package that allows HIP support to be enabled/disabled for other
+# packages that can use HIP.
 
-function setup_hip()
+if [[ -z "$pkg_sources_dir" ]]; then
+   echo "This script ($0) should not be called directly. Stop."
+   return 1
+fi
+if [[ -z "$OUT_DIR" ]]; then
+   echo "The variable 'OUT_DIR' is not set. Stop."
+   return 1
+fi
+
+pkg_src_dir="hip"
+pkg_bld_dir="$OUT_DIR/hip"
+if [[ -n "$hip_home" ]]; then
+   HIP_ENABLED="YES"
+else
+   HIP_ENABLED=""
+fi
+pkg="HIP"
+
+
+function build_package()
 {
-    module load opt
-    module load rocm/2.7
-    module load gcc/8.1.0
-    module load mvapich2/2.3
-    CXX=hipcc
-    CFLAGS="-O3"
-    FFLAGS="$CFLAGS"
-    hip_home=${HIP_HOME:-/opt/rocm/hip}
-    hip_path=${hip_home}/bin
-    hip_lib=${hip_home}/lib64
-    #hsa_lib=${hip_home}/../hsa/lib
+   if [[ -n "$HIP_ENABLED" ]]; then
+      echo "HIP is enabled."
+   else
+      echo "Error: cannot enable HIP: 'hip_home' is not configured. Stop."
+      return 1
+   fi
 }
-
-function set_mpi_options()
-{
-   num_proc_node=${num_proc_run}
-   compose_mpi_run_command
-}
-
-valid_compilers="hip"
-
-num_proc_detect="$(getconf _NPROCESSORS_ONLN)"
-num_proc_build=${num_proc_build:-$num_proc_detect}
-num_proc_run=${num_proc_run:-1}
-memory_per_node=256
-
-hip_arch=gfx900

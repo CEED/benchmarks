@@ -86,6 +86,14 @@ function mfem_build()
    else
       echo "${magenta}INFO: Building $pkg without CUDA ...${none}"
    fi
+   local HIP_MAKE_OPTS=()
+   if [[ -n "$HIP_DIR" ]]; then
+      HIP_MAKE_OPTS=(
+         "MFEM_USE_HIP=YES"
+         "HIP_DIR=$HIP_DIR")
+   else
+      echo "${magenta}INFO: Building $pkg without HIP ...${none}"
+   fi
    local OCCA_MAKE_OPTS=()
    if [[ -n "$OCCA_DIR" ]]; then
       OCCA_MAKE_OPTS=(
@@ -141,6 +149,7 @@ function mfem_build()
          METIS_DIR="$METIS_DIR" \
          MFEM_USE_METIS_5="$METIS_5" \
          "${CUDA_MAKE_OPTS[@]}" \
+         "${HIP_MAKE_OPTS[@]}" \
          "${OCCA_MAKE_OPTS[@]}" \
          "${RAJA_MAKE_OPTS[@]}" \
          "${OMP_MAKE_OPTS[@]}" \
