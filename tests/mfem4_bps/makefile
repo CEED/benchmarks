@@ -25,7 +25,7 @@ CONFIG_MK = $(or $(wildcard\
 MFEM_LIB_FILE = mfem_is_not_built
 -include $(CONFIG_MK)
 
-BPS = $(BLD)bp3
+BPS = $(BLD)bp3 $(BLD)bp1
 ifeq ($(MFEM_USE_MPI),NO)
    $(error A parallel MFEM build is required.)
 endif
