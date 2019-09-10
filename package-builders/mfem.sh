@@ -87,10 +87,10 @@ function mfem_build()
       echo "${magenta}INFO: Building $pkg without CUDA ...${none}"
    fi
    local HIP_MAKE_OPTS=()
-   if [[ -n "$HIP_DIR" ]]; then
-      HIP_MAKE_OPTS=(
-         "MFEM_USE_HIP=YES"
-         "HIP_DIR=$HIP_DIR")
+   if [[ -n "$HIP_ENABLED" ]]; then
+      HIP_MAKE_OPTS=("MFEM_USE_HIP=YES"
+                     "HIP_ARCH=${hip_arch}")
+      echo "${cyan}INFO: Building $pkg with HIP ...${none}"
    else
       echo "${magenta}INFO: Building $pkg without HIP ...${none}"
    fi

@@ -81,4 +81,5 @@ mfem_branch=${mfem_branch:-cxxjit}
 # with just RAJA and CUDA:
 #test_required_packages="metis hypre cuda raja mfem"
 
-test_required_packages="metis hypre mfem"
+test_required_packages="hip metis hypre mfem"
+

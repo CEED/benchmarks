@@ -38,10 +38,11 @@ pkg="HIP"
 
 function build_package()
 {
-   if [[ -n "$HIP_ENABLED" ]]; then
-      echo "HIP is enabled."
-   else
-      echo "Error: cannot enable HIP: 'hip_home' is not configured. Stop."
-      return 1
-   fi
+    echo "${cyan}HIP build_package${none}"
+    if [[ -n "$HIP_ENABLED" ]]; then
+        echo "HIP is enabled."
+    else
+        echo "Error: cannot enable HIP: 'hip_home' is not configured. Stop."
+        return 1
+    fi
 }
