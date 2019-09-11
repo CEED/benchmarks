@@ -72,4 +72,4 @@ function build_and_run_tests()
 
 
 mfem_branch=${mfem_branch:-pa-vector-divergence-jit}
-test_required_packages="cuda mfem-jit"
+test_required_packages="hypre-shared metis-shared cuda mfem-jit"

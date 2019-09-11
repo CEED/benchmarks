@@ -65,9 +65,8 @@ function mfem_build()
    local cxx11_flag="${CXX11FLAG:--std=c++11}"
    local optim_flags="$cxx11_flag $CFLAGS"
    local xcompiler=""
-   local METIS_5="YES"
-   local HYPRE_DIR=/home/camier1/home/mfem/hypre/src/hypre
-   local METIS_DIR=/home/camier1/home/mfem/metis-5.0
+   local xlinker="-Wl,"
+   local METIS_5="NO"
    [[ "$METIS_VERSION" = "5" ]] && METIS_5="YES"
    local CUDA_MAKE_OPTS=()
    if [[ -n "$CUDA_ENABLED" ]]; then
@@ -76,6 +75,7 @@ function mfem_build()
          "CUDA_CXX=$cuda_home/bin/nvcc"
          "CUDA_ARCH=${cuda_arch:-sm_60}")
       xcompiler="-Xcompiler="
+      xlinker="-Xlinker="
       optim_flags="$cxx11_flag $xcompiler\"$CFLAGS\""
    else
       echo "${magenta}INFO: Building $pkg without CUDA ...${none}"
@@ -133,9 +133,9 @@ function mfem_build()
          $MFEM_EXTRA_CONFIG \
          MPICXX="$MPICXX" \
          OPTIM_FLAGS="$optim_flags" \
-         HYPRE_DIR="$HYPRE_DIR" \
+         HYPRE_DIR="$HYPRE_DIR/src/hypre" \
          METIS_DIR="$METIS_DIR" \
-         MFEM_EXT_LIBS="-L/home/camier1/home/mfem/metis-5.0/lib -lmetis -L/home/camier1/home/mfem/hypre/src/hypre/lib -lHYPRE" \
+         MFEM_EXT_LIBS="${xlinker}-rpath,${HYPRE_DIR}/src/hypre/lib -L${HYPRE_DIR}/src/hypre/lib -lHYPRE ${xlinker}-rpath,${METIS_DIR} -L${METIS_DIR} -lmetis" \
          MFEM_USE_METIS_5="$METIS_5" \
          "${CUDA_MAKE_OPTS[@]}" \
          "${OCCA_MAKE_OPTS[@]}" \
@@ -154,10 +154,9 @@ function mfem_build()
       return 1
    }
    echo "Build successful."
-   # removed HYPRE_DIR METIS_DIR, to avoid recompilations
    print_variables "$pkg_var_prefix" \
       MFEM_BRANCH \
-      METIS_VERSION CUDA_ENABLED cuda_home OCCA_DIR \
+      HYPRE_DIR METIS_DIR METIS_VERSION CUDA_ENABLED cuda_home OCCA_DIR \
       RAJA_DIR OMP_ENABLED omp_flag LIBCEED_DIR SUNDIALS_DIR \
       > "${pkg_bld_dir}_build_successful"
 }
