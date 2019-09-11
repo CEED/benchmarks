@@ -84,7 +84,7 @@ function setup_gcc()
    setup_mpi
 
    CFLAGS="-O3"
-   setup_bigmem
+   #setup_bigmem
    FFLAGS="$CFLAGS"
 
    # The following options assume GCC:
