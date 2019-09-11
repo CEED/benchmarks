@@ -46,7 +46,7 @@ function setup_intel()
 function setup_gcc()
 {
    module load gcc/7.3.0
-   module load mvapich2/2.2
+   module load mvapich2/2.3
 
    CC=gcc
    CXX=g++
@@ -63,7 +63,7 @@ function setup_gcc()
 
    NEK5K_EXTRA_PPLIST=""
 
-   module load cuda/9.2.88
+   module load cuda/10.1.168
    cuda_home=${CUDA_HOME:-/usr/local/cuda}
    cuda_path=${cuda_home}/bin
    CUFLAGS="-O3"
@@ -78,7 +78,8 @@ function set_mpi_options()
    if [[ -z "${SLURM_JOB_CPUS_PER_NODE}" ]]; then
       local account="${account:-ceed}"
       local partition="${partition:-pbatch}"
-      MPIEXEC_OPTS="-A ${account} -p ${partition}"
+      #MPIEXEC_OPTS="-A ${account} -p ${partition}"
+      MPIEXEC_OPTS="-p ${partition}"
       MPIEXEC_OPTS+=" --ntasks-per-node $num_proc_node"
       if [[ "$num_proc_node" -gt "36" ]]; then
          MPIEXEC_OPTS+=" --overcommit"
