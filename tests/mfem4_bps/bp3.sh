@@ -31,6 +31,8 @@ function run_tests()
 {
    local test_name="bp3"
    set_mpi_options
+   # 'min_p' can be set on the command line
+   local l_min_p=${min_p:-1}
    # 'max_p' can be set on the command line
    local l_max_p=${max_p:-8}
    # 'max_dofs_proc' can be set on the command line
@@ -40,7 +42,7 @@ function run_tests()
    local dim=3
    local args=
    for dev in ${l_mfem_devs[@]}; do
-      for ((p = 1; p <= l_max_p; p++)) do
+      for ((p = l_min_p; p <= l_max_p; p++)) do
          for ((l = 0; (p**dim)*(2**l) <= l_max_dofs_proc; l++)) do
             args=(-o $p -l $l -d $dev)
             if [ -z "$dry_run" ]; then
