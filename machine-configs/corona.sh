@@ -34,6 +34,7 @@ function setup_hip()
     export MFEM_CPPFLAGS="-I${MPI_HOME}/include"
     export LDFLAGS="-L${MPI_HOME}/lib -lmpi"
     CFLAGS="-O3"
+    CXX11FLAG="--std=c++11 -fno-gpu-rdc"
     hip_home=${HIP_HOME:-/opt/rocm/hip}
     hip_path=${hip_home}/bin
     hip_lib=${hip_home}/lib64
