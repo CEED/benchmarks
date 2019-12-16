@@ -24,7 +24,7 @@ function setup_hip()
 {
     echo "${cyan}HIP setup${none}"
     module load opt
-    module load rocm/2.7
+    module load rocm/2.10
     module load gcc/8.1.0
     module load mvapich2/2.3
     CXX=hipcc
