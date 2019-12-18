@@ -37,7 +37,8 @@ pkg="MFEM-HIP (branch $mfem_branch)"
 
 function mfem_patch()
 {
-    echo "Applying mfem/makefile patch ..."
+    echo "Applying mfem/makefile patch in pkg_sources_dir:'$pkg_sources_dir' ..."
+    cd "$pkg_sources_dir" || return 1
     patch mfem/makefile ../package-builders/mfem-hip.patch
     return 0
 }
@@ -50,7 +51,7 @@ function mfem_clone()
    pkg_git_branch="${mfem_branch:-master}"
    cd "$pkg_sources_dir" || return 1
    if [[ -d "$pkg_src_dir" ]]; then
-      update_git_package
+      update_git_package && mfem_patch
       return
    fi
    for pkg_repo in "${pkg_repo_list[@]}"; do
