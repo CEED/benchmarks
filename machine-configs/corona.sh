@@ -17,8 +17,9 @@
 # Configuration for LLNL's Corona system, HSA Agents:
 #     - 8 Agents: AMD EPYC 7401 24-Core Processor
 #     - 4 Agents: AMD/ATI Vega 10 [Radeon Instinct MI25] (rev 01) - gfx900
+#     - 4 Agents: AMD/ATI Vega 20 [Radeon Instinct MI60] (rev 01) - gfx906
 
-hip_arch=${hip_arch:-gfx900}
+hip_arch=${hip_arch:-gfx906}
 
 function setup_hip()
 {

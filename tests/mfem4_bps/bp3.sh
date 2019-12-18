@@ -79,4 +79,4 @@ mfem_branch=${mfem_branch:-corona}
 #test_required_packages="metis hypre cuda occa raja libceed mfem"
 
 # with just RAJA and CUDA:
-test_required_packages="hip metis hypre mfem"
+test_required_packages="hip metis hypre mfem-hip"
