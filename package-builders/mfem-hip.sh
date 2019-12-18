@@ -37,6 +37,7 @@ pkg="MFEM-HIP (branch $mfem_branch)"
 
 function mfem_patch()
 {
+    echo "Applying mfem/makefile patch ..."
     patch mfem/makefile ../package-builders/mfem-hip.patch
     return 0
 }

@@ -31,6 +31,8 @@ function run_tests()
 {
    local test_name="bp1"
    set_mpi_options
+   # 'min_p' can be set on the command line
+   local l_min_p=${min_p:-1}
    # 'max_p' can be set on the command line
    local l_max_p=${max_p:-8}
    # 'max_dofs_proc' can be set on the command line
