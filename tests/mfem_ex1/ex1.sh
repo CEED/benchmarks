@@ -15,6 +15,7 @@
 # system engineering and early testbed platforms, in support of the nation's
 # exascale computing imperative.
 
+problem=${problem:-0}
 
 function build_tests()
 {
@@ -29,7 +30,7 @@ function build_tests()
 
 function run_tests()
 {
-   local test_name="bp3"
+   local test_name="ex1"
    set_mpi_options
    # 'min_p' can be set on the command line
    local l_min_p=${min_p:-1}
@@ -44,7 +45,7 @@ function run_tests()
    for dev in ${l_mfem_devs[@]}; do
       for ((p = l_min_p; p <= l_max_p; p++)) do
          for ((l = 0; (p**dim)*(2**l) <= l_max_dofs_proc; l++)) do
-            args=(-o $p -l $l -d $dev)
+            args=(-p $problem -o $p -l $l -d $dev)
             if [ -z "$dry_run" ]; then
                echo "Running test:"
                quoted_echo $mpi_run ./$test_name "${args[@]}"
@@ -75,10 +76,18 @@ function build_and_run_tests()
 
 mfem_branch=${mfem_branch:-master}
 
-# test_required_packages="metis hypre cuda openmp occa raja libceed mfem"
+# With CUDA, RAJA, OCCA, OpenMP & libCEED
+#packages="metis hypre cuda openmp occa raja libceed mfem"
 
-# without OpenMP:
-#test_required_packages="metis hypre cuda occa raja libceed mfem"
+# Without OpenMP:
+#packages="metis hypre cuda occa raja libceed mfem"
 
-# with just RAJA and CUDA:
-test_required_packages="hip metis hypre mfem-hip"
+# Only with RAJA and CUDA:
+#packages="metis hypre cuda raja mfem"
+
+# Only with HIP
+#packages="hip metis hypre mfem-hip"
+
+packages=${packages:-metis hypre mfem}
+
+test_required_packages=${packages}

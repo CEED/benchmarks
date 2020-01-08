@@ -16,7 +16,7 @@
 // exascale computing imperative.
 
 //
-//   CEED Bake-off Problem 1 (based on MFEM Example 1p)
+//   CEED Bake-off PROBLEM, based on MFEM Example 1p
 //
 
 #include "mfem.hpp"
@@ -41,6 +41,7 @@ int main(int argc, char *argv[])
    int dim = 3;
    int level = 0;
    int order = 1;
+   int problem = 0;
    const char *device_config = "cpu";
 
    OptionsParser args(argc, argv);
@@ -50,6 +51,7 @@ int main(int argc, char *argv[])
                   "Set the problem size: 2^level mesh elements per processor.");
    args.AddOption(&order, "-o", "--order",
                   "Finite element order (polynomial degree).");
+   args.AddOption(&problem, "-p", "--problem", "Problem 0:Mass, 1:Diffusion.");
    args.AddOption(&device_config, "-d", "--device",
                   "Device configuration string, see Device::Configure().");
    args.Parse();
@@ -149,7 +151,14 @@ int main(int argc, char *argv[])
    //     domain integrator.
    ParBilinearForm *a = new ParBilinearForm(fespace);
    a->SetAssemblyLevel(AssemblyLevel::PARTIAL);
-   a->AddDomainIntegrator(new MassIntegrator(one));
+   if (problem == 0)
+   {
+      a->AddDomainIntegrator(new MassIntegrator(one));
+   }
+   else
+   {
+      a->AddDomainIntegrator(new DiffusionIntegrator(one));
+   }
 
    // 12. Assemble the parallel bilinear form and the corresponding linear
    //     system, applying any necessary transformations such as: parallel
@@ -187,16 +196,17 @@ int main(int argc, char *argv[])
    
    // Start CG timing.
    tic_toc.Clear();
+   
+   // Start & Stop CG timing.
    tic_toc.Start();
-
    cg.Mult(B, X);
-
-   // Stop CG timing. Print timing results.
    tic_toc.Stop();
    double rt_min, rt_max, my_rt;
    my_rt = tic_toc.RealTime();
    MPI_Reduce(&my_rt, &rt_min, 1, MPI_DOUBLE, MPI_MIN, 0, pmesh->GetComm());
    MPI_Reduce(&my_rt, &rt_max, 1, MPI_DOUBLE, MPI_MAX, 0, pmesh->GetComm());
+   
+   // Print timing results.
    if (myid == 0)
    {
       int cg_iter = cg.GetNumIterations();
