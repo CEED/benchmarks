@@ -73,7 +73,7 @@ function build_and_run_tests()
 }
 
 
-mfem_branch=${mfem_branch:-corona}
+mfem_branch=${mfem_branch:-master}
 
 # test_required_packages="metis hypre cuda openmp occa raja libceed mfem"
 

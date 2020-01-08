@@ -47,7 +47,7 @@ function setup_gcc()
    MPIF77=mpigfortran
    mpi_info_flag="--version"
 
-   CFLAGS="-O3"
+   CFLAGS="-O3 -mcpu=native -mtune=native"
    FFLAGS="$CFLAGS"
    TEST_EXTRA_CFLAGS=""
    # TEST_EXTRA_CFLAGS+=" -std=c++11 -fdump-tree-optimized-blocks"

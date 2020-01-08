@@ -16,7 +16,7 @@
 // exascale computing imperative.
 
 //
-//   CEED Bake-off Problem 3 (based on MFEM Example 1p)
+//   CEED Bake-off Problem 1 (based on MFEM Example 1p)
 //
 
 #include "mfem.hpp"
