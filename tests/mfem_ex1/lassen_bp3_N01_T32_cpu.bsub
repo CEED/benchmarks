@@ -1,0 +1,10 @@
+#!/bin/bash
+#BSUB -oo lassen_bp3_N01_T32_cpu_%J.txt
+#BSUB -eo lassen_bp3_N01_T32_cpu_%J.err
+#BSUB -q pbatch
+#BSUB -G ceed
+#BSUB -nnodes 1
+#BSUB -W 120
+
+
+../../go.sh -c lassen -m xlc -r bp3.sh -n 32 -p 32 'mfem_devs="cpu raja-cpu occa-cpu ceed-cpu"' max_dofs_proc=550000
