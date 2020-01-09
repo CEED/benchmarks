@@ -31,8 +31,17 @@ MFEM_DIR="$pkg_bld_dir/install"
 # 'mfem_branch' can be set at the command line of the go.sh call
 mfem_branch="${mfem_branch:-master}"
 MFEM_BRANCH="${mfem_branch}"
-pkg_var_prefix="mfem_"
-pkg="MFEM (branch $mfem_branch)"
+pkg_var_prefix="mfem_hip_"
+pkg="MFEM-HIP (branch $mfem_branch)"
+
+
+function mfem_patch()
+{
+    echo "Applying mfem/makefile patch in pkg_sources_dir:'$pkg_sources_dir' ..."
+    cd "$pkg_sources_dir" || return 1
+    patch mfem/makefile ../package-builders/mfem-hip.patch
+    return 0
+}
 
 
 function mfem_clone()
@@ -42,12 +51,12 @@ function mfem_clone()
    pkg_git_branch="${mfem_branch:-master}"
    cd "$pkg_sources_dir" || return 1
    if [[ -d "$pkg_src_dir" ]]; then
-      update_git_package
+      update_git_package && mfem_patch
       return
    fi
    for pkg_repo in "${pkg_repo_list[@]}"; do
       echo "Cloning $pkg from $pkg_repo ..."
-      git clone "$pkg_repo" "$pkg_src_dir" && return 0
+      git clone "$pkg_repo" "$pkg_src_dir" && mfem_patch && return 0
    done
    echo "Could not successfully clone $pkg. Stop."
    return 1

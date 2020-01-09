@@ -18,14 +18,15 @@
 
 #####   Adjustable plot parameters:
 log_y=0               # use log scale on the y-axis?
-x_range=(1e3,6e6)     # plot range for the x-axis; comment out for auto
-y_range=(0,2e9)       # plot range for the y-axis; comment out for auto
+#x_range=(1e3,6e6)    # plot range for the x-axis; comment out for auto
+#y_range=(0,2.2e7)    # plot range for the y-axis; comment out for auto
+#y_range=(0,2.5e6)     # plot range for the y-axis; comment out for auto
 draw_iter_lines=0     # draw the "iter/s" lines?
 ymin_iter_lines=3e5   # minimal y value for the "iter/s" lines
 ymax_iter_lines=8e8   # maximal y value for the "iter/s" lines
 legend_ncol=(2 if log_y else 1)   # number of columns in the legend
 write_figures=1       # save the figures to files?
-show_figures=1        # display the figures on the screen?
+show_figures=0        # display the figures on the screen?
 
 
 #####   Load the data
@@ -73,13 +74,7 @@ sel_runs=[run for run in sel_runs if
           run['test'].rsplit('/',1)[-1].rsplit('.sh',1)[0]==test]
 
 vdim=1
-if 'problem' in sel_runs[0]:
-   probs=list(set([run['problem'] for run in sel_runs]))
-   prob=probs[0]
-   print 'Using problem:', prob
-   sel_runs=[run for run in sel_runs if run['problem']==prob]
-else:
-   prob=1 # bp3
+prob=test
 
 codes = list(set([run['code'] for run in sel_runs]))
 code  = codes[0]
@@ -181,7 +176,7 @@ for plt in pl_set:
    title('Config: %s/%s, host: %s (%i node%s, %i task%s/node), %s, %s'%(
          code,mfem_dev,config_short,num_nodes,'' if num_nodes==1 else 's',
          num_procs_node,'' if num_procs_node==1 else 's', compiler,
-         'BP1' if prob==0 else 'BP3'))
+         test))
    xscale('log') # subsx=[2,4,6,8]
    if log_y:
       yscale('log')
@@ -202,10 +197,17 @@ for plt in pl_set:
 
    if write_figures: # write .pdf file?
       pdf_file='plot2_%s_%s_%s_%s_%s_N%03i_pn%i.pdf'%(
-               code,mfem_dev,'bp1' if prob==0 else 'bp3',config_short,compiler,
+               code,mfem_dev,test,config_short,compiler,
                num_nodes,num_procs_node)
       print 'saving figure --> %s'%pdf_file
       savefig(pdf_file, format='pdf', bbox_inches='tight')
+
+   if write_figures: # write .png file?
+      png_file='plot2_%s_%s_%s_%s_%s_N%03i_pn%i.png'%(
+               code,mfem_dev,test,config_short,compiler,
+               num_nodes,num_procs_node)
+      print 'saving figure --> %s'%png_file
+      savefig(png_file, format='png', bbox_inches='tight')
 
 if show_figures: # show the figures?
    print '\nshowing figures ...'
