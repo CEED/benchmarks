@@ -288,6 +288,7 @@ function update_git_package()
       [[ "${current_ref}" == "${target_ref}" ]] && return 0
       git checkout "$pkg_git_branch" || {
          echo "Error checking out branch: $pkg_git_branch. Stop."
+         echo "  If the branch name is correct, try the option -u/--update."
          return 1
       }
       # Note: "${pkg_src_dir}_updated" is not touched, so packages need to save

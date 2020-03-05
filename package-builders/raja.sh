@@ -84,6 +84,8 @@ function raja_build()
    #       CMAKE_CXX_FLAGS, CMAKE_CXX_FLAGS_RELEASE, etc, at least when CUDA
    #       support is enabled.
    echo "Building $pkg, sending output to ${pkg_bld_dir}_build.log ..." && {
+      cd "$RAJA_SOURCE_DIR" && \
+      git submodule update && \
       cd "$pkg_bld_dir" && \
       cmake "$RAJA_SOURCE_DIR" \
          -DCMAKE_C_COMPILER="$MPICC" \
