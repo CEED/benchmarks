@@ -62,6 +62,10 @@ function hypre_build()
          return 1
       }
    fi
+   local big_int_flag=""
+   if [[ -n "$hypre_big_int" ]]; then
+      big_int_flag="--enable-bigint"
+   fi
    echo "Building $pkg, sending output to ${pkg_bld_dir}_build.log ..." && {
       cd "$pkg_bld_dir/src" && \
       if [[ -e config/Makefile.config ]]; then
@@ -73,6 +77,7 @@ function hypre_build()
          CFLAGS="$CFLAGS" \
          CXXFLAGS="$CFLAGS" \
          $HYPRE_EXTRA_CONFIG \
+         $big_int_flag \
          --disable-fortran \
          --without-fei && \
       make -j $num_proc_build

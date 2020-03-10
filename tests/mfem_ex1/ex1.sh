@@ -75,6 +75,10 @@ function build_and_run_tests()
 
 
 mfem_branch=${mfem_branch:-master}
+libceed_branch=${libceed_branch:-master}
+
+# Uncomment the next line to enable 64-bit HYPRE_Int:
+# hypre_big_int=1
 
 # With CUDA, RAJA, OCCA, OpenMP & libCEED
 #packages="metis hypre cuda openmp occa raja libceed mfem"
