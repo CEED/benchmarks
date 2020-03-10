@@ -28,6 +28,7 @@ pkg_src_dir="hypre"
 HYPRE_SOURCE_DIR="$pkg_sources_dir/$pkg_src_dir"
 pkg_bld_dir="$OUT_DIR/hypre"
 HYPRE_DIR="$pkg_bld_dir"
+hypre_branch="${hypre_branch:-master}"
 pkg="hypre"
 
 
@@ -35,7 +36,7 @@ function hypre_clone()
 {
    pkg_repo_list=("git@github.com:hypre-space/hypre.git"
                   "https://github.com/hypre-space/hypre.git")
-   pkg_git_branch="master"
+   pkg_git_branch="$hypre_branch"
    cd "$pkg_sources_dir" || return 1
    if [[ -d "$pkg_src_dir" ]]; then
       update_git_package
