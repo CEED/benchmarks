@@ -51,7 +51,7 @@ function mfem_clone()
    pkg_git_branch="${mfem_branch:-master}"
    cd "$pkg_sources_dir" || return 1
    if [[ -d "$pkg_src_dir" ]]; then
-      update_git_package && mfem_patch
+      update_git_package
       return
    fi
    for pkg_repo in "${pkg_repo_list[@]}"; do
