@@ -1,0 +1,10 @@
+#!/bin/bash
+#BSUB -oo lassen_bp3_N01_T01_gpu_%J.txt
+#BSUB -eo lassen_bp3_N01_T01_gpu_%J.err
+#BSUB -q pbatch
+#BSUB -G ceed
+#BSUB -nnodes 1
+#BSUB -W 120
+
+
+../../go.sh -c lassen -m xlc -r ex1p.sh -n 1 -p 1 'mfem_devs="cuda:uvm"' max_p=7
