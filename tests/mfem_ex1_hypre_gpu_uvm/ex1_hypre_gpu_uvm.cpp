@@ -2,37 +2,6 @@
 //
 // Compile with: make ex1p
 //
-// Sample runs:  mpirun -np 4 ex1p -m ../data/square-disc.mesh
-//               mpirun -np 4 ex1p -m ../data/star.mesh
-//               mpirun -np 4 ex1p -m ../data/star-mixed.mesh
-//               mpirun -np 4 ex1p -m ../data/escher.mesh
-//               mpirun -np 4 ex1p -m ../data/fichera.mesh
-//               mpirun -np 4 ex1p -m ../data/fichera-mixed.mesh
-//               mpirun -np 4 ex1p -m ../data/toroid-wedge.mesh
-//               mpirun -np 4 ex1p -m ../data/square-disc-p2.vtk -o 2
-//               mpirun -np 4 ex1p -m ../data/square-disc-p3.mesh -o 3
-//               mpirun -np 4 ex1p -m ../data/square-disc-nurbs.mesh -o -1
-//               mpirun -np 4 ex1p -m ../data/star-mixed-p2.mesh -o 2
-//               mpirun -np 4 ex1p -m ../data/disc-nurbs.mesh -o -1
-//               mpirun -np 4 ex1p -m ../data/pipe-nurbs.mesh -o -1
-//               mpirun -np 4 ex1p -m ../data/ball-nurbs.mesh -o 2
-//               mpirun -np 4 ex1p -m ../data/fichera-mixed-p2.mesh -o 2
-//               mpirun -np 4 ex1p -m ../data/star-surf.mesh
-//               mpirun -np 4 ex1p -m ../data/square-disc-surf.mesh
-//               mpirun -np 4 ex1p -m ../data/inline-segment.mesh
-//               mpirun -np 4 ex1p -m ../data/amr-quad.mesh
-//               mpirun -np 4 ex1p -m ../data/amr-hex.mesh
-//               mpirun -np 4 ex1p -m ../data/mobius-strip.mesh
-//               mpirun -np 4 ex1p -m ../data/mobius-strip.mesh -o -1 -sc
-//
-// Device sample runs:
-//               mpirun -np 4 ex1p -pa -d cuda
-//               mpirun -np 4 ex1p -pa -d occa-cuda
-//               mpirun -np 4 ex1p -pa -d raja-omp
-//               mpirun -np 4 ex1p -pa -d ceed-cpu
-//               mpirun -np 4 ex1p -pa -d ceed-cuda
-//               mpirun -np 4 ex1p -m ../data/beam-tet.mesh -pa -d ceed-cpu
-//
 // Description:  This example code demonstrates the use of MFEM to define a
 //               simple finite element discretization of the Laplace problem
 //               -Delta u = 1 with homogeneous Dirichlet boundary conditions.
@@ -40,13 +9,6 @@
 //               order, or if order < 1 using an isoparametric/isogeometric
 //               space (i.e. quadratic for quadratic curvilinear mesh, NURBS for
 //               NURBS mesh, etc.)
-//
-//               The example highlights the use of mesh refinement, finite
-//               element grid functions, as well as linear and bilinear forms
-//               corresponding to the left-hand side and right-hand side of the
-//               discrete linear system. We also cover the explicit elimination
-//               of essential boundary conditions, static condensation, and the
-//               optional connection to the GLVis tool for visualization.
 
 #include "mfem.hpp"
 #include <fstream>
@@ -70,7 +32,7 @@ int main(int argc, char *argv[])
    int dim = 3;
    int level = 0;
    int order = 1;
-   const char *device_config = "cpu";
+   const char *device_config = "cuda:uvm";
 
    OptionsParser args(argc, argv);
    args.AddOption(&dim, "-dim", "--mesh-dimension",

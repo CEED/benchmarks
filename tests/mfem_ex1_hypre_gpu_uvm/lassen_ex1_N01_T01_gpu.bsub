@@ -7,4 +7,4 @@
 #BSUB -W 120
 
 
-../../go.sh -c lassen -m xlc -r ex1p.sh -n 1 -p 1 'mfem_devs="cuda:uvm"' max_p=7
+../../go.sh -c lassen -m xlc -r ex1p.sh -n 1 -p 1 'mfem_devs="cuda:uvm"'
