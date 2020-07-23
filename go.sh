@@ -260,8 +260,11 @@ function update_git_package()
       git clean -df && {
          local remote_ref=($(git ls-remote origin refs/heads/$pkg_git_branch))
          if [[ "$?" -ne 0 ]] || [[ -z "${remote_ref[0]}" ]]; then
-            echo "Invalid remote branch: $pkg_git_branch. Stop."
-            return 1
+            remote_ref=($(git ls-remote origin refs/tags/$pkg_git_branch))
+            if [[ "$?" -ne 0 ]] || [[ -z "${remote_ref[0]}" ]]; then
+               echo "Invalid remote branch/tag: $pkg_git_branch. Stop."
+               return 1
+            fi
          fi
          local local_ref="$(git rev-parse $pkg_git_branch 2> /dev/null)"
          if [[ "$?" -eq 0 ]] && [[ "${remote_ref[0]}" = "$local_ref" ]]; then
@@ -269,13 +272,14 @@ function update_git_package()
                echo "Package $pkg is up to date."
                return 0
             } || {
-               echo "Error checking out branch: $pkg_git_branch. Stop."
+               echo "Error checking out branch/tag: $pkg_git_branch. Stop."
                return 1
             }
          fi
       } && \
       git fetch origin --prune && \
-      git checkout -B "$pkg_git_branch" "origin/$pkg_git_branch" || {
+      git checkout -B "$pkg_git_branch" "origin/$pkg_git_branch" || \
+      git checkout "$pkg_git_branch" || {
          echo "Error updating $pkg. Stop."
          return 1
       }
@@ -287,7 +291,7 @@ function update_git_package()
       local current_ref="$(git rev-parse HEAD 2> /dev/null)"
       [[ "${current_ref}" == "${target_ref}" ]] && return 0
       git checkout "$pkg_git_branch" || {
-         echo "Error checking out branch: $pkg_git_branch. Stop."
+         echo "Error checking out branch/tag: $pkg_git_branch. Stop."
          echo "  If the branch name is correct, try the option -u/--update."
          return 1
       }
@@ -670,6 +674,39 @@ set_build_dirs || $exit_cmd 1
 
    build_packages $build_list || $exit_cmd 1
    echo
+}
+
+
+## Start a shell (when not running a test)
+
+[ -n "$start_shell" ] && [ -z "$run" ] && {
+   if [[ ! -t 1 ]]; then
+      echo "Standard output is not a terminal. Stop."
+      $exit_cmd 1
+   fi
+   echo "Reading shell commands, type 'c' to continue, 'exit' to stop ..."
+   echo
+   cd "$cur_dir"
+   set -o emacs
+   PS1='$ '
+   [[ -r $HOME/.bashrc ]] && source $HOME/.bashrc
+   HISTFILE="$root_dir/.bash_history"
+   history -c
+   history -r
+   # bind '"\\C-i": menu-complete'
+   alias c='break'
+   while cwd="$PWD/" cwd="${cwd#${root_dir}/}" cwd="${cwd%/}" \
+         prompt="[${cyan}benchmarks$none:$blue$cwd$clear]\$ " && \
+         read -p "$prompt" -e line; do
+      history -s "$line"
+      history -w
+      shopt -q -s expand_aliases
+      eval "$line"
+      shopt -q -u expand_aliases
+   done
+   [[ "${#line}" -eq 0 ]] && { echo; $exit_cmd 0; }
+   shopt -q -u expand_aliases
+   echo "Continuing ..."
 }
 
 

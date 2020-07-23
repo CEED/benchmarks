@@ -30,6 +30,7 @@ pkg_bld_dir="$OUT_DIR/hypre"
 HYPRE_DIR="$pkg_bld_dir"
 hypre_branch="${hypre_branch:-master}"
 pkg="hypre"
+HYPRE_BIGINT=${hypre_big_int:+YES}
 
 
 function hypre_clone()
@@ -87,7 +88,9 @@ function hypre_build()
       return 1
    }
    echo "Build successful."
-   : > "${pkg_bld_dir}_build_successful"
+   print_variables "$pkg_var_prefix" \
+      HYPRE_BRANCH HYPRE_BIGINT \
+      > "${pkg_bld_dir}_build_successful"
 }
 
 

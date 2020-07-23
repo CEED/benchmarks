@@ -31,6 +31,8 @@ MFEM_DIR="$pkg_bld_dir/install"
 # 'mfem_branch' can be set at the command line of the go.sh call
 mfem_branch="${mfem_branch:-master}"
 MFEM_BRANCH="${mfem_branch}"
+mfem_debug="${mfem_debug:-NO}"
+MFEM_DEBUG="${mfem_debug}"
 pkg_var_prefix="mfem_"
 pkg="MFEM (branch $mfem_branch)"
 
@@ -142,7 +144,9 @@ function mfem_build()
          -f "$MFEM_SOURCE_DIR/makefile" \
          PREFIX="$MFEM_DIR" \
          MFEM_USE_MPI=YES \
+         MFEM_DEBUG="$mfem_debug" \
          $MFEM_EXTRA_CONFIG \
+         MFEM_USE_SIMD=NO \
          MPICXX="$MPICXX" \
          OPTIM_FLAGS="$optim_flags" \
          HYPRE_DIR="$HYPRE_DIR/src/hypre" \
@@ -167,7 +171,7 @@ function mfem_build()
    }
    echo "Build successful."
    print_variables "$pkg_var_prefix" \
-      MFEM_BRANCH \
+      MFEM_BRANCH MFEM_DEBUG \
       HYPRE_DIR METIS_DIR METIS_VERSION CUDA_ENABLED cuda_home OCCA_DIR \
       RAJA_DIR OMP_ENABLED omp_flag LIBCEED_DIR SUNDIALS_DIR \
       > "${pkg_bld_dir}_build_successful"

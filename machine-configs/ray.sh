@@ -110,4 +110,6 @@ bind_sh=
 MPIEXEC=
 MPIEXEC_NP=
 
-cuda_path=${CUDA_HOME:-/usr/local/cuda}/bin
+cuda_home=${CUDA_HOME:-/usr/local/cuda}
+cuda_path=${cuda_home}/bin
+cuda_arch=sm_60
