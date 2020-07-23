@@ -29,8 +29,10 @@ HYPRE_SOURCE_DIR="$pkg_sources_dir/$pkg_src_dir"
 pkg_bld_dir="$OUT_DIR/hypre"
 HYPRE_DIR="$pkg_bld_dir"
 hypre_branch="${hypre_branch:-master}"
-pkg="hypre"
+HYPRE_BRANCH="${hypre_branch}"
 HYPRE_BIGINT=${hypre_big_int:+YES}
+pkg_var_prefix="hypre_"
+pkg="hypre"
 
 
 function hypre_clone()
