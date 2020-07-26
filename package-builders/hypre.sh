@@ -31,6 +31,8 @@ HYPRE_DIR="$pkg_bld_dir"
 hypre_branch="${hypre_branch:-master}"
 HYPRE_BRANCH="${hypre_branch}"
 HYPRE_BIGINT=${hypre_big_int:+YES}
+HYPRE_MIXEDINT=${hypre_mixed_int:+YES}
+HYPRE_DEBUG=${hypre_debug:+YES}
 pkg_var_prefix="hypre_"
 pkg="hypre"
 
@@ -66,9 +68,9 @@ function hypre_build()
          return 1
       }
    fi
-   local big_int_flag=""
-   if [[ -n "$hypre_big_int" ]]; then
-      big_int_flag="--enable-bigint"
+   local my_cflags="$CFLAGS"
+   if [ -n "$hypre_debug" ]; then
+      my_cflags="-g"
    fi
    echo "Building $pkg, sending output to ${pkg_bld_dir}_build.log ..." && {
       cd "$pkg_bld_dir/src" && \
@@ -78,10 +80,12 @@ function hypre_build()
       ./configure \
          CC="$MPICC" \
          CXX="$MPICXX" \
-         CFLAGS="$CFLAGS" \
-         CXXFLAGS="$CFLAGS" \
+         CFLAGS="$my_cflags" \
+         CXXFLAGS="$my_cflags" \
          $HYPRE_EXTRA_CONFIG \
-         $big_int_flag \
+         ${hypre_big_int:+--enable-bigint} \
+         ${hypre_mixed_int:+--enable-mixedint} \
+         ${hypre_debug:+--enable-debug} \
          --disable-fortran \
          --without-fei && \
       make -j $num_proc_build
@@ -91,7 +95,7 @@ function hypre_build()
    }
    echo "Build successful."
    print_variables "$pkg_var_prefix" \
-      HYPRE_BRANCH HYPRE_BIGINT \
+      HYPRE_BRANCH HYPRE_BIGINT HYPRE_MIXEDINT HYPRE_DEBUG \
       > "${pkg_bld_dir}_build_successful"
 }
 

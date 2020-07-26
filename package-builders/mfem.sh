@@ -31,8 +31,7 @@ MFEM_DIR="$pkg_bld_dir/install"
 # 'mfem_branch' can be set at the command line of the go.sh call
 mfem_branch="${mfem_branch:-master}"
 MFEM_BRANCH="${mfem_branch}"
-mfem_debug="${mfem_debug:-NO}"
-MFEM_DEBUG="${mfem_debug}"
+MFEM_DEBUG="${mfem_debug:+YES}"
 pkg_var_prefix="mfem_"
 pkg="MFEM (branch $mfem_branch)"
 
@@ -144,7 +143,7 @@ function mfem_build()
          -f "$MFEM_SOURCE_DIR/makefile" \
          PREFIX="$MFEM_DIR" \
          MFEM_USE_MPI=YES \
-         MFEM_DEBUG="$mfem_debug" \
+         ${mfem_debug:+MFEM_DEBUG=YES} \
          $MFEM_EXTRA_CONFIG \
          MFEM_USE_SIMD=NO \
          MPICXX="$MPICXX" \
