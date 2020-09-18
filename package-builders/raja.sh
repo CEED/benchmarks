@@ -36,7 +36,7 @@ function raja_clone()
 {
    pkg_repo_list=("git@github.com:LLNL/raja.git"
                   "https://github.com/LLNL/raja.git")
-   pkg_git_branch="master"
+   pkg_git_branch="main"
    cd "$pkg_sources_dir" || return 1
    if [[ -d "$pkg_src_dir" ]]; then
       update_git_package
