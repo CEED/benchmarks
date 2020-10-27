@@ -171,8 +171,9 @@ function mfem_build()
    echo "Build successful."
    print_variables "$pkg_var_prefix" \
       MFEM_BRANCH MFEM_DEBUG \
-      HYPRE_DIR METIS_DIR METIS_VERSION CUDA_ENABLED cuda_home OCCA_DIR \
-      RAJA_DIR OMP_ENABLED omp_flag LIBCEED_DIR SUNDIALS_DIR \
+      HYPRE_DIR METIS_DIR METIS_VERSION CUDA_ENABLED cuda_home \
+      HIP_ENABLED hip_home OCCA_DIR RAJA_DIR OMP_ENABLED omp_flag \
+      LIBCEED_DIR SUNDIALS_DIR \
       > "${pkg_bld_dir}_build_successful"
 }
 

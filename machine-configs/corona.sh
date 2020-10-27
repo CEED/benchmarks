@@ -41,6 +41,31 @@ function setup_hip()
     hip_lib=${hip_home}/lib64
 }
 
+function setup_gcc8()
+{
+    # Load additional modules from 'opt'; needed for the 'rocm' module
+    module load opt
+    # ROCm 3.8.0 is using /opt/rh/devtoolset-8 for linking with libstdc++, so
+    # we use the module gcc/8.3.1 which seems to be the same as the version in
+    # /opt/rh/devtoolset-8
+    module load gcc/8.3.1
+    module load mvapich2/2.3
+
+    # ROCm and HIP
+    module load rocm/3.8.0
+
+    MPICC=mpicc
+    MPICXX=mpicxx
+    CFLAGS="-O3"
+    # CXX11FLAG="--std=c++11 -fno-gpu-rdc"
+    # Used e.g. by libCEED:
+    NATIVE_CFLAG="-march=native"
+
+    hip_path=$(dirname $(which hipcc))
+    hip_home=$(dirname ${hip_path})
+    hip_lib=${hip_home}/lib64
+}
+
 function set_mpi_options()
 {
     echo "${cyan}MPI setup${none}"
@@ -48,7 +73,7 @@ function set_mpi_options()
     compose_mpi_run_command
 }
 
-valid_compilers="hip"
+valid_compilers="hip gcc8"
 
 num_proc_detect="$(getconf _NPROCESSORS_ONLN)"
 num_proc_build=${num_proc_build:-$num_proc_detect}

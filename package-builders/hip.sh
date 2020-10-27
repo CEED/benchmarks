@@ -40,7 +40,7 @@ function build_package()
 {
     echo "${cyan}HIP build_package${none}"
     if [[ -n "$HIP_ENABLED" ]]; then
-        echo "HIP is enabled."
+        echo "HIP is enabled. [ hip_home = $hip_home ]"
     else
         echo "Error: cannot enable HIP: 'hip_home' is not configured. Stop."
         return 1

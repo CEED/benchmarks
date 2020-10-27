@@ -81,10 +81,19 @@ function libceed_build()
       OPT_FLAGS+=" $NATIVE_CFLAG"
    fi
    # Check for optional packages used by backends
-   # Note: If OCCA already is built in OUT_DIR, libCEED will find it in ../occa
-   #       and use it; in particular, the next INFO message will be incorrect in
-   #       this case.
-   local OCCA_MAKE_OPTS=()
+   local CUDA_MAKE_OPTS=("CUDA_DIR=/disable-cuda")
+   if [[ -n "$CUDA_ENABLED" ]]; then
+      CUDA_MAKE_OPTS=("CUDA_DIR=${cuda_home}")
+   else
+      echo "${magenta}INFO: Building $pkg without CUDA ...${none}"
+   fi
+   local HIP_MAKE_OPTS=("HIP_DIR=/disable-hip")
+   if [[ -n "$HIP_ENABLED" ]]; then
+      HIP_MAKE_OPTS=("HIP_DIR=${hip_home}")
+   else
+      echo "${magenta}INFO: Building $pkg without HIP ...${none}"
+   fi
+   local OCCA_MAKE_OPTS=("OCCA_DIR=/disable-occa")
    if [[ -n "$OCCA_DIR" ]]; then
       OCCA_MAKE_OPTS=("OCCA_DIR=${OCCA_DIR}")
    else
@@ -100,6 +109,8 @@ function libceed_build()
          CXX="$MPICXX" \
          FC="$MPIF77" \
          OPT="$OPT_FLAGS" \
+         "${CUDA_MAKE_OPTS[@]}" \
+         "${HIP_MAKE_OPTS[@]}" \
          "${OCCA_MAKE_OPTS[@]}"
    } &> "${pkg_bld_dir}_build.log" || {
       echo " ... building $pkg FAILED, see log for details."
@@ -107,7 +118,7 @@ function libceed_build()
    }
    echo "Build successful."
    print_variables "$pkg_var_prefix" \
-      LIBCEED_BRANCH OCCA_DIR \
+      LIBCEED_BRANCH CUDA_ENABLED cuda_home HIP_ENABLED hip_home OCCA_DIR \
       > "${pkg_bld_dir}_build_successful"
 }
 

@@ -39,7 +39,7 @@ pkg="CUDA"
 function build_package()
 {
    if [[ -n "$CUDA_ENABLED" ]]; then
-      echo "CUDA is enabled."
+      echo "CUDA is enabled. [ cuda_home = $cuda_home ]"
    else
       echo "Error: cannot enable CUDA: 'cuda_home' is not configured. Stop."
       return 1

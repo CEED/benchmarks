@@ -39,7 +39,7 @@ pkg="OpenMP"
 function build_package()
 {
    if [[ -n "$OMP_ENABLED" ]]; then
-      echo "OpenMP is enabled."
+      echo "OpenMP is enabled. [ omp_flag = $omp_flag ]"
    else
       echo "Error: cannot enable OpenMP: 'omp_flag' is not configured. Stop."
       return 1
