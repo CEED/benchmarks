@@ -31,7 +31,7 @@ if [[ -z "$libceed_dir" ]]; then
    LIBCEED_SOURCE_DIR="$pkg_sources_dir/$pkg_src_dir"
    pkg_bld_dir="$OUT_DIR/libceed"
    LIBCEED_DIR="$pkg_bld_dir"
-   libceed_branch="${libceed_branch:-master}"
+   libceed_branch="${libceed_branch:-main}"
    LIBCEED_BRANCH="${libceed_branch}"
    pkg_var_prefix="libceed_"
    pkg="libCEED (branch $libceed_branch)"
