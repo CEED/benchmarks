@@ -152,8 +152,7 @@ int main(int argc, char *argv[])
    a->FormLinearSystem(ess_tdof_list, x, *b, A, X, B);
 
    // 13. Solve the linear system A X = B.
-   //     * With full assembly, use the BoomerAMG preconditioner from hypre.
-   //     * With partial assembly, use Jacobi smoothing, for now.
+   //     * With full assembly, use the preconditioner from AmgX.
    bool amgx_verbose = false;
    Solver *prec = new AmgXSolver(MPI_COMM_WORLD, AmgXSolver::PRECONDITIONER,
                                  amgx_verbose);
