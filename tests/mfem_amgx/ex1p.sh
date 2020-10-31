@@ -39,7 +39,7 @@ function run_tests()
    # 'max_dofs_proc' can be set on the command line
    local l_max_dofs_proc=${max_dofs_proc:-4200000}
    # 'mfem_devs' can be set on the command line
-   local l_mfem_devs=(${mfem_devs:-cpu})
+   local l_mfem_devs=(${mfem_devs:-cuda})
    local dim=3
    local args=
    for dev in ${l_mfem_devs[@]}; do
