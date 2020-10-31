@@ -153,12 +153,12 @@ function mfem_build()
          MFEM_USE_MPI=YES \
          ${mfem_debug:+MFEM_DEBUG=YES} \
          $MFEM_EXTRA_CONFIG \
+         MFEM_USE_SIMD=NO \
          MPICXX="$MPICXX" \
          OPTIM_FLAGS="$optim_flags" \
          HYPRE_DIR="$HYPRE_DIR/src/hypre" \
          METIS_DIR="$METIS_DIR" \
          MFEM_USE_METIS_5="$METIS_5" \
-         MFEM_USE_SIMD=NO \
          "${CUDA_MAKE_OPTS[@]}" \
          "${HIP_MAKE_OPTS[@]}" \
          "${OCCA_MAKE_OPTS[@]}" \
