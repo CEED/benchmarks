@@ -81,7 +81,7 @@ function mfem_build()
       CUDA_MAKE_OPTS=(
          "MFEM_USE_CUDA=YES"
          "CUDA_CXX=$cuda_home/bin/nvcc"
-         "CUDA_ARCH=${cuda_arch:-sm_60}")
+         "CUDA_ARCH=${cuda_arch:-sm_70}")
       xcompiler="-Xcompiler="
       optim_flags="$cxx11_flag $xcompiler\"$CFLAGS\""
    else
@@ -110,6 +110,14 @@ function mfem_build()
          "RAJA_DIR=$RAJA_DIR")
    else
       echo "${magenta}INFO: Building $pkg without RAJA ...${none}"
+   fi
+   local AMGX_MAKE_OPTS=()
+   if [[ -n "$AMGX_DIR" ]]; then
+      RAJA_MAKE_OPTS=(
+         "MFEM_USE_AMGX=YES"
+         "AMGX_DIR=$AMGX_DIR")
+   else
+      echo "${magenta}INFO: Building $pkg without AMGX ...${none}"
    fi
    local OMP_MAKE_OPTS=()
    if [[ -n "$OMP_ENABLED" ]]; then
@@ -145,16 +153,17 @@ function mfem_build()
          MFEM_USE_MPI=YES \
          ${mfem_debug:+MFEM_DEBUG=YES} \
          $MFEM_EXTRA_CONFIG \
-         MFEM_USE_SIMD=NO \
          MPICXX="$MPICXX" \
          OPTIM_FLAGS="$optim_flags" \
          HYPRE_DIR="$HYPRE_DIR/src/hypre" \
          METIS_DIR="$METIS_DIR" \
          MFEM_USE_METIS_5="$METIS_5" \
+         MFEM_USE_SIMD=NO \
          "${CUDA_MAKE_OPTS[@]}" \
          "${HIP_MAKE_OPTS[@]}" \
          "${OCCA_MAKE_OPTS[@]}" \
          "${RAJA_MAKE_OPTS[@]}" \
+         "${AMGX_MAKE_OPTS[@]}" \
          "${OMP_MAKE_OPTS[@]}" \
          "${LIBCEED_MAKE_OPTS[@]}" \
          "${SUNDIALS_MAKE_OPTS[@]}" \
