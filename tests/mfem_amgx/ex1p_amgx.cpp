@@ -153,9 +153,45 @@ int main(int argc, char *argv[])
 
    // 13. Solve the linear system A X = B.
    //     * With full assembly, use the preconditioner from AmgX.
+
    bool amgx_verbose = false;
-   Solver *prec = new AmgXSolver(MPI_COMM_WORLD, AmgXSolver::PRECONDITIONER,
-                                 amgx_verbose);
+
+   string amgx_config = "{\n"
+                    " \"config_version\": 2, \n"
+                    " \"solver\": { \n"
+                    "   \"solver\": \"AMG\", \n"
+                    "     \"smoother\": { \n"
+                    "     \"scope\": \"jacobi\", \n"
+                    "     \"solver\": \"BLOCK_JACOBI\", \n"
+                    "     \"relaxation_factor\": 0.7 \n"
+                    "       }, \n"
+                    "   \"presweeps\": 1, \n"
+                    "   \"interpolator\": \"D2\", \n"
+                    "   \"max_row_sum\" : 0.9, \n"
+                    "   \"strength_threshold\" : 0.25, \n"
+                    "   \"postsweeps\": 1, \n"
+                    "   \"max_iters\": 1, \n"
+                    "   \"convergence\": \"ABSOLUTE\", \n"
+                    "   \"cycle\": \"V\"";
+   if (amgx_verbose)
+   {
+     amgx_config = amgx_config + ",\n"
+                    "   \"obtain_timings\": 1, \n"
+                    "   \"monitor_residual\": 1, \n"
+                    "   \"print_grid_stats\": 1, \n"
+                    "   \"print_solve_stats\": 1 \n";
+   }
+   else
+   {
+     amgx_config = amgx_config + "\n";
+   }
+   amgx_config = amgx_config + " }\n" + "}\n";
+
+   AmgXSolver *prec = new AmgXSolver;
+   prec->ConfigureAs(AmgXSolver::PRECONDITIONER);
+   prec->ReadParameters(amgx_config, AmgXSolver::INTERNAL);
+   prec->InitExclusiveGPU(MPI_COMM_WORLD);
+
    CGSolver cg(MPI_COMM_WORLD);
    const int max_cg_iter = 200;
    const int cg_print_level = 3;

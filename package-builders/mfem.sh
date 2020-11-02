@@ -113,7 +113,7 @@ function mfem_build()
    fi
    local AMGX_MAKE_OPTS=()
    if [[ -n "$AMGX_DIR" ]]; then
-      RAJA_MAKE_OPTS=(
+      AMGX_MAKE_OPTS=(
          "MFEM_USE_AMGX=YES"
          "AMGX_DIR=$AMGX_DIR")
    else
