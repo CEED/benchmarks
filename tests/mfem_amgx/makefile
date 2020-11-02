@@ -25,7 +25,8 @@ CONFIG_MK = $(or $(wildcard\
 MFEM_LIB_FILE = mfem_is_not_built
 -include $(CONFIG_MK)
 
-EX1 = $(BLD)ex1p_amgx
+EX1 = $(BLD)ex1p_amgx_precon
+EX2 = $(BLD)ex1p_amgx_solver
 ifeq ($(MFEM_USE_MPI),NO)
    $(error A parallel MFEM build is required.)
 endif
@@ -41,7 +42,7 @@ endif
 $(BLD)%: $(SRC)%.cpp $(MFEM_LIB_FILE) $(CONFIG_MK)
 	$(MFEM_CXX) $(MFEM_FLAGS) $< -o $@ $(MFEM_LIBS)
 
-all: $(EX1)
+all: $(EX1) $(EX2)
 
 # Generate an error message if the MFEM library is not built and exit
 $(MFEM_LIB_FILE):
