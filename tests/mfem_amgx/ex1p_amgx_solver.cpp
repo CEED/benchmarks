@@ -170,14 +170,14 @@ int main(int argc, char *argv[])
                     "     \"interpolator\": \"D2\", \n"
                     "     \"max_row_sum\" : 0.9, \n"
                     "     \"strength_threshold\" : 0.25, \n"
-                    "     \"max_iters\": 2, \n"
+                    "     \"max_iters\": 0, \n"
                     "     \"scope\": \"amg\", \n"
                     "     \"max_levels\": 100, \n"
                     "     \"cycle\": \"V\", \n"
                     "     \"postsweeps\": 1 \n"
                     "    }, \n"
                     "  \"solver\": \"PCG\", \n"
-                    "  \"max_iters\": 100, \n"
+                    "  \"max_iters\": 0, \n"
                     "  \"convergence\": \"RELATIVE_MAX\", \n"
                     "  \"scope\": \"main\", \n"
                     "  \"tolerance\": 1e-12, \n"
@@ -197,7 +197,7 @@ int main(int argc, char *argv[])
     amgx_config = amgx_config + "   } \n" + "} \n";
       
    AmgXSolver *amgx = new AmgXSolver;
-   amgx->ConfigureAs(AmgXSolver::SOLVER);
+   amgx->SetConvergenceCheck(true);
    amgx->ReadParameters(amgx_config, AmgXSolver::INTERNAL);
    amgx->InitExclusiveGPU(MPI_COMM_WORLD);
 
@@ -227,7 +227,7 @@ int main(int argc, char *argv[])
    // Print timing results.
    if (myid == 0)
    {
-      int cg_iter = amgx->GetNumIterations();
+      int cg_iter = amgx->GetNumIterations()-1;
       // Note: In the pcg algorithm, the number of operator Mult() calls is
       //       N_iter and the number of preconditioner Mult() calls is N_iter+1.
       cout << '\n'

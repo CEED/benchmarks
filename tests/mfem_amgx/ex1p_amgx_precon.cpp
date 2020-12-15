@@ -188,7 +188,7 @@ int main(int argc, char *argv[])
    amgx_config = amgx_config + " }\n" + "}\n";
 
    AmgXSolver *prec = new AmgXSolver;
-   prec->ConfigureAs(AmgXSolver::PRECONDITIONER);
+   prec->SetConvergenceCheck(false);
    prec->ReadParameters(amgx_config, AmgXSolver::INTERNAL);
    prec->InitExclusiveGPU(MPI_COMM_WORLD);
 
