@@ -30,8 +30,8 @@ set1=sorted(
     for run in runs])
 
 out.write('''\
-    mfem   |    |  comp  |     |number of |  amg       |         |               | cg-iter dps
-   device  |  p |  iler  |  np |unknowns  |  setup     | No Iter | time-per-iter |   millions
+    mfem   |    |  comp  |     |number of |  amg       | number of  |               | cg-iter dps
+   device  |  p |  iler  |  np |unknowns  |  setup     | iterations | time-per-iter |   millions
 -----------+----+--------+-----+---------+-------------+---------+---------------+-------------
 ''')
 line_fmt=' %9s | %2i | %6s | %3i | %6i  | %11.6f | %7i | %11.6f |%11.6f\n'
