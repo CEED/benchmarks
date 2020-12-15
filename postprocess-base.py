@@ -96,9 +96,11 @@ while True:
          state=2
       elif 'setup' in line: 
          data['amg-setup'] = float(line.split()[1])
+      #Used when using AmgX as a solver
+      elif 'solve(per iteration)' in line:
+         data['time-per-iter'] = float(line.split()[2])
       elif 'Total iterations' in line: 
          data['iterations'] = float(line.split()[2])
-         print(line.split())
       elif '"DOFs/sec" in CG' in line:
          # out.write(lnfmt%i+': %s'%line)
          data['cg-iteration-dps']=1e6*float(line.split(' ')[3])
