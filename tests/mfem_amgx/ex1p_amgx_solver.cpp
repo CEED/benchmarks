@@ -170,14 +170,14 @@ int main(int argc, char *argv[])
                     "     \"interpolator\": \"D2\", \n"
                     "     \"max_row_sum\" : 0.9, \n"
                     "     \"strength_threshold\" : 0.25, \n"
-                    "     \"max_iters\": 0, \n"
+                    "     \"max_iters\": 2, \n"
                     "     \"scope\": \"amg\", \n"
                     "     \"max_levels\": 100, \n"
                     "     \"cycle\": \"V\", \n"
                     "     \"postsweeps\": 1 \n"
                     "    }, \n"
                     "  \"solver\": \"PCG\", \n"
-                    "  \"max_iters\": 0, \n"
+                    "  \"max_iters\": 100, \n"
                     "  \"convergence\": \"RELATIVE_MAX\", \n"
                     "  \"scope\": \"main\", \n"
                     "  \"tolerance\": 1e-12, \n"
@@ -227,7 +227,7 @@ int main(int argc, char *argv[])
    // Print timing results.
    if (myid == 0)
    {
-      int cg_iter = amgx->GetNumIterations()-1;
+      int cg_iter = amgx->GetNumIterations();
       // Note: In the pcg algorithm, the number of operator Mult() calls is
       //       N_iter and the number of preconditioner Mult() calls is N_iter+1.
       cout << '\n'
