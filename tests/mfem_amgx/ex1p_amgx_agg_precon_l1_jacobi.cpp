@@ -156,57 +156,56 @@ int main(int argc, char *argv[])
 
    bool amgx_verbose = true;
 
-   string amgx_config = "{ \n"
+   string amgx_config = "{\n"
                     " \"config_version\": 2, \n"
                     " \"solver\": { \n"
-                    "   \"preconditioner\": { \n"
-                    "     \"solver\": \"AMG\", \n"
+                    "   \"algorithm\": \"AGGREGATION\", \n"
+                    "   \"solver\": \"AMG\", \n"
                     "     \"smoother\": { \n"
                     "     \"scope\": \"jacobi\", \n"
-                    "     \"solver\": \"BLOCK_JACOBI\", \n"
-                    "     \"relaxation_factor\": 0.7 \n"
+                    "     \"solver\": \"JACOBI_L1\" \n"
                     "       }, \n"
-                    "     \"presweeps\": 1, \n"
-                    "     \"interpolator\": \"D2\", \n"
-                    "     \"max_row_sum\" : 0.9, \n"
-                    "     \"strength_threshold\" : 0.25, \n"
-                    "     \"max_iters\": 1, \n"
-                    "     \"scope\": \"amg\", \n"
-                    "     \"max_levels\": 100, \n"
-                    "     \"cycle\": \"V\", \n"
-                    "     \"postsweeps\": 1 \n"
-                    "    }, \n"
-                    "  \"solver\": \"PCG\", \n"
-                    "  \"max_iters\": 100, \n"
-                    "  \"convergence\": \"RELATIVE_MAX\", \n"
-                    "  \"scope\": \"main\", \n"
-                    "  \"tolerance\": 1e-12, \n"
-                    "  \"norm\": \"L2\" ";
-    if (amgx_verbose)
-    {
-      amgx_config = amgx_config + ", \n"
-                   "        \"obtain_timings\": 1, \n"
-                   "        \"monitor_residual\": 1, \n"
-                   "        \"print_grid_stats\": 1, \n"
-                   "        \"print_solve_stats\": 1 \n";
-    }
-    else
-    {
-      amgx_config = amgx_config + "\n";
-    }
-    amgx_config = amgx_config + "   } \n" + "} \n";
-      
-   AmgXSolver *amgx = new AmgXSolver;
-   amgx->SetConvergenceCheck(true);
-   amgx->ReadParameters(amgx_config, AmgXSolver::INTERNAL);
-   amgx->InitExclusiveGPU(MPI_COMM_WORLD);
+                    "   \"presweeps\": 1, \n"
+                    "   \"interpolator\": \"D2\", \n"
+                    "   \"selector\": \"SIZE_2\", \n" 
+                    "   \"max_row_sum\" : 0.9, \n"
+                    "   \"strength_threshold\" : 0.25, \n"
+                    "   \"postsweeps\": 1, \n"
+                    "   \"max_iters\": 1, \n"
+                    "   \"cycle\": \"V\"";
+   if (amgx_verbose)
+   {
+     amgx_config = amgx_config + ",\n"
+                   "   \"obtain_timings\": 1 \n";
+   }
+   else
+   {
+     amgx_config = amgx_config + "\n";
+   }
+   amgx_config = amgx_config + " }\n" + "}\n";
 
-   amgx->SetOperator(*A.As<HypreParMatrix>());
+   AmgXSolver *prec = new AmgXSolver;
+   prec->SetConvergenceCheck(false);
+   prec->ReadParameters(amgx_config, AmgXSolver::INTERNAL);
+   prec->InitExclusiveGPU(MPI_COMM_WORLD);
+
+   CGSolver cg(MPI_COMM_WORLD);
+   const int max_cg_iter = 200;
+   const int cg_print_level = 3;
+   cg.SetRelTol(1e-12);
+   cg.SetMaxIter(max_cg_iter);
+   cg.SetPrintLevel(cg_print_level);
+   if (prec) { cg.SetPreconditioner(*prec); }
+   cg.SetOperator(*A);
 
    // Warm-up CG solve (in case of JIT to avoid timing it)
    {
       Vector Xtmp(X);
-      amgx->Mult(B, Xtmp);
+      cg.SetMaxIter(2);
+      cg.SetPrintLevel(-1);
+      cg.Mult(B, Xtmp);
+      cg.SetMaxIter(max_cg_iter);
+      cg.SetPrintLevel(cg_print_level);
    }
 
    // Sync all ranks
@@ -217,7 +216,7 @@ int main(int argc, char *argv[])
    
    // Start & Stop CG timing.
    tic_toc.Start();
-   amgx->Mult(B, X);
+   cg.Mult(B, X);
    tic_toc.Stop();
    double rt_min, rt_max, my_rt;
    my_rt = tic_toc.RealTime();
@@ -227,7 +226,7 @@ int main(int argc, char *argv[])
    // Print timing results.
    if (myid == 0)
    {
-      int cg_iter = amgx->GetNumIterations();
+      int cg_iter = cg.GetNumIterations();
       // Note: In the pcg algorithm, the number of operator Mult() calls is
       //       N_iter and the number of preconditioner Mult() calls is N_iter+1.
       cout << '\n'
@@ -243,7 +242,7 @@ int main(int argc, char *argv[])
            << 1e-6*size*cg_iter/rt_min << ") million.\n"
            << endl;
    }
-   delete amgx;
+   delete prec;
 
    // 14. Recover the parallel grid function corresponding to X. This is the
    //     local finite element solution on each processor.
