@@ -29,6 +29,10 @@ EX1 = $(BLD)ex1p_amgx_precon
 EX2 = $(BLD)ex1p_amgx_solver
 EX3 = $(BLD)ex1p_amgx_agg_solver
 EX4 = $(BLD)ex1p_amgx_agg_precon
+EX5 = $(BLD)ex1p_amgx_precon_l1_jacobi
+EX6 = $(BLD)ex1p_amgx_solver_l1_jacobi
+EX7 = $(BLD)ex1p_amgx_agg_solver_l1_jacobi
+EX8 = $(BLD)ex1p_amgx_agg_precon_l1_jacobi
 ifeq ($(MFEM_USE_MPI),NO)
    $(error A parallel MFEM build is required.)
 endif
@@ -44,7 +48,7 @@ endif
 $(BLD)%: $(SRC)%.cpp $(MFEM_LIB_FILE) $(CONFIG_MK)
 	$(MFEM_CXX) $(MFEM_FLAGS) $< -o $@ $(MFEM_LIBS)
 
-all: $(EX1) $(EX2) $(EX3) $(EX4)
+all: $(EX1) $(EX2) $(EX3) $(EX4) $(EX5) $(EX6) $(EX7) $(EX8)
 
 # Generate an error message if the MFEM library is not built and exit
 $(MFEM_LIB_FILE):
