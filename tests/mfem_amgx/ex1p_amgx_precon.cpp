@@ -154,7 +154,7 @@ int main(int argc, char *argv[])
    // 13. Solve the linear system A X = B.
    //     * With full assembly, use the preconditioner from AmgX.
 
-   bool amgx_verbose = false;
+   bool amgx_verbose = true;
 
    string amgx_config = "{\n"
                     " \"config_version\": 2, \n"
@@ -171,15 +171,11 @@ int main(int argc, char *argv[])
                     "   \"strength_threshold\" : 0.25, \n"
                     "   \"postsweeps\": 1, \n"
                     "   \"max_iters\": 1, \n"
-                    "   \"convergence\": \"ABSOLUTE\", \n"
                     "   \"cycle\": \"V\"";
    if (amgx_verbose)
    {
      amgx_config = amgx_config + ",\n"
-                    "   \"obtain_timings\": 1, \n"
-                    "   \"monitor_residual\": 1, \n"
-                    "   \"print_grid_stats\": 1, \n"
-                    "   \"print_solve_stats\": 1 \n";
+                   "   \"obtain_timings\": 1 \n";
    }
    else
    {
@@ -232,6 +228,8 @@ int main(int argc, char *argv[])
       int cg_iter = cg.GetNumIterations();
       // Note: In the pcg algorithm, the number of operator Mult() calls is
       //       N_iter and the number of preconditioner Mult() calls is N_iter+1.
+      cout << '\n'
+           << "Total iterations "<< cg_iter;
       cout << '\n'
            << "Total CG time:    " << rt_max << " (" << rt_min << ") sec."
            << endl;

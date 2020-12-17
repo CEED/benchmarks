@@ -94,13 +94,15 @@ while True:
          # out.write('\n'+lnfmt%i+': %s'%line)
          # out.write('*'*len(lnfmt%i)+':    --mesh-p %i\n'%mesh_p)
          state=2
-      elif 'setup' in line: 
+      elif 'setup' in line:
          data['amg-setup'] = float(line.split()[1])
       #Used when using AmgX as a solver
       elif 'solve(per iteration)' in line:
-         data['time-per-iter'] = float(line.split()[2])
-      elif 'Total iterations' in line: 
+         data['cost-of-precon'] = float(line.split()[2])
+      elif 'Total iterations' in line:
          data['iterations'] = float(line.split()[2])
+      elif 'Time per CG step' in line:
+         data['time-per-cg-step'] = float(line.split()[4])
       elif '"DOFs/sec" in CG' in line:
          # out.write(lnfmt%i+': %s'%line)
          data['cg-iteration-dps']=1e6*float(line.split(' ')[3])
