@@ -26,14 +26,14 @@ set1=sorted(
    [(run['mfem-device'],
      run['order'],run['compiler'],run['num-procs'],
      run['num-unknowns'],run['amg-setup'], run['cost-of-precon'] ,run['iterations'],
-     run['time-per-cg-step'], run['cg-iteration-dps']/1e6)
+     run['time-per-cg-step'], run['total-cg-time'], run['cg-iteration-dps']/1e6)
     for run in runs])
 
 out.write('''\
-    mfem   |    |  comp  |     |number of |  amg   | cost of  | number of  | time per | cg-iter dps
-   device  |  p |  iler  |  np |unknowns  |  setup |  precon  | iterations | cg step |   millions
------------+----+--------+-----+---------+---------+----+---------+---------------+-------------
+    mfem   |    |  comp  |     |number of |  amg      | cost of     | number of  | time per    |   total   |cg-iter dps
+   device  |  p |  iler  |  np |unknowns  |  setup    |  precon     | iterations | cg step     |    cg time |millions
+-----------+----+--------+-----+---------+-------------+-------------+---------+---------------+-----------+--------------
 ''')
-line_fmt=' %9s | %2i | %6s | %3i | %6i  | %11.6f | %11.8f | %7i | %11.6f |%11.6f\n'
+line_fmt=' %9s | %2i | %6s | %3i | %6i  | %11.6f | %11.8f | %7i | %11.6f |  %11.6f |%11.6f\n'
 for run in set1:
    out.write(line_fmt%run)

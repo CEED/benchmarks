@@ -103,6 +103,8 @@ while True:
          data['iterations'] = float(line.split()[2])
       elif 'Time per CG step' in line:
          data['time-per-cg-step'] = float(line.split()[4])
+      elif 'Total CG time' in line:
+         data['total-cg-time'] = float(line.split()[3])
       elif '"DOFs/sec" in CG' in line:
          # out.write(lnfmt%i+': %s'%line)
          data['cg-iteration-dps']=1e6*float(line.split(' ')[3])
