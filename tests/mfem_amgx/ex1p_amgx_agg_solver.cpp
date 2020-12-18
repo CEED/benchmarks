@@ -178,6 +178,7 @@ int main(int argc, char *argv[])
                     "    }, \n"
                     "  \"solver\": \"PCG\", \n"
                     "  \"max_iters\": 100, \n"
+                    "  \"convergence\": \"RELATIVE_INI_CORE\", \n"
                     "  \"scope\": \"main\", \n"
                     "  \"tolerance\": 1e-12, \n"
                     "  \"norm\": \"L2\" ";

@@ -126,7 +126,7 @@ for plt in pl_set:
       qpts_1d=[int(q**(1./3)+0.5) for q in qpts]
 
       d=[[run['order'],run['num-elem'],1.*run['num-unknowns']/num_nodes/vdim,
-           safe_div(run['num-unknowns'],run[my_y_data])]
+           safe_div(run['num-unknowns'],run[my_y_data])/1e6]
 #          run['cg-iteration-dps']/num_nodes]
          for run in pl_runs
          if run['order']==sol_p and

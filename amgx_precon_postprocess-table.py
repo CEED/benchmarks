@@ -19,21 +19,27 @@
 #####   Load the data
 execfile('amgx_precon_postprocess-base.py')
 
+def safe_div(x,y):
+    if y == 0:
+        return 0
+    return x / y
 
 #####   Sample data output
 
 set1=sorted(
    [(run['mfem-device'],
      run['order'],run['compiler'],run['num-procs'],
-     run['num-unknowns'],run['amg-setup'], run['cost-of-precon'] ,run['iterations'],
-     run['time-per-cg-step'], run['total-cg-time'], run['cg-iteration-dps']/1e6)
+     run['num-unknowns'], safe_div(run['num-unknowns'],run['cost-of-precon'])/1e6 , run['iterations'],
+     safe_div(run['num-unknowns'],run['time-per-cg-step'])/1e6, safe_div(run['num-unknowns'],
+     run['total-cg-time'])/1e6, safe_div(run['num-unknowns'],run['amg-setup'])/1e6
+     ,run['cg-iteration-dps']/1e6)
     for run in runs])
 
 out.write('''\
-    mfem   |    |  comp  |     |number of |  amg      | cost of     | number of  | time per    |   total   |cg-iter dps
-   device  |  p |  iler  |  np |unknowns  |  setup    |  precon     | iterations | cg step     |    cg time |millions
------------+----+--------+-----+---------+-------------+-------------+---------+---------------+-----------+--------------
+    mfem   |    |  comp  |     |number of | precon dps    | number of  | cg-1-it dps |  cg-a-it dps | amg-set dps  |cg-iter dps
+   device  |  p |  iler  |  np |unknowns  |  millions     | iterations | millions    |  millions    |   millions   |millions
+-----------+----+--------+-----+---------+-------------+-------------+-------------+--------------+--------------+-------------
 ''')
-line_fmt=' %9s | %2i | %6s | %3i | %6i  | %11.6f | %11.8f | %7i | %11.6f |  %11.6f |%11.6f\n'
+line_fmt=' %9s | %2i | %6s | %3i | %6i  | %11.6f | %7i | %11.8f | %11.6f |  %11.6f |%11.6f\n'
 for run in set1:
    out.write(line_fmt%run)
