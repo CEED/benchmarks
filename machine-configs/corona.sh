@@ -52,7 +52,8 @@ function setup_gcc8()
     module load mvapich2/2.3
 
     # ROCm and HIP
-    module load rocm/3.8.0
+    # module load rocm/3.8.0
+    module load rocm/3.10.0
 
     MPICC=mpicc
     MPICXX=mpicxx
