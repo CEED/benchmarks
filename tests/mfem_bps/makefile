@@ -16,13 +16,16 @@
 # exascale computing imperative.
 
 # Use the MFEM build directory
-MFEM_DIR = ../../mfem
+#MFEM_DIR = ../../mfem
+MFEM_DIR = $(HOME)/home/benchmarks/builds/fugaku_gcc10/mfem
 SRC =
-BLD =
+BLD = $(HOME)/home/benchmarks/builds/fugaku_gcc10/mfem_bps/
 CONFIG_MK = $(MFEM_DIR)/config/config.mk
 
 MFEM_LIB_FILE = mfem_is_not_built
--include $(CONFIG_MK)
+include $(CONFIG_MK)
+
+help:;@echo $(MFEM_LIBS)
 
 # EXTRA_CXXFLAGS - extra flags that will be added to MFEM_CXXFLAGS. Some options
 # for these flags are set below, based on MFEM_CXX. However, they can be
