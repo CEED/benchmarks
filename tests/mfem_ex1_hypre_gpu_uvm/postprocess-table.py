@@ -25,14 +25,15 @@ execfile('postprocess-base.py')
 set1=sorted(
    [(run['mfem-device'],
      run['order'],run['compiler'],run['num-procs'],
-     run['num-unknowns'],run['cg-iteration-dps']/1e6)
+     run['num-unknowns'],run["num-iter"],run['cg-1-iter-dps'],
+     run['cg-all-iter-dps'],run['amg-setup-dps'])
     for run in runs])
 
 out.write('''\
-    mfem   |    |  comp  |     | number of | cg-iter dps
-   device  |  p |  iler  |  np |  unknowns |   millions
------------+----+--------+-----+-----------+-------------
+    mfem   |    |  comp  |     | number of | number of | cg-1-it dps | cg-a-it dps | amg-set dps
+   device  |  p |  iler  |  np |  unknowns | iterations|   millions  |   millions  |   millions
+-----------+----+--------+-----+-----------+-----------+-------------+-------------+-------------
 ''')
-line_fmt=' %9s | %2i | %6s | %3i | %9i | %11.6f\n'
+line_fmt=' %9s | %2i | %6s | %3i | %9i | %9i | %11.6f | %11.6f | %11.6f \n'
 for run in set1:
    out.write(line_fmt%run)

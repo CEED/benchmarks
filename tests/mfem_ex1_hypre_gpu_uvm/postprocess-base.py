@@ -74,7 +74,8 @@ while True:
          ##
          ## This is the beginning of a new run.
          ##
-         if 'cg-iteration-dps' in data:
+         if 'cg-1-iter-dps' in data:
+            data["num-iter"] = int(round(data["cg-1-iter-dps"]/data["cg-all-iter-dps"]))
             runs.append(data)
             # print
             # pprint.pprint(data)
@@ -93,17 +94,17 @@ while True:
          # out.write('\n'+lnfmt%i+': %s'%line)
          # out.write('*'*len(lnfmt%i)+':    --mesh-p %i\n'%mesh_p)
          state=2
-      elif '"DOFs/sec" in CG' in line:
-         # out.write(lnfmt%i+': %s'%line)
-         data['cg-iteration-dps']=1e6*float(line.split(' ')[3])
+      elif 'DOFs/sec in 1 CG it' in line:
+         data['cg-1-iter-dps']=float(line.split(':')[1].split('(')[0])
+      elif 'DOFs/sec in all CG it' in line:
+         data['cg-all-iter-dps']=float(line.split(':')[1].split('(')[0])
+      elif 'DOFs/sec in AMG setup' in line:
+         data['amg-setup-dps']=float(line.split(':')[1].split('(')[0])
       elif 'Number of finite element unknowns' in line:
-         # out.write(lnfmt%i+': %s'%line)
          data['num-unknowns']=long(line.rsplit(None,1)[1])
       elif 'Number of qudrature points per element' in line:
-         # out.write(lnfmt%i+': %s'%line)
          data['quadrature-pts']=int(line.split(' = ',1)[1])
       elif 'Total number of elements:' in line:
-         # out.write(lnfmt%i+': %s'%line)
          data['num-elem']=int(line.rsplit(None,1)[1])
       ##
    elif state==3:
@@ -119,7 +120,8 @@ while True:
       else:
          state=1
 
-if 'cg-iteration-dps' in data:
+if 'cg-1-iter-dps' in data:
+   data["num-iter"] = int(round(data["cg-1-iter-dps"]/data["cg-all-iter-dps"]))
    runs.append(data)
    # print
    # pprint.pprint(data)

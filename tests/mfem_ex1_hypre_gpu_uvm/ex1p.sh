@@ -35,9 +35,9 @@ function run_tests()
    # 'min_p' can be set on the command line
    local l_min_p=${min_p:-1}
    # 'max_p' can be set on the command line
-   local l_max_p=${max_p:-4}
+   local l_max_p=${max_p:-2}
    # 'max_dofs_proc' can be set on the command line
-   local l_max_dofs_proc=${max_dofs_proc:-4200000}
+   local l_max_dofs_proc=${max_dofs_proc:-2100000}
    # 'mfem_devs' can be set on the command line
    local l_mfem_devs=(${mfem_devs:-cuda:uvm})
    local dim=3

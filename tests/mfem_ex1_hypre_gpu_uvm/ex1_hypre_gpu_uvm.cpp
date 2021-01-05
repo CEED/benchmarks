@@ -165,14 +165,21 @@ int main(int argc, char *argv[])
    cg.SetOperator(*A);
 
    // Warm-up CG solve (in case of JIT to avoid timing it)
-   {
-      Vector Xtmp(X);
-      cg.SetMaxIter(2);
-      cg.SetPrintLevel(-1);
-      cg.Mult(B, Xtmp);
-      cg.SetMaxIter(max_cg_iter);
-      cg.SetPrintLevel(cg_print_level);
-   }
+   Vector Xtmp(X);
+   cg.SetMaxIter(1);
+ 
+   double warm_t_min, warm_t_max, my_warm_t;
+   MPI_Barrier(pmesh->GetComm());
+   tic_toc.Clear();
+   tic_toc.Start();
+   cg.Mult(B, Xtmp);
+   tic_toc.Stop();
+   my_warm_t = tic_toc.RealTime();
+   MPI_Reduce(&my_warm_t, &warm_t_min, 1, MPI_DOUBLE, MPI_MIN, 0, pmesh->GetComm());
+   MPI_Reduce(&my_warm_t, &warm_t_max, 1, MPI_DOUBLE, MPI_MAX, 0, pmesh->GetComm());
+ 
+   cg.SetMaxIter(max_cg_iter);
+   cg.SetPrintLevel(cg_print_level);
 
    // Sync all ranks
    MPI_Barrier(pmesh->GetComm());
@@ -189,22 +196,40 @@ int main(int argc, char *argv[])
    MPI_Reduce(&my_rt, &rt_min, 1, MPI_DOUBLE, MPI_MIN, 0, pmesh->GetComm());
    MPI_Reduce(&my_rt, &rt_max, 1, MPI_DOUBLE, MPI_MAX, 0, pmesh->GetComm());
    
+
    // Print timing results.
    if (myid == 0)
    {
       int cg_iter = cg.GetNumIterations();
+      double time_per_cg_it_max = rt_max / cg_iter;
+      double time_per_cg_it_min = rt_min / cg_iter;
+      double time_amg_setup_max = warm_t_max - time_per_cg_it_max;
+      double time_amg_setup_min = warm_t_min - time_per_cg_it_min;
+
       // Note: In the pcg algorithm, the number of operator Mult() calls is
       //       N_iter and the number of preconditioner Mult() calls is N_iter+1.
       cout << '\n'
            << "Total CG time:    " << rt_max << " (" << rt_min << ") sec."
            << endl;
       cout << "Time per CG step: "
-           << rt_max / cg_iter << " ("
-           << rt_min / cg_iter << ") sec." << endl;
-      cout << "\n\"DOFs/sec\" in CG: "
-           << 1e-6*size*cg_iter/rt_max << " ("
-           << 1e-6*size*cg_iter/rt_min << ") million.\n"
+           << time_per_cg_it_max << " ("
+           << time_per_cg_it_min << ") sec." << endl;
+      cout << "Time AMG setup: "
+           << time_amg_setup_max << " ("
+           << time_amg_setup_min << ") sec." << endl;
+      cout << "DOFs/sec in 1 CG it: "
+           << 1e-6*size/time_per_cg_it_max << " ("
+           << 1e-6*size/time_per_cg_it_min << ") million."
            << endl;
+      cout << "DOFs/sec in all CG it: "
+           << 1e-6*size/rt_max << " ("
+           << 1e-6*size/rt_min << ") million."
+           << endl;
+      cout << "DOFs/sec in AMG setup:   " 
+           << 1e-6*size/time_amg_setup_max << " (" 
+           << 1e-6*size/time_amg_setup_min << ") million"
+           << endl;
+
    }
    delete prec;
 
