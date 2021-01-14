@@ -1,0 +1,10 @@
+#!/bin/bash
+#BSUB -oo lassen_bp3_N01_T04_gpu_%J.txt
+#BSUB -eo lassen_bp3_N01_T04_gpu_%J.err
+#BSUB -q pbatch
+#BSUB -G ceed
+#BSUB -nnodes 1
+#BSUB -W 120
+
+
+../../go.sh -c lassen -m xlc -r ex1p.sh -n 4 -p 4 'mfem_devs="cuda"'
