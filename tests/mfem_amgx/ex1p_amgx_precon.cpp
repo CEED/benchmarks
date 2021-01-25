@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
    int dim = 3;
    int level = 0;
    int order = 1;
-   const char *device_config = "cuda:uvm";
+   const char *device_config = "cuda";
 
    OptionsParser args(argc, argv);
    args.AddOption(&dim, "-dim", "--mesh-dimension",
