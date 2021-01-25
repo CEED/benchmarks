@@ -39,7 +39,7 @@ function run_tests()
    # 'max_dofs_proc' can be set on the command line
    local l_max_dofs_proc=${max_dofs_proc:-4200000}
    # 'mfem_devs' can be set on the command line
-   local l_mfem_devs=(${mfem_devs:-cuda})
+   local l_mfem_devs=(${mfem_devs:-cuda:uvm})
    local dim=3
    local args=
    for dev in ${l_mfem_devs[@]}; do
@@ -74,12 +74,12 @@ function build_and_run_tests()
 }
 
 
-mfem_branch=${mfem_branch:-master}
+mfem_branch=${mfem_branch:-artv3/amgx-hypre-cuda-dev}
 libceed_branch=${libceed_branch:-master}
 
 # Uncomment the next line to enable 64-bit HYPRE_Int:
 # hypre_big_int=1
 
-packages=${packages:-cuda metis amgx hypre mfem}
+packages=${packages:-cuda metis amgx hypre-gpu-uvm mfem}
 
 test_required_packages=${packages}

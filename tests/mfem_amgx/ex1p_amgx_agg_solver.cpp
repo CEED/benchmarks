@@ -227,7 +227,7 @@ int main(int argc, char *argv[])
    // Print timing results.
    if (myid == 0)
    {
-      int cg_iter = amgx->GetNumIterations();
+      int cg_iter = amgx->GetNumIterations()-1; //AMGX adds 1 for some reason
       // Note: In the pcg algorithm, the number of operator Mult() calls is
       //       N_iter and the number of preconditioner Mult() calls is N_iter+1.
       cout << '\n'

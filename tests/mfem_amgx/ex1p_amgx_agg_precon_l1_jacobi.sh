@@ -74,12 +74,12 @@ function build_and_run_tests()
 }
 
 
-mfem_branch=${mfem_branch:-master}
+mfem_branch=${mfem_branch:-artv3/amgx-hypre-cuda-dev}
 libceed_branch=${libceed_branch:-master}
 
 # Uncomment the next line to enable 64-bit HYPRE_Int:
 # hypre_big_int=1
 
-packages=${packages:-cuda metis amgx hypre mfem}
+packages=${packages:-cuda metis amgx hypre-gpu-uvm mfem}
 
 test_required_packages=${packages}
