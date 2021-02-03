@@ -173,8 +173,11 @@ int main(int argc, char *argv[])
                     "   \"cycle\": \"V\"";
    if (amgx_verbose)
    {
-     amgx_config = amgx_config + ",\n"
-                   "   \"obtain_timings\": 1 \n";
+      amgx_config = amgx_config + ", \n"
+                   "        \"obtain_timings\": 1, \n"
+                   "        \"monitor_residual\": 1, \n"
+                   "        \"print_grid_stats\": 1, \n"
+                   "        \"print_solve_stats\": 1 \n";
    }
    else
    {
