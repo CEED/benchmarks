@@ -7,4 +7,4 @@
 #BSUB -W 120
 
 
-../../go.sh -c lassen -m xlc -r ex1p.sh -n 16 -p 4 'mfem_devs="cuda"'
+../../go.sh -c lassen -m xlc -r ex1p.sh -n 16 -p 4 'mfem_devs="cuda" mfem_branch=hypre-cuda-dev'
