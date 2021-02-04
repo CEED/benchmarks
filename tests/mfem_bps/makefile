@@ -19,7 +19,7 @@
 MFEM_DIR = ../../mfem
 SRC =
 BLD =
-CONFIG_MK = $(MFEM_DIR)/config/config.mk
+CONFIG_MK = $(MFEM_DIR)/share/mfem/config.mk
 
 MFEM_LIB_FILE = mfem_is_not_built
 -include $(CONFIG_MK)
