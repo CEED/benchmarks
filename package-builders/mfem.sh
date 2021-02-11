@@ -48,7 +48,10 @@ function mfem_clone()
    fi
    for pkg_repo in "${pkg_repo_list[@]}"; do
       echo "Cloning $pkg from $pkg_repo ..."
-      git clone "$pkg_repo" "$pkg_src_dir" && return 0
+      git clone "$pkg_repo" "$pkg_src_dir" && \
+      cd "$pkg_src_dir" && \
+      git checkout "$pkg_git_branch" && \
+      return 0
    done
    echo "Could not successfully clone $pkg. Stop."
    return 1
