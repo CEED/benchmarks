@@ -14,8 +14,6 @@
 # software, applications, hardware, advanced system engineering and early
 # testbed platforms, in support of the nation's exascale computing imperative.
 
-# Download and build METIS v4/v5.
-
 if [[ -z "$pkg_sources_dir" ]]; then
    echo "This script ($0) should not be called directly. Stop."
    return 1
@@ -72,7 +70,7 @@ function mfem_solvers_build()
       (echo "MFEM_DIR=$OUT_DIR/mfem" > Make.user) && \
       if [[ "$MFEM_BRANCH" == "split-nonconforming-tet" ]]; then
          echo "USER_CXXFLAGS=-DMFEM_SIMPLEX_LOR" >> Make.user
-      fi
+      fi && \
       make -j $num_proc_build
    } &> "${pkg_bld_dir}_build.log" || {
       echo " ... building $pkg FAILED, see log for details."
