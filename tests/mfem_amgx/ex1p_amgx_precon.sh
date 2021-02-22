@@ -30,7 +30,7 @@ function build_tests()
 
 function run_tests()
 {
-   local test_name="ex1p_amgx"
+   local test_name="ex1p_amgx_precon"
    set_mpi_options
    # 'min_p' can be set on the command line
    local l_min_p=${min_p:-1}
@@ -74,7 +74,7 @@ function build_and_run_tests()
 }
 
 
-mfem_branch=${mfem_branch:-amgx/artv3/configure}
+mfem_branch=${mfem_branch:-master}
 libceed_branch=${libceed_branch:-master}
 
 # Uncomment the next line to enable 64-bit HYPRE_Int:

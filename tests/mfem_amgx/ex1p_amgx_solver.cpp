@@ -170,7 +170,7 @@ int main(int argc, char *argv[])
                     "     \"interpolator\": \"D2\", \n"
                     "     \"max_row_sum\" : 0.9, \n"
                     "     \"strength_threshold\" : 0.25, \n"
-                    "     \"max_iters\": 2, \n"
+                    "     \"max_iters\": 1, \n"
                     "     \"scope\": \"amg\", \n"
                     "     \"max_levels\": 100, \n"
                     "     \"cycle\": \"V\", \n"
@@ -178,7 +178,7 @@ int main(int argc, char *argv[])
                     "    }, \n"
                     "  \"solver\": \"PCG\", \n"
                     "  \"max_iters\": 100, \n"
-                    "  \"convergence\": \"RELATIVE_MAX\", \n"
+                    "  \"convergence\": \"RELATIVE_INI_CORE\", \n"
                     "  \"scope\": \"main\", \n"
                     "  \"tolerance\": 1e-12, \n"
                     "  \"norm\": \"L2\" ";
@@ -197,7 +197,7 @@ int main(int argc, char *argv[])
     amgx_config = amgx_config + "   } \n" + "} \n";
       
    AmgXSolver *amgx = new AmgXSolver;
-   amgx->ConfigureAs(AmgXSolver::SOLVER);
+   amgx->SetConvergenceCheck(true);
    amgx->ReadParameters(amgx_config, AmgXSolver::INTERNAL);
    amgx->InitExclusiveGPU(MPI_COMM_WORLD);
 

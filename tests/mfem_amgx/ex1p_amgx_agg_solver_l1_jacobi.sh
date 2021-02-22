@@ -30,7 +30,7 @@ function build_tests()
 
 function run_tests()
 {
-   local test_name="ex1p_amgx_solver"
+   local test_name="ex1p_amgx_agg_solver_l1_jacobi"
    set_mpi_options
    # 'min_p' can be set on the command line
    local l_min_p=${min_p:-1}
