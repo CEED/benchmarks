@@ -79,6 +79,12 @@ function mfem_build()
    local xcompiler=""
    local METIS_5="NO"
    [[ "$METIS_VERSION" = "5" ]] && METIS_5="YES"
+   local SIMD_MAKE_OPTS=()
+   if [[ -n "$SIMD_ENABLED" ]]; then
+      SIMD_MAKE_OPTS=("MFEM_USE_SIMD=YES")
+   else
+      echo "${magenta}INFO: Building $pkg without SIMD ...${none}"
+   fi
    local CUDA_MAKE_OPTS=()
    if [[ -n "$CUDA_ENABLED" ]]; then
       CUDA_MAKE_OPTS=(
@@ -156,12 +162,12 @@ function mfem_build()
          MFEM_USE_MPI=YES \
          ${mfem_debug:+MFEM_DEBUG=YES} \
          $MFEM_EXTRA_CONFIG \
-         MFEM_USE_SIMD=NO \
          MPICXX="$MPICXX" \
          OPTIM_FLAGS="$optim_flags" \
          HYPRE_DIR="$HYPRE_DIR/src/hypre" \
          METIS_DIR="$METIS_DIR" \
          MFEM_USE_METIS_5="$METIS_5" \
+         "${SIMD_MAKE_OPTS[@]}" \
          "${CUDA_MAKE_OPTS[@]}" \
          "${HIP_MAKE_OPTS[@]}" \
          "${OCCA_MAKE_OPTS[@]}" \
@@ -183,7 +189,7 @@ function mfem_build()
    echo "Build successful."
    print_variables "$pkg_var_prefix" \
       MFEM_BRANCH MFEM_DEBUG \
-      HYPRE_DIR METIS_DIR METIS_VERSION CUDA_ENABLED cuda_home \
+      HYPRE_DIR METIS_DIR METIS_VERSION SIMD_ENABLED CUDA_ENABLED cuda_home \
       HIP_ENABLED hip_home OCCA_DIR RAJA_DIR OMP_ENABLED omp_flag \
       LIBCEED_DIR SUNDIALS_DIR \
       > "${pkg_bld_dir}_build_successful"
