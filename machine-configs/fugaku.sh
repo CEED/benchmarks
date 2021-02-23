@@ -21,11 +21,22 @@ function setup_gcc10()
     spack compiler find
     module load gcc-10.1.0-gcc-8.3.1-2wrm3no
     CXX=g++
-    MPICC=g++
+    MPICC=gcc
     MPICXX=g++
     MPI_HOME=$(dirname $(which mpiFCC))/..
-    export MFEM_CPPFLAGS="-I${MPI_HOME}/include/mpi/fujitsu"
-    export LDFLAGS="-L${MPI_HOME}/lib64 -lmpi -lmpi_cxx"
+    INCFLAGS="-I${MPI_HOME}/include/mpi/fujitsu"
+    LDFLAGS="-L${MPI_HOME}/lib64 -lmpi -lmpi_cxx"
+    CFLAGS="-O3 -march=armv8.2-a+sve $INCFLAGS"
+    CXX11FLAG="--std=c++11"
+    export MFEM_CPPFLAGS=$INCFLAGS
+}
+
+function setup_fujitsu()
+{
+    echo "${cyan}FUGAKU setup${none}"
+    CXX=FCC
+    MPICC=mpifcc
+    MPICXX=mpiFCC
     CFLAGS="-O3 -march=armv8.2-a+sve"
     CXX11FLAG="--std=c++11"
 }
@@ -39,7 +50,7 @@ function set_mpi_options()
     compose_mpi_run_command
 }
 
-valid_compilers="gcc10"
+valid_compilers="gcc10 fujitsu"
 
 num_proc_detect="$(getconf _NPROCESSORS_ONLN)"
 num_proc_build=${num_proc_build:-$num_proc_detect}
