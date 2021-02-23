@@ -26,7 +26,7 @@ function setup_gcc10()
     MPI_HOME=$(dirname $(which mpiFCC))/..
     INCFLAGS="-I${MPI_HOME}/include/mpi/fujitsu"
     LDFLAGS="-L${MPI_HOME}/lib64 -lmpi -lmpi_cxx"
-    CFLAGS="-O3 -march=armv8.2-a+sve $INCFLAGS"
+    CFLAGS="-O3 -march=armv8.2-a+sve -msve-vector-bits=512 $INCFLAGS"
     CXX11FLAG="--std=c++11"
     export MFEM_CPPFLAGS=$INCFLAGS
 }
@@ -37,7 +37,7 @@ function setup_fujitsu()
     CXX=FCC
     MPICC=mpifcc
     MPICXX=mpiFCC
-    CFLAGS="-O3 -march=armv8.2-a+sve"
+    CFLAGS="-Kfast,simd_reg_size=512"
     CXX11FLAG="--std=c++11"
 }
 
