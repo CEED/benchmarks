@@ -965,7 +965,7 @@ inline static void KMult1(const int ndofs, const int vdim, const int NE,
   double BGt[2][MQ1 * MD1];
   kernels::LoadBGt<MD1, MQ1>(D1D, Q1D, b, g, BGt);
 
-  //if ((NE % SIMD_SIZE) != 0) { return; }
+  if ((NE % SIMD_SIZE) != 0) { MPI_Finalize(); exit(1); }
   MFEM_VERIFY((NE % SIMD_SIZE) == 0, "NE vs SIMD_SIZE error!")
 
 #ifndef MFEM_USE_THREADS
