@@ -151,7 +151,7 @@ ir_order_list=(0   0   0   0   0   0   0   0   0    0    0   0   0)
 enabled_tests_def="0   1   2   3   4   5   6   7    8    9  10  11"
 (( ir_type != 0 )) && enabled_tests_def="0 1 2 3 4 5 6 7 8 9 10 11"
 #enabled_tests_def="1   2   3   4   5   6   7   8"   # for bp3 on vulcan + xlc
-enabled_tests_def="2" #1 2 3 4 5 6 7 8 9 10"
+enabled_tests_def="0 1 2 3 4 5 6 7" #1 2 3 4 5 6 7 8 9 10"
 enabled_tests="${enabled_tests:-$enabled_tests_def}"
 ser_ref=0
 mesh_s_reduction_base=0     # used in run_tests_if_enabled()
@@ -283,4 +283,4 @@ $dry_run make -f "$test_dir/makefile" clean-exec
 }
 
 
-test_required_packages="metis hypre mfem-simd"
+test_required_packages="metis hypre simd mfem"

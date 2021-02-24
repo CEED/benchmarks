@@ -146,10 +146,10 @@ ir_type=${ir_type:-0}
 vdim=${vdim:-1}
 vec_layout=${vec_layout:-}
 # test id:     0   1   2   3   4   5   6   7   8    9   10  11  12
-sol_p_list=(   1   2   3   4   ) #5   6   7   8   9   10   11  12  13)
-ir_order_list=(0   0   0   0   0) #   0   0   0   0    0    0   0   0)
-enabled_tests_def="3" #"0   1   2   3" #   4   5   6   7    8    9  10  11"
-(( ir_type != 0 )) && enabled_tests_def="0 1 2 3 4" # 5 6 7 8 9 10 11"
+sol_p_list=(   1   2   3   4   5   6   7   8   9   10   11  12  13)
+ir_order_list=(0   0   0   0   0   0   0   0   0    0    0   0   0)
+enabled_tests_def="1 2 3 4 5" #"0   1   2   3" #   4   5   6   7    8    9  10  11"
+(( ir_type != 0 )) && enabled_tests_def="0 1 2 3 4 5 6 7 8 9 10 11"
 # enabled_tests_def="1   2   3   4   5   6   7   8"   # for bp3 on vulcan + xlc
 # enabled_tests_def="0"
 enabled_tests="${enabled_tests:-$enabled_tests_def}"
@@ -276,7 +276,7 @@ echo
 $dry_run cd "$test_exe_dir"
 args_list=('-perf -mf')
 total_memory_required_list=(8)  # guess-timates
-run_tests_if_enabled 0 1 2 3 #4 5 6 7 8 9 10 11 12 13 14 15 16
+run_tests_if_enabled 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
 
 $dry_run make -f "$test_dir/makefile" clean-exec
 

@@ -64,8 +64,6 @@ bp_DEF += $(if $(use_mpi_wtime),-DUSE_MPI_WTIME,)
 bp_DEF := $(strip $(bp_DEF))
 define make_bp_rule
 $(BLD)bp$(3): $(SRC)bp.cpp $(MFEM_LIB_FILE) $(CONFIG_MK)
-	cp -fp $(SRC)bp.hpp $(BLD)bp.hpp
-	cp -fp $(SRC)kernels.hpp $(BLD)kernels.hpp
 	cp -fp $(SRC)bp.cpp $(BLD)bp$(3).cpp
 	$(MFEM_CXX) $(bp_DEF) $(if $(1),-DSOL_P=$(1),) \
 	$(if $(2),-DIR_ORDER=$(2),) $(MFEM_FLAGS) \
