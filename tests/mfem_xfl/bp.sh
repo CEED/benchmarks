@@ -263,23 +263,21 @@ function run_tests_if_enabled()
 
 function build_and_run_tests()
 {
+    $dry_run cd "$test_dir"
+    configure_tests || return 1
 
-$dry_run cd "$test_dir"
-configure_tests || return 1
+    echo "Enabled tests: $enabled_tests"
+    build_tests $enabled_tests || return 1
+    echo
 
-echo "Enabled tests: $enabled_tests"
-build_tests $enabled_tests || return 1
-echo
+    [[ -n "$build_only" ]] && return
 
-[[ -n "$build_only" ]] && return
+    $dry_run cd "$test_exe_dir"
+    args_list=('')
+    total_memory_required_list=(8)  # guess-timates
+    run_tests_if_enabled 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
 
-$dry_run cd "$test_exe_dir"
-args_list=('-perf -mf')
-total_memory_required_list=(8)  # guess-timates
-run_tests_if_enabled 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
-
-$dry_run make -f "$test_dir/makefile" clean-exec
-
+    $dry_run make -f "$test_dir/makefile" clean-exec
 }
 
 test_required_packages="metis hypre simd mfem"
