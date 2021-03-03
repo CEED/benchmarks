@@ -17,12 +17,17 @@
 #include <typeindex>
 #include <utility>
 #include <vector>
+#include <thread>
 
 #include "mfem.hpp"
 #define dbg(...)
 
 #include "general/forall.hpp"
 #include "linalg/kernels.hpp"
+
+
+#include "linalg/simd.hpp"
+#define SIMD_SIZE (MFEM_SIMD_BYTES / sizeof(double))
 
 #ifndef GEOM
 #define GEOM Geometry::CUBE
@@ -48,13 +53,16 @@
 #define PROBLEM 0
 #endif
 
+#define MFEM_ALIGN alignas(32)
+
 using namespace mfem;
 
 namespace mfem
 {
 
-using FE = mfem::FiniteElement;
-using QI = mfem::QuadratureInterpolator;
+using FE = FiniteElement;
+using QI = QuadratureInterpolator;
+using Real = AutoSIMDTraits<double, double>::vreal_t;
 using ConstDeviceMatrix = DeviceTensor<2,const double>;
 
 // Kernels addons //////////////////////////////////////////////////////////////
@@ -66,7 +74,7 @@ template <int MD1, int MQ1>
 MFEM_HOST_DEVICE inline void LoadBG(const int D1D, const int Q1D,
                                     const ConstDeviceMatrix b,
                                     const ConstDeviceMatrix g,
-                                    double sBG[2][MQ1 * MD1])
+                                    double(*__restrict__ sBG)/*[2]*/[MQ1 * MD1])
 {
    const int tidz = MFEM_THREAD_ID(z);
    DeviceMatrix B(sBG[0], MD1, MQ1);
@@ -91,7 +99,7 @@ template <int MD1, int MQ1, typename T>
 MFEM_HOST_DEVICE inline void LoadBGt(const int D1D, const int Q1D,
                                      const DeviceTensor<2, const double> b,
                                      const DeviceTensor<2, const double> g,
-                                     T sBG[2][MQ1 * MD1])
+                                     T(*__restrict__ sBG)/*[2]*/[MQ1 * MD1])
 {
    const int tidz = MFEM_THREAD_ID(z);
    DeviceTensor<2, T> Bt(sBG[0], MQ1, MD1);
@@ -114,7 +122,8 @@ MFEM_HOST_DEVICE inline void LoadBGt(const int D1D, const int Q1D,
 template <int MD1, typename T = double, int SMS = 1>
 MFEM_HOST_DEVICE inline void LoadXDGather(
    const int e, const int D1D, const DeviceTensor<4, const int> MAP,
-   const DeviceTensor<1, const double> xd, T sm[MD1 * MD1 * MD1])
+   const DeviceTensor<1, const double> xd,
+   T(*__restrict__ sm)/*[MD1 * MD1 * MD1]*/)
 {
    DeviceTensor<3, T> X(sm, MD1, MD1, MD1);
 
@@ -288,7 +297,8 @@ MFEM_HOST_DEVICE inline void PullGrad1(
 /// Push 3D Scalar Gradient
 template <int MQ1, typename T>
 MFEM_HOST_DEVICE inline void PushGrad1(
-   const int x, const int y, const int z, const T *__restrict__ A,
+   const int x, const int y, const int z,
+   const T *__restrict__ A,
    T(*__restrict__ QQQ) /*[3]*/[MQ1 * MQ1 * MQ1])
 {
    DeviceTensor<3, T> BBG(QQQ[0], MQ1, MQ1, MQ1);
@@ -352,7 +362,7 @@ MFEM_HOST_DEVICE inline void Grad1Yt(
    const int D1D, const int Q1D,
    const double(*__restrict__ BG) /*[2]*/[MQ1 * MD1],
    const T(*__restrict__ DQQ) /*[3]*/[MD1 * MQ1 * MQ1],
-   T DDQ[3][MD1 * MD1 * MQ1])
+   T(*__restrict__  DDQ)/*[3]*/[MD1 * MD1 * MQ1])
 {
    DeviceTensor<2, const double> Bt(BG[0], MQ1, MD1);
    DeviceTensor<2, const double> Gt(BG[1], MQ1, MD1);
@@ -432,7 +442,9 @@ MFEM_HOST_DEVICE inline void Grad1XtDScatter(
             {
                const int gid = MAP(dx, dy, dz, e + i);
                const int j = gid >= 0 ? gid : -1 - gid;
-               AtomicAdd(YD(j), value[i]);
+               //AtomicAdd(YD(j), value[i]);
+               #pragma omp atomic
+               YD(j) += value[i];
             }
          }
       }
@@ -986,11 +998,6 @@ int dot(int u, int v) { return u * v; }
 
 }  // namespace mfem
 
-#include <thread>
-
-#include "linalg/simd.hpp"
-using Real = AutoSIMDTraits<double, double>::vreal_t;
-#define SIMD_SIZE (MFEM_SIMD_BYTES / sizeof(double))
 
 template <int DIM, int DX0, int DX1>
 inline static void KSetup1(const int ndofs, const int vdim, const int NE,
@@ -1058,17 +1065,17 @@ inline static void KMult1(const int ndofs, const int vdim, const int NE,
    const auto XD = Reshape(xd, ndofs);
    auto YD = Reshape(yd, ndofs);
 
-   double BG[2][MQ1 * MD1];
+   MFEM_ALIGN double BG[2][MQ1 * MD1];
    kernels::LoadBG<MD1, MQ1>(D1D, Q1D, b, g, BG);
 
-   double BGt[2][MQ1 * MD1];
+   MFEM_ALIGN double BGt[2][MQ1 * MD1];
    kernels::LoadBGt<MD1, MQ1>(D1D, Q1D, b, g, BGt);
 
    if ((NE % SIMD_SIZE) != 0) { MPI_Finalize(); exit(1); }
    MFEM_VERIFY((NE % SIMD_SIZE) == 0, "NE vs SIMD_SIZE error!")
 
 #ifndef MFEM_USE_THREADS
-   //#pragma omp parallel for
+   // x86 no OMP, BATCH_SIZE = 1
    int BATCH_SIZE = 32;
    while ((NE % BATCH_SIZE) != 0)
    {
@@ -1081,6 +1088,7 @@ inline static void KMult1(const int ndofs, const int vdim, const int NE,
    MFEM_VERIFY((NE % BATCH_SIZE) == 0, "NE vs BATCH_SIZE error!")
    MFEM_VERIFY(((NE / BATCH_SIZE) % SIMD_SIZE) == 0,
                "NE/BATCH_SIZE vs SIMD_SIZE error!")
+   #pragma omp parallel for
    for (size_t eb = 0; eb < (NE / (BATCH_SIZE * SIMD_SIZE)); eb += 1)
    {
       for (size_t e = eb * BATCH_SIZE * SIMD_SIZE;
@@ -1103,12 +1111,12 @@ inline static void KMult1(const int ndofs, const int vdim, const int NE,
          for (size_t e = e0; e < NE0; e += SIMD_SIZE)
          {
 #endif
-         Real DDD[MD1 * MD1 * MD1];
+         MFEM_ALIGN Real DDD[MD1 * MD1 * MD1];
          kernels::LoadXDGather<MD1, Real, SMS>(e, D1D, MAP, XD, DDD);
          // kernel operations: u,G,*,D,*,v,G,T,*,Ye
          // [push] trial u:2
-         Real sm0[3][MQ1 * MQ1 * MQ1];
-         Real sm1[3][MQ1 * MQ1 * MQ1];
+         MFEM_ALIGN Real sm0[3][MQ1 * MQ1 * MQ1];
+         MFEM_ALIGN Real sm1[3][MQ1 * MQ1 * MQ1];
          Real(*DDQ)[MD1 * MD1 * MQ1] = (Real(*)[MD1 * MD1 * MQ1])(sm0);
          Real(*DQQ)[MD1 * MQ1 * MQ1] = (Real(*)[MD1 * MQ1 * MQ1])(sm1);
          Real(*QQQ)[MQ1 * MQ1 * MQ1] = (Real(*)[MQ1 * MQ1 * MQ1])(sm0);
@@ -1117,13 +1125,14 @@ inline static void KMult1(const int ndofs, const int vdim, const int NE,
          kernels::Grad1Y<MD1, MQ1>(D1D, Q1D, BG, DDQ, DQQ);
          kernels::Grad1Z<MD1, MQ1>(D1D, Q1D, BG, DQQ, QQQ);
          // [ pop] u
+         //#pragma omp parallel for collapse(3)
          for (int qz = 0; qz < Q1D; qz++)
          {
             for (int qy = 0; qy < Q1D; qy++)
             {
                for (int qx = 0; qx < Q1D; qx++)
                {
-                  Real u[DX0], v[DX0];
+                  MFEM_ALIGN Real u[DX0], v[DX0];
                   kernels::PullGrad1<MQ1>(qx, qy, qz, QQQ, u);
                   kernels::Mult(DX0, DX1, &DX(0, 0, qx, qy, qz, e), u, v);
                   kernels::PushGrad1<MQ1>(qx, qy, qz, v, QQQ);
@@ -1164,6 +1173,18 @@ int main(int argc, char *argv[])
    assert(IR_ORDER == 0);
    assert(PROBLEM == 0);
    assert(GEOM == Geometry::CUBE);
+
+   /*
+      alignas(32) double Z[4];
+      printf("sizeof(Z):%d, "
+             "alignof(Z):%d, "
+             "MFEM_ALIGN_BYTES:%d, "
+             "MFEM_ALIGN_SIZE(4,double):%d"
+             "\n",
+             sizeof(Z),
+             alignof(Z),
+             MFEM_ALIGN_BYTES,
+             MFEM_ALIGN_SIZE(4,double));*/
 
    const char *mesh_file = "../../data/hex-01x01x01.mesh";
    int ser_ref_levels = 3;
