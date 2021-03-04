@@ -65,6 +65,394 @@ using QI = QuadratureInterpolator;
 using Real = AutoSIMDTraits<double, double>::vreal_t;
 using ConstDeviceMatrix = DeviceTensor<2,const double>;
 
+// Kernels addons //////////////////////////////////////////////////////////////
+namespace kernels
+{
+
+/// Load B1d & G1d matrices into shared memory
+template <int MD1, int MQ1>
+MFEM_HOST_DEVICE inline void LoadBG(const int D1D, const int Q1D,
+                                    const ConstDeviceMatrix b,
+                                    const ConstDeviceMatrix g,
+                                    double(*__restrict__ sBG)/*[2]*/[MQ1 * MD1])
+{
+   const int tidz = MFEM_THREAD_ID(z);
+   DeviceMatrix B(sBG[0], MD1, MQ1);
+   DeviceMatrix G(sBG[1], MD1, MQ1);
+
+   if (tidz == 0)
+   {
+      MFEM_FOREACH_THREAD(d, y, D1D)
+      {
+         MFEM_FOREACH_THREAD(q, x, Q1D)
+         {
+            B(d, q) = b(q, d);
+            G(d, q) = g(q, d);
+         }
+      }
+   }
+   MFEM_SYNC_THREAD;
+}
+
+/// Load Bt1d & Gt1d matrices into shared memory
+template <int MD1, int MQ1, typename T>
+MFEM_HOST_DEVICE inline void LoadBGt(const int D1D, const int Q1D,
+                                     const DeviceTensor<2, const double> b,
+                                     const DeviceTensor<2, const double> g,
+                                     T(*__restrict__ sBG)/*[2]*/[MQ1 * MD1])
+{
+   const int tidz = MFEM_THREAD_ID(z);
+   DeviceTensor<2, T> Bt(sBG[0], MQ1, MD1);
+   DeviceTensor<2, T> Gt(sBG[1], MQ1, MD1);
+
+   if (tidz == 0)
+   {
+      MFEM_FOREACH_THREAD(d, y, D1D)
+      {
+         MFEM_FOREACH_THREAD(q, x, Q1D)
+         {
+            Bt(q, d) = b(q, d);
+            Gt(q, d) = g(q, d);
+         }
+      }
+   }
+   MFEM_SYNC_THREAD;
+}
+
+template <int MD1, typename T = double, int SMS = 1>
+MFEM_HOST_DEVICE inline void LoadXDGather(
+   const int e, const int D1D, const DeviceTensor<4, const int> MAP,
+   const DeviceTensor<1, const double> xd,
+   T(*__restrict__ sm)/*[MD1 * MD1 * MD1]*/)
+{
+   DeviceTensor<3, T> X(sm, MD1, MD1, MD1);
+
+   MFEM_FOREACH_THREAD(dz, z, D1D)
+   {
+      MFEM_FOREACH_THREAD(dy, y, D1D)
+      {
+         MFEM_FOREACH_THREAD(dx, x, D1D)
+         {
+            // Gather
+            T XD;
+            for (int i = 0; i < SMS; i++)
+            {
+               const int gid = MAP(dx, dy, dz, e + i);
+               const int j = gid >= 0 ? gid : -1 - gid;
+               XD[i] = xd(j);
+            }
+            X(dx, dy, dz) = XD;
+         }
+      }
+   }
+   MFEM_SYNC_THREAD;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// Push 3D Scalar Evaluation
+
+/// 3D Scalar Gradient, 1/3
+template <int MD1, int MQ1, typename T>
+MFEM_HOST_DEVICE inline void Grad1X(const int D1D, const int Q1D,
+                                    const double (*__restrict__ BG)[MQ1 * MD1],
+                                    const T(*__restrict__ DDD),
+                                    T (*__restrict__ DDQ)[MD1 * MD1 * MQ1])
+{
+   DeviceTensor<2, const double> B(BG[0], MD1, MQ1);
+   DeviceTensor<2, const double> G(BG[1], MD1, MQ1);
+   DeviceTensor<3, const T> X(DDD, MD1, MD1, MD1);
+   DeviceTensor<3, T> XB(DDQ[0], MQ1, MD1, MD1);
+   DeviceTensor<3, T> XG(DDQ[1], MQ1, MD1, MD1);
+
+   MFEM_FOREACH_THREAD(dz, z, D1D)
+   {
+      MFEM_FOREACH_THREAD(dy, y, D1D)
+      {
+         MFEM_FOREACH_THREAD(qx, x, Q1D)
+         {
+            T u;
+            u = 0.0;
+            T v;
+            v = 0.0;
+            for (int dx = 0; dx < D1D; ++dx)
+            {
+               const T xx = X(dx, dy, dz);
+               const double Bx = B(dx, qx);
+               const double Gx = G(dx, qx);
+               u += Bx * xx;
+               v += Gx * xx;
+            }
+            XB(qx, dy, dz) = u;
+            XG(qx, dy, dz) = v;
+         }
+      }
+   }
+   MFEM_SYNC_THREAD;
+}
+
+/// 3D Scalar Gradient, 2/3
+template <int MD1, int MQ1, typename T>
+MFEM_HOST_DEVICE inline void Grad1Y(
+   const int D1D, const int Q1D, const double (*__restrict__ BG)[MQ1 * MD1],
+   const T (*__restrict__ DDQ)[MD1 * MD1 * MQ1],
+   T (*__restrict__ DQQ)[MD1 * MQ1 * MQ1])
+{
+   DeviceTensor<2, const double> B(BG[0], MD1, MQ1);
+   DeviceTensor<2, const double> G(BG[1], MD1, MQ1);
+   DeviceTensor<3, const T> XB(DDQ[0], MQ1, MD1, MD1);
+   DeviceTensor<3, const T> XG(DDQ[1], MQ1, MD1, MD1);
+   DeviceTensor<3, T> XBB(DQQ[0], MQ1, MQ1, MD1);
+   DeviceTensor<3, T> XBG(DQQ[1], MQ1, MQ1, MD1);
+   DeviceTensor<3, T> XGB(DQQ[2], MQ1, MQ1, MD1);
+
+   MFEM_FOREACH_THREAD(dz, z, D1D)
+   {
+      MFEM_FOREACH_THREAD(qy, y, Q1D)
+      {
+         MFEM_FOREACH_THREAD(qx, x, Q1D)
+         {
+            T u;
+            u = 0.0;
+            T v;
+            v = 0.0;
+            T w;
+            w = 0.0;
+            for (int dy = 0; dy < D1D; ++dy)
+            {
+               const double By = B(dy, qy);
+               const double Gy = G(dy, qy);
+               u += XB(qx, dy, dz) * By;
+               v += XG(qx, dy, dz) * By;
+               w += XB(qx, dy, dz) * Gy;
+            }
+            XBB(qx, qy, dz) = u;
+            XBG(qx, qy, dz) = v;
+            XGB(qx, qy, dz) = w;
+         }
+      }
+   }
+   MFEM_SYNC_THREAD;
+}
+
+/// 3D Scalar Gradient, 3/3
+template <int MD1, int MQ1, typename T = double>
+MFEM_HOST_DEVICE inline void Grad1Z(
+   const int D1D, const int Q1D, const double (*__restrict__ BG)[MQ1 * MD1],
+   const T (*__restrict__ DQQ)[MD1 * MQ1 * MQ1],
+   T (*__restrict__ QQQ)[MQ1 * MQ1 * MQ1])
+{
+   DeviceTensor<2, const double> B(BG[0], MD1, MQ1);
+   DeviceTensor<2, const double> G(BG[1], MD1, MQ1);
+   DeviceTensor<3, const T> XBB(DQQ[0], MQ1, MQ1, MD1);
+   DeviceTensor<3, const T> XBG(DQQ[1], MQ1, MQ1, MD1);
+   DeviceTensor<3, const T> XGB(DQQ[2], MQ1, MQ1, MD1);
+   DeviceTensor<3, T> XBBG(QQQ[0], MQ1, MQ1, MQ1);
+   DeviceTensor<3, T> XBGB(QQQ[1], MQ1, MQ1, MQ1);
+   DeviceTensor<3, T> XGBB(QQQ[2], MQ1, MQ1, MQ1);
+
+   MFEM_FOREACH_THREAD(qz, z, Q1D)
+   {
+      MFEM_FOREACH_THREAD(qy, y, Q1D)
+      {
+         MFEM_FOREACH_THREAD(qx, x, Q1D)
+         {
+            T u;
+            u = 0.0;
+            T v;
+            v = 0.0;
+            T w;
+            w = 0.0;
+            for (int dz = 0; dz < D1D; ++dz)
+            {
+               const double Bz = B(dz, qz);
+               const double Gz = G(dz, qz);
+               u += XBG(qx, qy, dz) * Bz;
+               v += XGB(qx, qy, dz) * Bz;
+               w += XBB(qx, qy, dz) * Gz;
+            }
+            XBBG(qx, qy, qz) = u;
+            XBGB(qx, qy, qz) = v;
+            XGBB(qx, qy, qz) = w;
+         }
+      }
+   }
+   MFEM_SYNC_THREAD;
+}
+
+/// Pull 3D Scalar Gradient
+template <int MQ1, typename T>
+MFEM_HOST_DEVICE inline void PullGrad1(
+   const int x, const int y, const int z,
+   const T(*__restrict__ QQQ) /*[3]*/[MQ1 * MQ1 * MQ1], T *__restrict__ A)
+{
+   DeviceTensor<3, const T> BBG(QQQ[0], MQ1, MQ1, MQ1);
+   DeviceTensor<3, const T> BGB(QQQ[1], MQ1, MQ1, MQ1);
+   DeviceTensor<3, const T> GBB(QQQ[2], MQ1, MQ1, MQ1);
+
+   A[0] = BBG(x, y, z);
+   A[1] = BGB(x, y, z);
+   A[2] = GBB(x, y, z);
+}
+
+/// Push 3D Scalar Gradient
+template <int MQ1, typename T>
+MFEM_HOST_DEVICE inline void PushGrad1(
+   const int x, const int y, const int z,
+   const T *__restrict__ A,
+   T(*__restrict__ QQQ) /*[3]*/[MQ1 * MQ1 * MQ1])
+{
+   DeviceTensor<3, T> BBG(QQQ[0], MQ1, MQ1, MQ1);
+   DeviceTensor<3, T> BGB(QQQ[1], MQ1, MQ1, MQ1);
+   DeviceTensor<3, T> GBB(QQQ[2], MQ1, MQ1, MQ1);
+
+   BBG(x, y, z) = A[0];
+   BGB(x, y, z) = A[1];
+   GBB(x, y, z) = A[2];
+}
+
+/// 3D Transposed Scalar Gradient, 1/3
+template <int MD1, int MQ1, typename T>
+MFEM_HOST_DEVICE inline void Grad1Zt(
+   const int D1D, const int Q1D,
+   const double(*__restrict__ BG) /*[2]*/[MQ1 * MD1],
+   const T(*__restrict__ QQQ) /*[3]*/[MQ1 * MQ1 * MQ1],
+   T(*__restrict__ DQQ) /*[3]*/[MD1 * MQ1 * MQ1])
+{
+   DeviceTensor<2, const double> Bt(BG[0], MQ1, MD1);
+   DeviceTensor<2, const double> Gt(BG[1], MQ1, MD1);
+   DeviceTensor<3, const T> XBBG(QQQ[0], MQ1, MQ1, MQ1);
+   DeviceTensor<3, const T> XBGB(QQQ[1], MQ1, MQ1, MQ1);
+   DeviceTensor<3, const T> XGBB(QQQ[2], MQ1, MQ1, MQ1);
+   DeviceTensor<3, T> XBB(DQQ[0], MQ1, MQ1, MD1);
+   DeviceTensor<3, T> XBG(DQQ[1], MQ1, MQ1, MD1);
+   DeviceTensor<3, T> XGB(DQQ[2], MQ1, MQ1, MD1);
+
+   MFEM_FOREACH_THREAD(qz, z, Q1D)
+   {
+      MFEM_FOREACH_THREAD(qy, y, Q1D)
+      {
+         MFEM_FOREACH_THREAD(dx, x, D1D)
+         {
+            T u;
+            u = 0.0;
+            T v;
+            v = 0.0;
+            T w;
+            w = 0.0;
+            for (int qx = 0; qx < Q1D; ++qx)
+            {
+               const double Btx = Bt(qx, dx);
+               const double Gtx = Gt(qx, dx);
+               u += XBBG(qx, qy, qz) * Gtx;
+               v += XBGB(qx, qy, qz) * Btx;
+               w += XGBB(qx, qy, qz) * Btx;
+            }
+            XBB(qz, qy, dx) = u;
+            XBG(qz, qy, dx) = v;
+            XGB(qz, qy, dx) = w;
+         }
+      }
+   }
+   MFEM_SYNC_THREAD;
+}
+
+/// 3D Transposed Scalar Gradient, 2/3
+template <int MD1, int MQ1, typename T>
+MFEM_HOST_DEVICE inline void Grad1Yt(
+   const int D1D, const int Q1D,
+   const double(*__restrict__ BG) /*[2]*/[MQ1 * MD1],
+   const T(*__restrict__ DQQ) /*[3]*/[MD1 * MQ1 * MQ1],
+   T(*__restrict__  DDQ)/*[3]*/[MD1 * MD1 * MQ1])
+{
+   DeviceTensor<2, const double> Bt(BG[0], MQ1, MD1);
+   DeviceTensor<2, const double> Gt(BG[1], MQ1, MD1);
+   DeviceTensor<3, const T> XBB(DQQ[0], MQ1, MQ1, MD1);
+   DeviceTensor<3, const T> XBG(DQQ[1], MQ1, MQ1, MD1);
+   DeviceTensor<3, const T> XGB(DQQ[2], MQ1, MQ1, MD1);
+   DeviceTensor<3, T> XB(DDQ[0], MQ1, MD1, MD1);
+   DeviceTensor<3, T> XG(DDQ[1], MQ1, MD1, MD1);
+   DeviceTensor<3, T> XC(DDQ[2], MQ1, MD1, MD1);
+
+   MFEM_FOREACH_THREAD(qz, z, Q1D)
+   {
+      MFEM_FOREACH_THREAD(dy, y, D1D)
+      {
+         MFEM_FOREACH_THREAD(dx, x, D1D)
+         {
+            T u;
+            u = 0.0;
+            T v;
+            v = 0.0;
+            T w;
+            w = 0.0;
+            for (int qy = 0; qy < Q1D; ++qy)
+            {
+               const double Bty = Bt(qy, dy);
+               const double Gty = Gt(qy, dy);
+               u += XBB(qz, qy, dx) * Bty;
+               v += XBG(qz, qy, dx) * Gty;
+               w += XGB(qz, qy, dx) * Bty;
+            }
+            XB(qz, dy, dx) = u;
+            XG(qz, dy, dx) = v;
+            XC(qz, dy, dx) = w;
+         }
+      }
+   }
+   MFEM_SYNC_THREAD;
+}
+
+/// 3D Transposed Gradient, 3/3
+template <int MD1, int MQ1, typename T, int SMS>
+MFEM_HOST_DEVICE inline void Grad1XtDScatter(
+   const int D1D, const int Q1D,
+   const double(*__restrict__ BG) /*[2]*/[MQ1 * MD1],
+   const T(*__restrict__ DDQ) /*[3]*/[MD1 * MD1 * MQ1],
+   const DeviceTensor<4, const int> MAP, DeviceTensor<1, double> YD,
+   const int e)
+{
+   DeviceTensor<2, const double> Bt(BG[0], MQ1, MD1);
+   DeviceTensor<2, const double> Gt(BG[1], MQ1, MD1);
+   DeviceTensor<3, const T> XB(DDQ[0], MQ1, MD1, MD1);
+   DeviceTensor<3, const T> XG(DDQ[1], MQ1, MD1, MD1);
+   DeviceTensor<3, const T> XC(DDQ[2], MQ1, MD1, MD1);
+
+   MFEM_FOREACH_THREAD(dz, z, D1D)
+   {
+      MFEM_FOREACH_THREAD(dy, y, D1D)
+      {
+         MFEM_FOREACH_THREAD(dx, x, D1D)
+         {
+            T u;
+            u = 0.0;
+            T v;
+            v = 0.0;
+            T w;
+            w = 0.0;
+            for (int qz = 0; qz < Q1D; ++qz)
+            {
+               const double Btz = Bt(qz, dz);
+               const double Gtz = Gt(qz, dz);
+               u += XB(qz, dy, dx) * Btz;
+               v += XG(qz, dy, dx) * Btz;
+               w += XC(qz, dy, dx) * Gtz;
+            }
+            const T value = u + v + w;
+            for (int i = 0; i < SMS; i++)
+            {
+               const int gid = MAP(dx, dy, dz, e + i);
+               const int j = gid >= 0 ? gid : -1 - gid;
+               //AtomicAdd(YD(j), value[i]);
+               #pragma omp atomic
+               YD(j) += value[i];
+            }
+         }
+      }
+   }
+}
+
+}  // namespace kernels
+
 // XFL addons //////////////////////////////////////////////////////////////////
 namespace xfl
 {
@@ -224,7 +612,11 @@ struct Problem
    mfem::Operator *QM{nullptr};
    mfem::ParLinearForm &b;
    Problem(mfem::ParLinearForm &b, mfem::Operator *QM) : QM(QM), b(b) {}
-   ~Problem() { delete QM; }
+   ~Problem()
+   {
+      dbg();
+      delete QM;
+   }
 };
 
 /** ****************************************************************************
@@ -268,7 +660,11 @@ public:
          FunctionCoefficient *func = rhs.FunctionCoeff();
          b->AddDomainIntegrator(new DomainLFIntegrator(*func));
       }
-      else {  assert(false); }
+      else
+      {
+         assert(false);
+      }
+
       return new Problem(*b, QM);
    }
 
@@ -643,20 +1039,19 @@ inline static void KSetup1(const int ndofs, const int vdim, const int NE,
    });
 }
 
-template<int DIM, int DX0, int DX1> inline static
-void KMult1(const int ndofs, const int vdim, const int NE,
-            const double * __restrict__ B,
-            const double * __restrict__ G,
-            const int * __restrict__ map,
-            const double * __restrict__ dx,
-            const double * __restrict__ xd,
-            double * __restrict__ yd)
+template <int DIM, int DX0, int DX1>
+inline static void KMult1(const int ndofs, const int vdim, const int NE,
+                          const double *__restrict__ B,
+                          const double *__restrict__ G,
+                          const int *__restrict__ map,
+                          const double *__restrict__ dx,
+                          const double *__restrict__ xd,
+                          double *__restrict__ yd)
 {
-
-   static constexpr int D1D = 4;
-   static constexpr int MD1 = 4;
-   static constexpr int Q1D = 5;
-   static constexpr int MQ1 = 5;
+   static constexpr int D1D = (SOL_P + 1);
+   static constexpr int MD1 = D1D;
+   static constexpr int Q1D = (SOL_P + 2);
+   static constexpr int MQ1 = Q1D;
    static constexpr int SMS = SIMD_SIZE;
 
    // kernel operations: u,G,*,D,*,v,G,T,*,Ye
@@ -664,274 +1059,106 @@ void KMult1(const int ndofs, const int vdim, const int NE,
    assert(vdim == 1);
 
    const auto b = Reshape(B, Q1D, D1D);
-   const auto g = Reshape(G, Q1D, Q1D);
-   const auto DX = Reshape(dx, DX0,DX1, Q1D,Q1D,Q1D, NE);
-   const auto MAP = Reshape(map, D1D,D1D,D1D, NE);
+   const auto g = Reshape(G, Q1D, D1D);
+   const auto DX = Reshape(dx, DX0, DX1, Q1D, Q1D, Q1D, NE);
+   const auto MAP = Reshape(map, D1D, D1D, D1D, NE);
    const auto XD = Reshape(xd, ndofs);
    auto YD = Reshape(yd, ndofs);
-   // kernel operations: u,G,*,D,*,v,G,T,*,Ye
 
-   MFEM_VERIFY((NE % SIMD_SIZE) == 0, "NE vs SIMD_SIZE error!");
+   MFEM_ALIGN double BG[2][MQ1 * MD1];
+   kernels::LoadBG<MD1, MQ1>(D1D, Q1D, b, g, BG);
 
-   for (int e = 0; e < NE; e+=SIMD_SIZE)
+   MFEM_ALIGN double BGt[2][MQ1 * MD1];
+   kernels::LoadBGt<MD1, MQ1>(D1D, Q1D, b, g, BGt);
+
+   if ((NE % SIMD_SIZE) != 0) { MPI_Finalize(); exit(1); }
+   MFEM_VERIFY((NE % SIMD_SIZE) == 0, "NE vs SIMD_SIZE error!")
+
+#ifndef MFEM_USE_THREADS
+   // x86 no OMP, BATCH_SIZE = 1
+   int BATCH_SIZE = 32;
+   while ((NE % BATCH_SIZE) != 0)
    {
-      MFEM_SHARED Real s_Iq[MQ1][MQ1][MQ1];
-      MFEM_SHARED double s_D[MQ1][MQ1];
-      MFEM_SHARED double s_I[MQ1][MD1];
-      MFEM_SHARED Real s_Gqr[MQ1][MQ1];
-      MFEM_SHARED Real s_Gqs[MQ1][MQ1];
-
-      Real r_qt[MQ1][MQ1];
-      Real r_q[MQ1][MQ1][MQ1];
-      Real r_Aq[MQ1][MQ1][MQ1];
-
-      // Load X
-      MFEM_FOREACH_THREAD(j,y,Q1D)
+      BATCH_SIZE >>= 1;
+   }
+   while (((NE / BATCH_SIZE) % SIMD_SIZE) != 0)
+   {
+      BATCH_SIZE >>= 1;
+   }
+   MFEM_VERIFY((NE % BATCH_SIZE) == 0, "NE vs BATCH_SIZE error!")
+   MFEM_VERIFY(((NE / BATCH_SIZE) % SIMD_SIZE) == 0,
+               "NE/BATCH_SIZE vs SIMD_SIZE error!")
+   #pragma omp parallel for
+   for (size_t eb = 0; eb < (NE / (BATCH_SIZE * SIMD_SIZE)); eb += 1)
+   {
+      for (size_t e = eb * BATCH_SIZE * SIMD_SIZE;
+           e < (eb + 1) * BATCH_SIZE * SIMD_SIZE; e += SIMD_SIZE)
       {
-         MFEM_FOREACH_THREAD(i,x,Q1D)
+#else
+   std::vector<std::thread> threads;
+   static const unsigned int num_threads = std::thread::hardware_concurrency();
+   dbg("NE:%d, num_threads:%d", NE, num_threads);
+   MFEM_VERIFY((NE % num_threads) == 0, "NE vs #Threads error")
+   int e0 = 0;
+   const int NEB = NE / num_threads;
+   int NE0 = NEB;
+   for (unsigned int tid = 0; tid < num_threads; ++tid)
+   {
+      threads.push_back(std::thread(
+                           [&](const int tid, const int e0, const int NE0)
+      {
+         // printf("[#%d] e0:%d, NE0:%d", tid, e0, NE0);
+         for (size_t e = e0; e < NE0; e += SIMD_SIZE)
          {
-            s_D[j][i] = g(i,j);
-            if (i<D1D) { s_I[j][i] = b(j,i); }
-            if (i<D1D && j<D1D)
+#endif
+         MFEM_ALIGN Real DDD[MD1 * MD1 * MD1];
+         kernels::LoadXDGather<MD1, Real, SMS>(e, D1D, MAP, XD, DDD);
+         // kernel operations: u,G,*,D,*,v,G,T,*,Ye
+         // [push] trial u:2
+         MFEM_ALIGN Real sm0[3][MQ1 * MQ1 * MQ1];
+         MFEM_ALIGN Real sm1[3][MQ1 * MQ1 * MQ1];
+         Real(*DDQ)[MD1 * MD1 * MQ1] = (Real(*)[MD1 * MD1 * MQ1])(sm0);
+         Real(*DQQ)[MD1 * MQ1 * MQ1] = (Real(*)[MD1 * MQ1 * MQ1])(sm1);
+         Real(*QQQ)[MQ1 * MQ1 * MQ1] = (Real(*)[MQ1 * MQ1 * MQ1])(sm0);
+         // Grad(u)
+         kernels::Grad1X<MD1, MQ1>(D1D, Q1D, BG, DDD, DDQ);
+         kernels::Grad1Y<MD1, MQ1>(D1D, Q1D, BG, DDQ, DQQ);
+         kernels::Grad1Z<MD1, MQ1>(D1D, Q1D, BG, DQQ, QQQ);
+         // [ pop] u
+         //#pragma omp parallel for collapse(3)
+         for (int qz = 0; qz < Q1D; qz++)
+         {
+            for (int qy = 0; qy < Q1D; qy++)
             {
-#pragma unroll D1D
-               for (int k = 0; k < D1D; k++)
+               for (int qx = 0; qx < Q1D; qx++)
                {
-                  Real vXD;
-                  for (int v = 0; v < SMS; v++)
-                  {
-                     const int gid = MAP(i, j, k, e + v);
-                     const int idx = gid >= 0 ? gid : -1 - gid;
-                     vXD[v] = XD(idx);
-                  }
-                  r_q[j][i][k] = vXD;
+                  MFEM_ALIGN Real u[DX0], v[DX0];
+                  kernels::PullGrad1<MQ1>(qx, qy, qz, QQQ, u);
+                  kernels::Mult(DX0, DX1, &DX(0, 0, qx, qy, qz, e), u, v);
+                  kernels::PushGrad1<MQ1>(qx, qy, qz, v, QQQ);
+                  // [push] test v:2
                }
             }
          }
-      } MFEM_SYNC_THREAD;
-
-      // Grad1X
-      MFEM_FOREACH_THREAD(b,y,Q1D)
-      {
-         MFEM_FOREACH_THREAD(a,x,Q1D)
-         {
-            if (a<D1D && b<D1D)
-            {
-#pragma unroll Q1D
-               for (int k=0; k<Q1D; ++k)
-               {
-                  Real res; res = 0.0;
-#pragma unroll D1D
-                  for (int c=0; c<D1D; ++c)
-                  {
-                     res += s_I[k][c]*r_q[b][a][c];
-                  }
-                  s_Iq[k][b][a] = res;
-               }
-            }
-         }
-      } MFEM_SYNC_THREAD;
-
-      // Grad1Y
-      MFEM_FOREACH_THREAD(k,y,Q1D)
-      {
-         MFEM_FOREACH_THREAD(a,x,Q1D)
-         {
-            if (a<D1D)
-            {
-               for (int b=0; b<D1D; ++b)
-               {
-                  r_Aq[k][a][b] = s_Iq[k][b][a];
-               }
-#pragma unroll Q1D
-               for (int j=0; j<Q1D; ++j)
-               {
-                  Real res; res = 0;
-#pragma unroll D1D
-                  for (int b=0; b<D1D; ++b)
-                  {
-                     res += s_I[j][b]*r_Aq[k][a][b];
-                  }
-                  s_Iq[k][j][a] = res;
-               }
-            }
-         }
-      } MFEM_SYNC_THREAD;
-
-      // Grad1Z
-      MFEM_FOREACH_THREAD(k,y,Q1D)
-      {
-         MFEM_FOREACH_THREAD(j,x,Q1D)
-         {
-            for (int a=0; a<D1D; ++a)
-            {
-               r_Aq[k][j][a] = s_Iq[k][j][a];
-            }
-#pragma unroll Q1D
-            for (int i=0; i<Q1D; ++i)
-            {
-               Real res; res = 0;
-#pragma unroll D1D
-               for (int a=0; a<D1D; ++a)
-               {
-                  res += s_I[i][a]*r_Aq[k][j][a];
-               }
-               s_Iq[k][j][i] = res;
-            }
-         }
-      } MFEM_SYNC_THREAD;
-
-      // Flush
-      MFEM_FOREACH_THREAD(j,y,Q1D)
-      {
-         MFEM_FOREACH_THREAD(i,x,Q1D)
-         {
-#pragma unroll Q1D
-            for (int k = 0; k < Q1D; k++) { r_Aq[j][i][k] = 0.0; }
-         }
-      } MFEM_SYNC_THREAD;
-
-      // Q-Function
-#pragma unroll Q1D
-      for (int k = 0; k < Q1D; k++)
-      {
-         MFEM_SYNC_THREAD;
-         MFEM_FOREACH_THREAD(j,y,Q1D)
-         {
-            MFEM_FOREACH_THREAD(i,x,Q1D)
-            {
-               Real qr, qs; qr = 0.0; qs = 0.0;
-               r_qt[j][i] = 0.0;
-#pragma unroll Q1D
-               for (int m = 0; m < Q1D; m++)
-               {
-                  const double Dim = s_D[i][m];
-                  const double Djm = s_D[j][m];
-                  const double Dkm = s_D[k][m];
-                  qr += Dim*s_Iq[k][j][m];
-                  qs += Djm*s_Iq[k][m][i];
-                  r_qt[j][i] += Dkm*s_Iq[m][j][i];
-               }
-               const Real qt = r_qt[j][i];
-               const Real u[DX0] = {qr, qs, qt}; Real v[DX0];
-               kernels::Mult(DX0,DX1,&DX(0,0,i,j,k,e),u,v);
-               s_Gqr[j][i] = v[0];
-               s_Gqs[j][i] = v[1];
-               r_qt[j][i]  = v[2];
-            }
-         }
-         MFEM_SYNC_THREAD;
-         MFEM_FOREACH_THREAD(j,y,Q1D)
-         {
-            MFEM_FOREACH_THREAD(i,x,Q1D)
-            {
-               Real Aqtmp; Aqtmp = 0.0;
-#pragma unroll Q1D
-               for (int m = 0; m < Q1D; m++)
-               {
-                  const double Dmi = s_D[m][i];
-                  const double Dmj = s_D[m][j];
-                  const double Dkm = s_D[k][m];
-                  Aqtmp += Dmi*s_Gqr[j][m];
-                  Aqtmp += Dmj*s_Gqs[m][i];
-                  r_Aq[j][i][m] += Dkm*r_qt[j][i];
-               }
-               r_Aq[j][i][k] += Aqtmp;
-            }
-         } MFEM_SYNC_THREAD;
+         // Grad(v)
+         kernels::Grad1Zt<MD1, MQ1>(D1D, Q1D, BGt, QQQ, DQQ);
+         kernels::Grad1Yt<MD1, MQ1>(D1D, Q1D, BGt, DQQ, DDQ);
+         kernels::Grad1XtDScatter<MD1, MQ1, Real, SMS>(D1D, Q1D, BGt, DDQ, MAP, YD,
+                                                       e);
+         // [ pop] v
       }
-      // GradZT
-      MFEM_FOREACH_THREAD(j,y,Q1D)
-      {
-         MFEM_FOREACH_THREAD(i,x,Q1D)
-         {
-#pragma unroll D1D
-            for (int c=0; c<D1D; ++c)
-            {
-               Real res; res = 0;
-#pragma unroll Q1D
-               for (int k=0; k<Q1D; ++k)
-               {
-                  res += s_I[k][c]*r_Aq[j][i][k];
-               }
-               s_Iq[c][j][i] = res;
-            }
-         }
-      } MFEM_SYNC_THREAD;
-      // GradYT
-      MFEM_FOREACH_THREAD(c,y,Q1D)
-      {
-         MFEM_FOREACH_THREAD(i,x,Q1D)
-         {
-            if (c<D1D)
-            {
-#pragma unroll Q1D
-               for (int j=0; j<Q1D; ++j)
-               {
-                  r_Aq[c][i][j] = s_Iq[c][j][i];
-               }
-#pragma unroll D1D
-               for (int b=0; b<D1D; ++b)
-               {
-                  Real res; res = 0;
-#pragma unroll Q1D
-                  for (int j=0; j<Q1D; ++j)
-                  {
-                     res += s_I[j][b]*r_Aq[c][i][j];
-                  }
-                  s_Iq[c][b][i] = res;
-               }
-            }
-         }
-      } MFEM_SYNC_THREAD;
-      // GradXT
-      MFEM_FOREACH_THREAD(c,y,Q1D)
-      {
-         MFEM_FOREACH_THREAD(b,x,Q1D)
-         {
-            if (b<D1D && c<D1D)
-            {
-#pragma unroll Q1D
-               for (int i=0; i<Q1D; ++i)
-               {
-                  r_Aq[c][b][i] = s_Iq[c][b][i];
-               }
-#pragma unroll D1D
-               for (int a=0; a<D1D; ++a)
-               {
-                  Real res; res = 0;
-#pragma unroll Q1D
-                  for (int i=0; i<Q1D; ++i)
-                  {
-                     res += s_I[i][a]*r_Aq[c][b][i];
-                  }
-                  s_Iq[c][b][a] = res;
-               }
-            }
-         }
-      } MFEM_SYNC_THREAD;
-      // Scatter
-      MFEM_FOREACH_THREAD(j,y,Q1D)
-      {
-         MFEM_FOREACH_THREAD(i,x,Q1D)
-         {
-            if (i<D1D && j<D1D)
-            {
-#pragma unroll D1D
-               for (int k = 0; k < D1D; k++)
-               {
-                  for (int v = 0; v < SMS; v++)
-                  {
-                     const int gid = MAP(i, j, k, e + v);
-                     const int idx = gid >= 0 ? gid : -1 - gid;
-                     AtomicAdd(YD(idx), (s_Iq[k][j][i])[v]);
-                  }
-               }
-            }
-         }
-      }
-   } // MFEM_FORALL_2D
-} // KMult1
+   }  // Element for loop
+#ifdef MFEM_USE_THREADS
+}, tid, e0, NE0)); // lambda & thread vector push_back
+e0 += NEB;
+NE0 += NEB;
+}  // Thread for loop
+for (auto &thr : threads)
+{
+thr.join();
+}
+#endif
+}  // KMult1
 
 int main(int argc, char *argv[])
 {
