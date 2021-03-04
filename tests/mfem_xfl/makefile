@@ -27,7 +27,7 @@ MFEM_LIB_FILE = mfem_is_not_built
 # EXTRA_CXXFLAGS - extra flags that will be added to MFEM_CXXFLAGS. Some options
 # for these flags are set below, based on MFEM_CXX. However, they can be
 # overwritten at the make command line.
-EXTRA_CXXFLAGS = -fopenmp
+EXTRA_CXXFLAGS =
 # Similar to the above.
 EXTRA_INCFLAGS =
 
