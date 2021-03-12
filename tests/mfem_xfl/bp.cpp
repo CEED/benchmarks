@@ -1,4 +1,4 @@
-// Copyright (c) 2010-2020, Lawrence Livermore National Security, LLC. Produced
+// Copyright (c) 2010-2021, Lawrence Livermore National Security, LLC. Produced
 // at the Lawrence Livermore National Laboratory. All Rights reserved. See files
 // LICENSE and NOTICE for details. LLNL-CODE-806117.
 //
@@ -8,123 +8,253 @@
 // MFEM is free software; you can redistribute it and/or modify it under the
 // terms of the BSD-3 license. We welcome feedback and contributions, see file
 // CONTRIBUTING.md for details.
-#include <fstream>
-#include <functional>
-#include <iostream>
-#include <memory>
-#include <numeric>
-#include <string>
-#include <typeindex>
-#include <utility>
-#include <vector>
-#include <thread>
-
 #include "mfem.hpp"
-#define dbg(...)
 
 #include "general/forall.hpp"
 #include "linalg/kernels.hpp"
 
-
-#include "linalg/simd.hpp"
-#define SIMD_SIZE (MFEM_SIMD_BYTES / sizeof(double))
-
-#ifndef GEOM
-#define GEOM Geometry::CUBE
+// Kernels addons //////////////////////////////////////////////////////////////
+#ifndef MFEM_USE_MPI
+#define HYPRE_Int int
+typedef int MPI_Session;
+#define ParMesh Mesh
+#define ParFESpace FESpace
+#define GetParMesh GetMesh
+#define GlobalTrueVSize GetVSize
+#define ParLinearForm LinearForm
+#define ParBilinearForm BilinearForm
+#define ParGridFunction GridFunction
+#define ParFiniteElementSpace FiniteElementSpace
+#define PFesGetParMeshGetComm(...)
+#define PFesGetParMeshGetComm0(...) 0
+#define MPI_Init(...)
+#define MPI_Barrier(...)
+#define MPI_Finalize()
+#define MPI_Comm_size(...)
+#define MPI_Comm_rank(...)
+#define MPI_Allreduce(src,dst,...) *dst = *src
+#define MPI_Reduce(src, dst, n, T,...) *dst = *src
+#define NewParMesh(pmesh, mesh, partitioning) pmesh = mesh
+#else
+#define NewParMesh(pmesh, mesh, partitioning) \
+    pmesh = new ParMesh(MPI_COMM_WORLD, *mesh, partitioning);\
+    delete mesh;
 #endif
-
-#ifndef MESH_P
-#define MESH_P 1
-#endif
-
-#ifndef SOL_P
-#define SOL_P 3
-#endif
-
-#ifndef IR_ORDER
-#define IR_ORDER 0
-#endif
-
-#ifndef IR_TYPE
-#define IR_TYPE 0
-#endif
-
-#ifndef PROBLEM
-#define PROBLEM 0
-#endif
-
-#define MFEM_ALIGN alignas(32)
 
 using namespace mfem;
 
 namespace mfem
 {
 
-using FE = FiniteElement;
-using QI = QuadratureInterpolator;
-using Real = AutoSIMDTraits<double, double>::vreal_t;
-using ConstDeviceMatrix = DeviceTensor<2,const double>;
+mfem::Mesh *CreateMeshEx7(int order);
+
+using FE = mfem::FiniteElement;
+using QI = mfem::QuadratureInterpolator;
+
+// Kernels addons //////////////////////////////////////////////////////////////
+namespace kernels
+{
+
+template<typename T> MFEM_HOST_DEVICE inline
+void HouseholderReflect(T *A, const T *v,
+                        const T b, const int m, const int n,
+                        const int row, const int col)
+{
+   for (int j = 0; j < n; j++)
+   {
+      T w = A[0*row + j*col];
+      for (int i = 1; i < m; i++) { w += v[i] * A[i*row + j*col]; }
+      A[0*row + j*col] -= b * w;
+      for (int i = 1; i < m; i++) { A[i*row + j*col] -= b * w * v[i]; }
+   }
+}
+
+template<int Q1D, typename T> MFEM_HOST_DEVICE inline
+void HouseholderApplyQ(T *A, const T *Q, const T *tau,
+                       const int k, const int row, const int col)
+{
+   T v[Q1D];
+   for (int ii=0; ii<k; ii++)
+   {
+      const int i = k-1-ii;
+      for (int j = i+1; j < Q1D; j++) { v[j] = Q[j*k+i]; }
+      // Apply Householder reflector (I - tau v v^T) coG^T
+      HouseholderReflect(&A[i*row], &v[i], tau[i], Q1D-i, Q1D, row, col);
+   }
+}
+
+template<int D1D, int Q1D, typename T> MFEM_HOST_DEVICE inline
+void QRFactorization(T *mat, T *tau)
+{
+   T v[Q1D];
+   DeviceMatrix B(mat, D1D, Q1D);
+   for (int i = 0; i < D1D; i++)
+   {
+      // Calculate Householder vector, magnitude
+      T sigma = 0.0;
+      v[i] = B(i,i);
+      for (int j = i + 1; j < Q1D; j++)
+      {
+         v[j] = B(i,j);
+         sigma += v[j] * v[j];
+      }
+      T norm = std::sqrt(v[i]*v[i] + sigma); // norm of v[i:m]
+      T Rii = -copysign(norm, v[i]);
+      v[i] -= Rii;
+      // norm of v[i:m] after modification above and scaling below
+      //   norm = sqrt(v[i]*v[i] + sigma) / v[i];
+      //   tau = 2 / (norm*norm)
+      tau[i] = 2 * v[i]*v[i] / (v[i]*v[i] + sigma);
+      for (int j=i+1; j<Q1D; j++) { v[j] /= v[i]; }
+      // Apply Householder reflector to lower right panel
+      HouseholderReflect(&mat[i*D1D+i+1], &v[i], tau[i],
+                         Q1D-i, D1D-i-1, D1D, 1);
+      // Save v
+      B(i,i) = Rii;
+      for (int j=i+1; j<Q1D; j++) { B(i,j) = v[j]; }
+   }
+}
+
+template<int D1D, int Q1D, typename T = double> MFEM_HOST_DEVICE inline
+void GetCollocatedGrad(DeviceTensor<2,const T> b,
+                       DeviceTensor<2,const T> g,
+                       DeviceTensor<2,T> CoG)
+{
+   T tau[Q1D];
+   T B1d[Q1D*D1D];
+   T G1d[Q1D*D1D];
+   DeviceMatrix B(B1d, D1D, Q1D);
+   DeviceMatrix G(G1d, D1D, Q1D);
+
+   for (int d = 0; d < D1D; d++)
+   {
+      for (int q = 0; q < Q1D; q++)
+      {
+         B(d,q) = b(q,d);
+         G(d,q) = g(q,d);
+      }
+   }
+   QRFactorization<D1D,Q1D>(B1d, tau);
+   // Apply Rinv, colograd1d = grad1d Rinv
+   for (int i = 0; i < Q1D; i++)
+   {
+      CoG(0,i) = G(0,i)/B(0,0);
+      for (int j = 1; j < D1D; j++)
+      {
+         CoG(j,i) = G(j,i);
+         for (int k = 0; k < j; k++) { CoG(j,i) -= B(j,k)*CoG(k,i); }
+         CoG(j,i) /= B(j,j);
+      }
+      for (int j = D1D; j < Q1D; j++) { CoG(j,i) = 0.0; }
+   }
+   // Apply Qtranspose, colograd = colograd Qtranspose
+   HouseholderApplyQ<Q1D>((T*)CoG, B1d, tau, D1D, 1, Q1D);
+}
+
+}  // namespace kernels
 
 // XFL addons //////////////////////////////////////////////////////////////////
 namespace xfl
 {
 
-class XElementRestriction : public ElementRestriction
+struct XElementRestriction : public ElementRestriction
 {
-   const ParFiniteElementSpace &fes;
-
-public:
-   XElementRestriction(const ParFiniteElementSpace *fes, ElementDofOrdering edo)
-      : ElementRestriction(*fes, edo), fes(*fes) {}
-
-   const Array<int> &ScatterMap() const { return offsets; }
-   const Array<int> &ScatterIdx() const { return indices; }
+   XElementRestriction(const ParFiniteElementSpace *fes,
+                       ElementDofOrdering ordering)
+      : ElementRestriction(*fes, ordering) { }
    const Array<int> &GatherMap() const { return gatherMap; }
-
-   void Mult(const Vector &x, Vector &y) const
-   {
-      const int ndof = fes.GetFE(0)->GetDof();
-      const int ndofs = fes.GetNDofs();
-
-      const auto d_x = Reshape(x.Read(), ndofs);
-      const auto d_j = gatherMap.Read();
-
-      auto d_y = Reshape(y.Write(), ndof, ne);
-
-      MFEM_FORALL(i, ndof * ne, { d_y(i % ndof, i / ndof) = d_x(d_j[i]); });
-   }
-
-   void MultTranspose(const Vector &x, Vector &y) const
-   {
-      const int nd = fes.GetFE(0)->GetDof();
-
-      const auto d_offsets = offsets.Read();
-      const auto d_indices = indices.Read();
-
-      const auto d_x = Reshape(x.Read(), nd, ne);
-      auto d_y = Reshape(y.Write(), ndofs);
-      MFEM_FORALL(i, ndofs,
-      {
-         double dofValue = 0.0;
-         const int offset = d_offsets[i];
-         const int nextOffset = d_offsets[i + 1];
-         for (int j = offset; j < nextOffset; ++j)
-         {
-            const bool plus = d_indices[j] >= 0;
-            const int idx_j = plus ? d_indices[j] : -1 - d_indices[j];
-            const double value = d_x(idx_j % nd, idx_j / nd);
-            dofValue += (plus) ? value : -value;
-         }
-         d_y(i) = dofValue;
-      });
-   }
 };
 
 /** ****************************************************************************
  * @brief The Operator class
  **************************************************************************** */
-template <int DIM>
-class Operator;
+template <int DIM> class Operator;
+
+/** ****************************************************************************
+ * @brief The 2D Operator class
+ **************************************************************************** */
+template <>
+class Operator<2> : public mfem::Operator
+{
+protected:
+   static constexpr int DIM = 2;
+   static constexpr int NBZ = 1;
+
+   const DofToQuad::Mode mode = DofToQuad::TENSOR;
+   const int flags = GeometricFactors::JACOBIANS |
+                     GeometricFactors::COORDINATES |
+                     GeometricFactors::DETERMINANTS;
+   const ElementDofOrdering e_ordering = ElementDofOrdering::LEXICOGRAPHIC;
+
+   mfem::ParMesh *mesh;
+   const ParFiniteElementSpace *pfes;
+   const GridFunction *nodes;
+   const mfem::FiniteElementSpace *nfes;
+   const int p, q;
+   const xfl::XElementRestriction ER;
+   const mfem::Operator *NR;
+   const Geometry::Type type;
+   const IntegrationRule &ir;
+   const GeometricFactors *geom;
+   const DofToQuad *maps;
+   const QuadratureInterpolator *nqi;
+   const int SDIM, VDIM, NDOFS, NE, NQ, D1D, Q1D;
+   mutable Vector val_xq, grad_xq;
+   Vector J0, dx;
+   const mfem::Operator *P, *R;
+
+public:
+   Operator(const ParFiniteElementSpace *pfes)
+      : mfem::Operator(pfes->GetVSize()),
+        mesh(pfes->GetParMesh()),
+        pfes(pfes),
+        nodes((mesh->EnsureNodes(), mesh->GetNodes())),
+        nfes(nodes->FESpace()),
+        p(pfes->GetFE(0)->GetOrder()),
+        q(2 * p + mesh->GetElementTransformation(0)->OrderW()),
+        ER(pfes, e_ordering),
+        NR(nfes->GetElementRestriction(e_ordering)),
+        type(mesh->GetElementBaseGeometry(0)),
+        ir(IntRules.Get(type, q)),
+        geom(mesh->GetGeometricFactors(ir, flags, mode)),
+        maps(&pfes->GetFE(0)->GetDofToQuad(ir, mode)),
+        nqi(nfes->GetQuadratureInterpolator(ir, mode)),
+        SDIM(mesh->SpaceDimension()),
+        VDIM(pfes->GetVDim()),
+        NDOFS(pfes->GetNDofs()),
+        NE(mesh->GetNE()),
+        NQ(ir.GetNPoints()),
+        D1D(pfes->GetFE(0)->GetOrder() + 1),
+        Q1D(IntRules.Get(Geometry::SEGMENT, ir.GetOrder()).GetNPoints()),
+        val_xq(NQ * VDIM * NE),
+        grad_xq(NQ * VDIM * DIM * NE),
+        J0(SDIM * DIM * NQ * NE),
+        dx(NQ * NE, MemoryType::HOST_32),
+        P(pfes->GetProlongationMatrix()),
+        R(pfes->GetRestrictionMatrix())
+   {
+      MFEM_VERIFY(DIM == 2, "");
+      MFEM_VERIFY(VDIM == 1, "");
+      MFEM_VERIFY(SDIM == DIM, "");
+      MFEM_VERIFY(NQ == Q1D * Q1D, "");
+      MFEM_VERIFY(DIM == mesh->Dimension(), "");
+      nqi->SetOutputLayout(QVectorLayout::byVDIM);
+      const FiniteElement *fe = nfes->GetFE(0);
+      const int vdim = nfes->GetVDim();
+      const int nd = fe->GetDof();
+      Vector Enodes(vdim * nd * NE);
+      NR->Mult(*nodes, Enodes);
+      nqi->Derivatives(Enodes, J0);
+   }
+
+   virtual void Mult(const mfem::Vector &, mfem::Vector &) const {}
+
+   virtual void QMult(const mfem::Vector &, mfem::Vector &) const {}
+
+   virtual const mfem::Operator *GetProlongation() const { return P; }
+
+   virtual const mfem::Operator *GetRestriction() const { return R; }
+};
 
 /** ****************************************************************************
  * @brief The 3D Operator class
@@ -157,6 +287,7 @@ protected:
    mutable Vector val_xq, grad_xq;
    Vector J0, dx;
    const mfem::Operator *P, *R;
+   mutable Array<double> CoG;
 
 public:
    Operator(const ParFiniteElementSpace *pfes)
@@ -171,10 +302,10 @@ public:
         NR(nfes->GetElementRestriction(e_ordering)),
         type(mesh->GetElementBaseGeometry(0)),
         ir(IntRules.Get(type, q)),
-        geom(mesh->GetGeometricFactors(ir, flags)),//, mode)),
+        geom(mesh->GetGeometricFactors(ir, flags, mode)),
         maps(&pfes->GetFE(0)->GetDofToQuad(ir, mode)),
-        qi(pfes->GetQuadratureInterpolator(ir)),//, mode)),
-        nqi(nfes->GetQuadratureInterpolator(ir)),//, mode)),
+        qi(pfes->GetQuadratureInterpolator(ir, mode)),
+        nqi(nfes->GetQuadratureInterpolator(ir, mode)),
         SDIM(mesh->SpaceDimension()),
         VDIM(pfes->GetVDim()),
         NDOFS(pfes->GetNDofs()),
@@ -201,9 +332,6 @@ public:
       const int nd = fe->GetDof();
       Vector Enodes(vdim * nd * NE);
       NR->Mult(*nodes, Enodes);
-      dbg("VDIM:%d, SDIM:%d", VDIM, SDIM);
-      dbg("p:%d q:%d OrderW:%d, D1D:%d, Q1D:%d", p, q,
-          mesh->GetElementTransformation(0)->OrderW(), D1D, Q1D);
       nqi->Derivatives(Enodes, J0);
    }
 
@@ -221,7 +349,7 @@ public:
  ******************************************************************************/
 struct Problem
 {
-   mfem::Operator *QM{nullptr};
+   mfem::Operator *QM {nullptr};
    mfem::ParLinearForm &b;
    Problem(mfem::ParLinearForm &b, mfem::Operator *QM) : QM(QM), b(b) {}
    ~Problem() { delete QM; }
@@ -241,11 +369,11 @@ public:
    mfem::ParFiniteElementSpace *pfes;
 
 public:
-   // Constructor
-   QForm(mfem::ParFiniteElementSpace *pfes, const char *qs, mfem::Operator *QM)
-      : qs(qs), QM(QM), pfes(pfes) {}
 
-   ~QForm() {}
+   QForm(ParFiniteElementSpace *pfes, const char *qs, mfem::Operator *QM)
+      : qs(qs), QM(QM), pfes(pfes) { }
+
+   ~QForm() { }
 
    // Create problem
    Problem *operator==(QForm &rhs)
@@ -268,7 +396,11 @@ public:
          FunctionCoefficient *func = rhs.FunctionCoeff();
          b->AddDomainIntegrator(new DomainLFIntegrator(*func));
       }
-      else {  assert(false); }
+      else
+      {
+         assert(false);
+      }
+
       return new Problem(*b, QM);
    }
 
@@ -298,10 +430,7 @@ public:
    void operator=(double value) { ParGridFunction::operator=(value); }
    int geometric_dimension() { return fes->GetMesh()->SpaceDimension(); }
    ParFiniteElementSpace *ParFESpace() { return ParGridFunction::ParFESpace(); }
-   const ParFiniteElementSpace *ParFESpace() const
-   {
-      return ParGridFunction::ParFESpace();
-   }
+   const ParFiniteElementSpace *ParFESpace() const { return ParGridFunction::ParFESpace(); }
    ConstantCoefficient *ConstantCoeff() const { return nullptr; }
    FunctionCoefficient *FunctionCoeff() const { return nullptr; }
 };
@@ -312,8 +441,8 @@ public:
 class TrialFunction : public Function
 {
 public:
-   TrialFunction(ParFiniteElementSpace *pfes) : Function(pfes) {}
-   ~TrialFunction() {}
+   TrialFunction(ParFiniteElementSpace *pfes) : Function(pfes) { }
+   ~TrialFunction() { }
 };
 
 /** ****************************************************************************
@@ -322,9 +451,9 @@ public:
 class TestFunction : public Function
 {
 public:
-   TestFunction(ParFiniteElementSpace *pfes) : Function(pfes) {}
+   TestFunction(ParFiniteElementSpace *pfes) : Function(pfes) { }
    TestFunction(const TestFunction &) = default;
-   ~TestFunction() {}
+   ~TestFunction() { }
 };
 
 /** ****************************************************************************
@@ -336,8 +465,8 @@ class Constant
    ConstantCoefficient *cst = nullptr;
 
 public:
-   Constant(double val) : value(val), cst(new ConstantCoefficient(val)) {}
-   ~Constant() { dbg(); /*delete cst;*/ }
+   Constant(double val) : value(val), cst(new ConstantCoefficient(val)) { }
+   ~Constant() { /*delete cst;*/ }
    ParFiniteElementSpace *ParFESpace() const { return nullptr; }
    double Value() const { return value; }
    double Value() { return value; }
@@ -356,21 +485,82 @@ class Expression
 
 public:
    Expression(std::function<double(const Vector &)> F)
-      : fct(new FunctionCoefficient(F)) {}
-   ~Expression()   /*delete fct;*/
-   {
-   }
+      : fct(new FunctionCoefficient(F)) { }
+   ~Expression() { /*delete fct;*/ }
    ParFiniteElementSpace *ParFESpace() const { return nullptr; }  // qf args
    ConstantCoefficient *ConstantCoeff() const { return nullptr; }
    FunctionCoefficient *FunctionCoeff() const { return fct; }
    operator const double *() const { return nullptr; }  // qf eval
-   // double operator *(TestFunction &v) { dbg(); return 0.0;} // qf eval
+   // double operator *(TestFunction &v) { return 0.0;} // qf eval
 };
 
 /** ****************************************************************************
  * @brief Mesh
  ******************************************************************************/
+static mfem::ParMesh *MeshToPMesh(mfem::Mesh *mesh)
+{
+   int num_procs = 1;
+   MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
+   int n111[3] {1, 1, 1};
+   int n211[3] {2, 1, 1};
+   int n221[3] {2, 2, 1};
+   int n222[3] {2, 2, 2};
+   int n422[3] {4, 2, 2};
+   int n442[3] {4, 4, 2};
+   int n444[3] {4, 4, 4};
+   int *nxyz = (num_procs == 1 ? n111 :
+                num_procs == 2 ? n211 :
+                num_procs == 4 ? n221 :
+                num_procs == 8 ? n222 :
+                num_procs == 16 ? n422 :
+                num_procs == 32 ? n442 :
+                num_procs == 64 ? n444 : nullptr);
+   assert(nxyz);
+   const int mesh_p = 1;
+   mesh->SetCurvature(mesh_p, false, -1, Ordering::byNODES);
+   int *partitioning = mesh->CartesianPartitioning(nxyz);
+   ParMesh *pmesh = nullptr;
+   NewParMesh(pmesh, mesh, partitioning);
+   return pmesh;
+}
+
+mfem::ParMesh &Mesh(const char *mesh_file)  // and & for mesh
+{
+   return *MeshToPMesh(new mfem::Mesh(mesh_file, 1, 1));
+}
+
+#ifdef MFEM_USE_MPI
+mfem::ParMesh &Mesh(mfem::Mesh *mesh) { return *MeshToPMesh(mesh); }
+
 mfem::ParMesh &Mesh(mfem::ParMesh *pmesh) { return *pmesh; }
+#else
+mfem::Mesh &Mesh(mfem::Mesh *mesh) { return *mesh; }
+#endif
+
+mfem::ParMesh &UnitSquareMesh(int nx, int ny)
+{
+   const double sx = 1.0, sy = 1.0;
+   Element::Type quad = Element::Type::QUADRILATERAL;
+   const bool edges = false, sfc = true;
+   mfem::Mesh *mesh =
+      new mfem::Mesh(nx, ny, quad, edges, sx, sy, sfc);
+   return *MeshToPMesh(mesh);
+}
+
+mfem::ParMesh &UnitHexMesh(int nx, int ny, int nz)
+{
+   Element::Type hex = Element::Type::HEXAHEDRON;
+   const bool edges = false, sfc = true;
+   const double sx = 1.0, sy = 1.0, sz = 1.0;
+   mfem::Mesh *mesh =
+      new mfem::Mesh(nx, ny, nz, hex, edges, sx, sy, sz, sfc);
+   return *MeshToPMesh(mesh);
+}
+
+/** ****************************************************************************
+ * @brief Device
+ ******************************************************************************/
+mfem::Device Device(const char *device_config) { return {device_config}; }
 
 /** ****************************************************************************
  * @brief FiniteElement
@@ -378,12 +568,10 @@ mfem::ParMesh &Mesh(mfem::ParMesh *pmesh) { return *pmesh; }
 FiniteElementCollection *FiniteElement(std::string family, int type, int p)
 {
    MFEM_VERIFY(family == "Lagrange", "Unsupported family!");
-   MFEM_VERIFY(
-      type == Element::Type::QUADRILATERAL || type == Element::Type::HEXAHEDRON,
-      "Unsupported type!");
-   const int dim = (type == Element::Type::QUADRILATERAL) ? 2
-                   : (type == Element::Type::HEXAHEDRON)  ? 3
-                   : 0;
+   MFEM_VERIFY(type == Element::Type::QUADRILATERAL ||
+               type == Element::Type::HEXAHEDRON, "Unsupported type!");
+   const int dim = (type == Element::Type::QUADRILATERAL) ? 2 :
+                   (type == Element::Type::HEXAHEDRON)  ? 3 : 0;
    const int btype = BasisType::GaussLobatto;
    return new H1_FECollection(p, dim, btype);
 }
@@ -393,7 +581,8 @@ FiniteElementCollection *FiniteElement(std::string family, int type, int p)
  ******************************************************************************/
 class FunctionSpace : public ParFiniteElementSpace {};
 
-ParFiniteElementSpace *FunctionSpace(mfem::ParMesh *pmesh, std::string family,
+ParFiniteElementSpace *FunctionSpace(mfem::ParMesh *pmesh,
+                                     std::string family,
                                      int p)
 {
    assert(false);
@@ -403,8 +592,7 @@ ParFiniteElementSpace *FunctionSpace(mfem::ParMesh *pmesh, std::string family,
    return new ParFiniteElementSpace(pmesh, fec);
 }
 
-ParFiniteElementSpace *FunctionSpace(mfem::ParMesh &pmesh, std::string f,
-                                     int p)
+ParFiniteElementSpace *FunctionSpace(mfem::ParMesh &pmesh, std::string f, int p)
 {
    assert(false);
    return FunctionSpace(&pmesh, f, p);
@@ -432,7 +620,8 @@ ParFiniteElementSpace *FunctionSpace(mfem::ParMesh &pmesh,
  * @brief Vector Function Space
  ******************************************************************************/
 ParFiniteElementSpace *VectorFunctionSpace(mfem::ParMesh *pmesh,
-                                           std::string family, const int p)
+                                           std::string family,
+                                           const int p)
 {
    const int dim = pmesh->Dimension();
    MFEM_VERIFY(family == "P", "Unsupported FE!");
@@ -441,7 +630,8 @@ ParFiniteElementSpace *VectorFunctionSpace(mfem::ParMesh *pmesh,
 }
 
 ParFiniteElementSpace *VectorFunctionSpace(mfem::ParMesh &pmesh,
-                                           std::string family, const int p)
+                                           std::string family,
+                                           const int p)
 {
    return VectorFunctionSpace(&pmesh, family, p);
 }
@@ -470,6 +660,19 @@ Array<int> DirichletBC(mfem::ParFiniteElementSpace *pfes)
 }
 
 /** ****************************************************************************
+ * @brief Math namespace
+ ******************************************************************************/
+namespace math
+{
+
+Constant Pow(Function &gf, double exp)
+{
+   return Constant(gf.Vector::Normlp(exp));
+}
+
+}  // namespace math
+
+/** ****************************************************************************
  * @brief solve with boundary conditions
  ******************************************************************************/
 int solve(xfl::Problem *pb, xfl::Function &x, Array<int> ess_tdof_list)
@@ -482,7 +685,6 @@ int solve(xfl::Problem *pb, xfl::Function &x, Array<int> ess_tdof_list)
    pb->b.Assemble();
    mfem::Operator *A = nullptr;
 
-   dbg("second solve with the inline QMult");
    mfem::Operator &op = *(pb->QM);
    op.FormLinearSystem(ess_tdof_list, x, pb->b, A, X, B);
    CG(*A, B, X, 1, 400, 1e-12, 0.0);
@@ -519,7 +721,12 @@ int benchmark(xfl::Problem *pb, xfl::Function &x, Array<int> ess_tdof_list,
    mfem::Operator &a = *(pb->QM);
    a.FormLinearSystem(ess_tdof_list, x, b, A, X, B);
 
+#ifndef MFEM_USE_MPI
+   CGSolver cg;
+#else
    CGSolver cg(MPI_COMM_WORLD);
+#endif
+
    cg.SetRelTol(rtol);
    cg.SetOperator(*A);
 
@@ -548,14 +755,15 @@ int benchmark(xfl::Problem *pb, xfl::Function &x, Array<int> ess_tdof_list,
    a.RecoverFEMSolution(X, b, x);
    x.HostReadWrite();
 
-   int myid;
+   int myid = 0;
    MPI_Comm_rank(MPI_COMM_WORLD, &myid);
-   MPI_Comm comm = pfes->GetParMesh()->GetComm();
 
    const double rt = tic_toc.RealTime();
    double rt_min, rt_max;
-   MPI_Reduce(&rt, &rt_min, 1, MPI_DOUBLE, MPI_MIN, 0, comm);
-   MPI_Reduce(&rt, &rt_max, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
+   MPI_Reduce(&rt, &rt_min, 1, MPI_DOUBLE, MPI_MIN, 0,
+              pfes->GetParMesh()->GetComm());
+   MPI_Reduce(&rt, &rt_max, 1, MPI_DOUBLE, MPI_MAX, 0,
+              pfes->GetParMesh()->GetComm());
 
    const HYPRE_Int dofs = pfes->GlobalTrueVSize();
    const int cg_iter = cg.GetNumIterations();
@@ -564,14 +772,16 @@ int benchmark(xfl::Problem *pb, xfl::Function &x, Array<int> ess_tdof_list,
 
    if (myid == 0)
    {
-      std::cout << "Number of finite element unknowns: " << dofs << std::endl;
+      std::cout << "Number of finite element unknowns: " << dofs <<  std::endl;
       std::cout << "Total CG time:    " << rt_max << " (" << rt_min << ") sec."
                 << std::endl;
-      std::cout << "Time per CG step: " << rt_max / cg_iter << " ("
+      std::cout << "Time per CG step: "
+                << rt_max / cg_iter << " ("
                 << rt_min / cg_iter << ") sec." << std::endl;
-      std::cout << "\"DOFs/sec\" in CG: " << mdofs_max << " (" << mdofs_min
-                << ") million.";
-      std::cout << std::endl;
+      std::cout << "\033[32m";
+      std::cout << "\"DOFs/sec\" in CG: " << mdofs_max << " ("
+                << mdofs_min << ") million.";
+      std::cout << "\033[m" << std::endl;
    }
    delete pb;
    return 0;
@@ -582,15 +792,95 @@ int benchmark(xfl::Problem *pb, xfl::Function &x, Array<int> ess_tdof_list)
    return benchmark(pb, x, ess_tdof_list, 1e-12, 200, -1);
 }
 
-constexpr int point = Element::Type::POINT;
-constexpr int segment = Element::Type::SEGMENT;
-constexpr int triangle = Element::Type::TRIANGLE;
+/** ****************************************************************************
+ * @brief plot the x gridfunction
+ ******************************************************************************/
+int plot(xfl::Function &x)
+{
+   int num_procs = 1, myid = 0;
+   MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
+   MPI_Comm_rank(MPI_COMM_WORLD, &myid);
+
+   ParFiniteElementSpace *fes = x.ParFESpace();
+   assert(fes);
+   mfem::ParMesh *pmesh = fes->GetParMesh();
+   assert(pmesh);
+   char vishost[] = "localhost";
+   int visport = 19916;
+   socketstream sol_sock(vishost, visport);
+   sol_sock << "parallel " << num_procs << " " << myid << "\n";
+   sol_sock.precision(8);
+   sol_sock << "solution\n" << *pmesh << x << std::flush;
+   return 0;
+}
+
+/** ****************************************************************************
+ * @brief plot the mesh
+ ******************************************************************************/
+int plot(mfem::ParMesh *pmesh)
+{
+   int num_procs = 1, myid = 0;
+   MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
+   MPI_Comm_rank(MPI_COMM_WORLD, &myid);
+
+   char vishost[] = "localhost";
+   int visport = 19916;
+   socketstream sol_sock(vishost, visport);
+   sol_sock << "parallel " << num_procs << " " << myid << "\n";
+   sol_sock.precision(8);
+   sol_sock << "mesh\n" << *pmesh << std::flush;
+   return 0;
+}
+
+/** ****************************************************************************
+ * @brief save the x gridfunction
+ ******************************************************************************/
+int save(xfl::Function &x, const char *filename)
+{
+   int myid = 0;
+   MPI_Comm_rank(MPI_COMM_WORLD, &myid);
+   std::ostringstream sol_name;
+   sol_name << filename << "." << std::setfill('0') << std::setw(6) << myid;
+
+   std::ofstream sol_ofs(sol_name.str().c_str());
+   sol_ofs.precision(8);
+   x.Save(sol_ofs);
+   return 0;
+}
+
+/** ****************************************************************************
+ * @brief save the x gridfunction
+ ******************************************************************************/
+int save(mfem::ParMesh &mesh, const char *filename)
+{
+   int myid = 0;
+   MPI_Comm_rank(MPI_COMM_WORLD, &myid);
+   std::ostringstream mesh_name;
+   mesh_name << filename << "." << std::setfill('0') << std::setw(6) << myid;
+
+   std::ofstream mesh_ofs(mesh_name.str().c_str());
+   mesh_ofs.precision(8);
+   mesh.Print(mesh_ofs);
+   return 0;
+}
+
+//constexpr int point = Element::Type::POINT;
+//constexpr int segment = Element::Type::SEGMENT;
+//constexpr int triangle = Element::Type::TRIANGLE;
 constexpr int quadrilateral = Element::Type::QUADRILATERAL;
-constexpr int tetrahedron = Element::Type::TETRAHEDRON;
+//constexpr int tetrahedron = Element::Type::TETRAHEDRON;
 constexpr int hexahedron = Element::Type::HEXAHEDRON;
-constexpr int wedge = Element::Type::WEDGE;
+//constexpr int wedge = Element::Type::WEDGE;
 
 }  // namespace xfl
+
+template <typename... Args>
+void print(const char *fmt, Args... args)
+{
+   std::cout << std::flush;
+   std::printf(fmt, args...);
+   std::cout << std::endl;
+}
 
 inline bool UsesTensorBasis(const FiniteElementSpace *fes)
 {
@@ -603,47 +893,78 @@ int dot(int u, int v) { return u * v; }
 }  // namespace mfem
 
 
-template <int DIM, int DX0, int DX1>
-inline static void KSetup1(const int ndofs, const int vdim, const int NE,
-                           const double *__restrict__ J0,
-                           const double *__restrict__ w,
-                           double *__restrict__ dx)
+// SIMD - Headers and Sizes
+#include "linalg/simd.hpp"
+using Real = AutoSIMDTraits<double,double>::vreal_t;
+#define SIMD_SIZE (MFEM_SIMD_BYTES/sizeof(double))
+#define SMS SIMD_SIZE
+
+// Pragma - UNROLL & ALIGN
+#define MFEM_ALIGN(T) alignas(alignof(T)) T
+#define PRAGMA(X) _Pragma(#X)
+#ifdef __clang__
+#define UNROLL(N) PRAGMA(unroll(N))
+#elif defined(__FUJITSU)
+#define UNROLL(N) PRAGMA(loop unroll N)
+#elif defined(__GNUC__) || defined(__GNUG__)
+#define UNROLL(N) PRAGMA(GCC unroll(N))
+#else
+#define UNROLL(N)
+#endif
+
+// Blocking
+#define BLK_SZ 1
+#define FOREACH_BLOCK(i,N) for(int i##i=0; i##i<N+BLK_SZ-1; i##i+=BLK_SZ)
+#define FOREACH_INNER(i) for(int i=i##i; i<i##i+BLK_SZ; i++)
+
+// Foreach Thread
+#define FOREACH_THREAD(i,k,N) for(int i=0; i<N; i+=1)
+#define SYNC_THREADS
+
+
+template<int DIM, int DX0, int DX1, int Q1D> inline static
+void KSetup1(const int ndofs, const int vdim, const int NE,
+             const double * __restrict__ J0,
+             const double * __restrict__ w,
+             double * __restrict__ dx)
 {
    assert(vdim == 1);
-   static constexpr int Q1D = (SOL_P + 2);
-
-   // kernel operations: u,G,*,D,*,v,G,T,*,Ye
-
-   const auto J = Reshape(J0, DIM, DIM, Q1D, Q1D, Q1D, NE);
-   const auto W = Reshape(w, Q1D, Q1D, Q1D);
-   auto DX = Reshape(dx, DX0, DX1, Q1D, Q1D, Q1D, NE);
-
-   MFEM_FORALL_3D(e, NE, Q1D, Q1D, Q1D,
+   const auto J = Reshape(J0, DIM,DIM, Q1D,Q1D,Q1D, NE);
+   const auto W = Reshape(w, Q1D,Q1D,Q1D);
+   auto DX = Reshape(dx, Q1D,Q1D,Q1D, 6);
+   const int e = 0;
    {
-      MFEM_FOREACH_THREAD(qz, z, Q1D)
+      MFEM_FOREACH_THREAD(qz,z,Q1D)
       {
-         MFEM_FOREACH_THREAD(qy, y, Q1D)
+         MFEM_FOREACH_THREAD(qy,y,Q1D)
          {
-            MFEM_FOREACH_THREAD(qx, x, Q1D)
+            MFEM_FOREACH_THREAD(qx,x,Q1D)
             {
-               const double irw = W(qx, qy, qz);
-               const double *Jtr = &J(0, 0, qx, qy, qz, e);
+               const double irw = W(qx,qy,qz);
+               const double *Jtr = &J(0,0,qx,qy,qz, e);
                const double detJ = kernels::Det<DIM>(Jtr);
                const double wd = irw * detJ;
-               double Jrt[DIM * DIM];
+               double Jrt[DIM*DIM];
                kernels::CalcInverse<DIM>(Jtr, Jrt);
-               double A[DX0 * DX1];
-               double D[DX0 * DX1] = {wd, 0, 0, 0, wd, 0, 0, 0, wd};
-               kernels::MultABt(DIM, DIM, DIM, D, Jrt, A);
-               kernels::Mult(DIM, DIM, DIM, A, Jrt, &DX(0, 0, qx, qy, qz, e));
+               double A[DX0*DX1];
+               const double D[DX0*DX1] = {wd,0,0,0,wd,0,0,0,wd};
+               kernels::MultABt(DIM,DIM,DIM,D,Jrt,A);
+               double B[DX0*DX1];
+               kernels::Mult(DIM,DIM,DIM,A,Jrt,B);
+               DX(qx,qy,qz,0) = B[0+DX0*0];
+               DX(qx,qy,qz,1) = B[1+DX0*0];
+               DX(qx,qy,qz,2) = B[2+DX0*0];
+               DX(qx,qy,qz,3) = B[1+DX0*1];
+               DX(qx,qy,qz,4) = B[2+DX0*1];
+               DX(qx,qy,qz,5) = B[2+DX0*2];
             }
          }
       }
       MFEM_SYNC_THREAD;
-   });
+   }
 }
 
-template<int DIM, int DX0, int DX1> inline static
+template<int DIM, int DX0, int DX1, int D1D, int Q1D> inline static
 void KMult1(const int ndofs, const int vdim, const int NE,
             const double * __restrict__ B,
             const double * __restrict__ G,
@@ -652,280 +973,276 @@ void KMult1(const int ndofs, const int vdim, const int NE,
             const double * __restrict__ xd,
             double * __restrict__ yd)
 {
-
-   static constexpr int D1D = 4;
-   static constexpr int MD1 = 4;
-   static constexpr int Q1D = 5;
-   static constexpr int MQ1 = 5;
-   static constexpr int SMS = SIMD_SIZE;
-
    // kernel operations: u,G,*,D,*,v,G,T,*,Ye
-
-   assert(vdim == 1);
-
-   const auto b = Reshape(B, Q1D, D1D);
-   const auto g = Reshape(G, Q1D, Q1D);
-   const auto DX = Reshape(dx, DX0,DX1, Q1D,Q1D,Q1D, NE);
+   const auto b = Reshape(B, Q1D,D1D);
+   const auto g = Reshape(G, Q1D,Q1D);
+   const auto DX = Reshape(dx, Q1D,Q1D,Q1D, 6);
    const auto MAP = Reshape(map, D1D,D1D,D1D, NE);
    const auto XD = Reshape(xd, ndofs);
    auto YD = Reshape(yd, ndofs);
-   // kernel operations: u,G,*,D,*,v,G,T,*,Ye
-
+   MFEM_ALIGN(Real) s_Iq[Q1D][Q1D][Q1D];
+   MFEM_ALIGN(double) s_D[Q1D][Q1D];
+   MFEM_ALIGN(double) s_I[Q1D][D1D];
    MFEM_VERIFY((NE % SIMD_SIZE) == 0, "NE vs SIMD_SIZE error!");
-
-   for (int e = 0; e < NE; e+=SIMD_SIZE)
+   for (int e = 0; e < NE; e+=SMS)
    {
-      MFEM_SHARED Real s_Iq[MQ1][MQ1][MQ1];
-      MFEM_SHARED double s_D[MQ1][MQ1];
-      MFEM_SHARED double s_I[MQ1][MD1];
-      MFEM_SHARED Real s_Gqr[MQ1][MQ1];
-      MFEM_SHARED Real s_Gqs[MQ1][MQ1];
+      MFEM_ALIGN(Real) r_qt[Q1D][Q1D];
+      MFEM_ALIGN(Real) r_q[Q1D][Q1D][Q1D];
+      MFEM_ALIGN(Real) r_Aq[Q1D][Q1D][Q1D];
 
-      Real r_qt[MQ1][MQ1];
-      Real r_q[MQ1][MQ1][MQ1];
-      Real r_Aq[MQ1][MQ1][MQ1];
-
-      // Load X
-      MFEM_FOREACH_THREAD(j,y,Q1D)
+      // Scatter X
+      FOREACH_BLOCK(j,Q1D)
       {
-         MFEM_FOREACH_THREAD(i,x,Q1D)
+         FOREACH_INNER(j)
          {
-            s_D[j][i] = g(i,j);
-            if (i<D1D) { s_I[j][i] = b(j,i); }
-            if (i<D1D && j<D1D)
+            if (j>=Q1D) { continue; }
+            FOREACH_THREAD(i,x,Q1D)
             {
-#pragma unroll D1D
-               for (int k = 0; k < D1D; k++)
+               s_D[j][i] = g(i,j);
+               if (i<D1D) { s_I[j][i] = b(j,i); }
+               if (i<D1D && j<D1D)
                {
-                  Real vXD;
-                  for (int v = 0; v < SMS; v++)
+                  UNROLL(6)
+                  for (int k = 0; k < D1D; k++)
                   {
-                     const int gid = MAP(i, j, k, e + v);
-                     const int idx = gid >= 0 ? gid : -1 - gid;
-                     vXD[v] = XD(idx);
+                     MFEM_ALIGN(Real) vXD;
+                     UNROLL(SMS)
+                     for (size_t v = 0; v < SMS; v++)
+                     {
+                        const int gid = MAP(i, j, k, e + v);
+                        const int idx = gid >= 0 ? gid : -1 - gid;
+                        vXD[v] = XD(idx);
+                     }
+                     r_q[j][i][k] = vXD;
                   }
-                  r_q[j][i][k] = vXD;
                }
             }
          }
-      } MFEM_SYNC_THREAD;
+      } SYNC_THREADS;
 
       // Grad1X
-      MFEM_FOREACH_THREAD(b,y,Q1D)
+      FOREACH_THREAD(b,y,D1D)
       {
-         MFEM_FOREACH_THREAD(a,x,Q1D)
+         FOREACH_THREAD(a,x,D1D)
          {
-            if (a<D1D && b<D1D)
+            UNROLL(7)
+            for (int k=0; k<Q1D; ++k)
             {
-#pragma unroll Q1D
-               for (int k=0; k<Q1D; ++k)
+               MFEM_ALIGN(Real) res; res = 0.0;
+               UNROLL(6)
+               for (int c=0; c<D1D; ++c)
                {
-                  Real res; res = 0.0;
-#pragma unroll D1D
-                  for (int c=0; c<D1D; ++c)
-                  {
-                     res += s_I[k][c]*r_q[b][a][c];
-                  }
-                  s_Iq[k][b][a] = res;
+                  res.fma(s_I[k][c], r_q[b][a][c]);
                }
+               s_Iq[k][b][a] = res;
             }
          }
-      } MFEM_SYNC_THREAD;
+      } SYNC_THREADS;
 
       // Grad1Y
-      MFEM_FOREACH_THREAD(k,y,Q1D)
+      FOREACH_THREAD(k,y,Q1D)
       {
-         MFEM_FOREACH_THREAD(a,x,Q1D)
+         FOREACH_THREAD(a,x,D1D)
          {
-            if (a<D1D)
+            for (int b=0; b<D1D; ++b)
             {
+               r_Aq[k][a][b] = s_Iq[k][b][a];
+            }
+            UNROLL(7)
+            for (int j=0; j<Q1D; ++j)
+            {
+               MFEM_ALIGN(Real) res; res = 0;
+               UNROLL(6)
                for (int b=0; b<D1D; ++b)
                {
-                  r_Aq[k][a][b] = s_Iq[k][b][a];
+                  res.fma(s_I[j][b], r_Aq[k][a][b]);
                }
-#pragma unroll Q1D
-               for (int j=0; j<Q1D; ++j)
-               {
-                  Real res; res = 0;
-#pragma unroll D1D
-                  for (int b=0; b<D1D; ++b)
-                  {
-                     res += s_I[j][b]*r_Aq[k][a][b];
-                  }
-                  s_Iq[k][j][a] = res;
-               }
+               s_Iq[k][j][a] = res;
             }
          }
-      } MFEM_SYNC_THREAD;
+      } SYNC_THREADS;
 
       // Grad1Z
-      MFEM_FOREACH_THREAD(k,y,Q1D)
+      FOREACH_THREAD(k,y,Q1D)
       {
-         MFEM_FOREACH_THREAD(j,x,Q1D)
+         FOREACH_THREAD(j,x,Q1D)
          {
             for (int a=0; a<D1D; ++a)
             {
                r_Aq[k][j][a] = s_Iq[k][j][a];
             }
-#pragma unroll Q1D
+            UNROLL(7)
             for (int i=0; i<Q1D; ++i)
             {
-               Real res; res = 0;
-#pragma unroll D1D
+               MFEM_ALIGN(Real) res; res = 0;
+               UNROLL(6)
                for (int a=0; a<D1D; ++a)
                {
-                  res += s_I[i][a]*r_Aq[k][j][a];
+                  res.fma(s_I[i][a], r_Aq[k][j][a]);
                }
                s_Iq[k][j][i] = res;
             }
          }
-      } MFEM_SYNC_THREAD;
+      } SYNC_THREADS;
 
       // Flush
-      MFEM_FOREACH_THREAD(j,y,Q1D)
+      FOREACH_THREAD(j,y,Q1D)
       {
-         MFEM_FOREACH_THREAD(i,x,Q1D)
+         FOREACH_THREAD(i,x,Q1D)
          {
-#pragma unroll Q1D
+            UNROLL(7)
             for (int k = 0; k < Q1D; k++) { r_Aq[j][i][k] = 0.0; }
          }
-      } MFEM_SYNC_THREAD;
+      } SYNC_THREADS;
 
       // Q-Function
-#pragma unroll Q1D
+      UNROLL(7)
       for (int k = 0; k < Q1D; k++)
       {
-         MFEM_SYNC_THREAD;
-         MFEM_FOREACH_THREAD(j,y,Q1D)
+         SYNC_THREADS;
+         MFEM_ALIGN(Real) r_Gqr[Q1D][Q1D];
+         MFEM_ALIGN(Real) r_Gqs[Q1D][Q1D];
+         FOREACH_THREAD(j,y,Q1D)
          {
-            MFEM_FOREACH_THREAD(i,x,Q1D)
+            FOREACH_BLOCK(i,Q1D)
             {
-               Real qr, qs; qr = 0.0; qs = 0.0;
-               r_qt[j][i] = 0.0;
-#pragma unroll Q1D
-               for (int m = 0; m < Q1D; m++)
+               FOREACH_INNER(i)
                {
-                  const double Dim = s_D[i][m];
-                  const double Djm = s_D[j][m];
-                  const double Dkm = s_D[k][m];
-                  qr += Dim*s_Iq[k][j][m];
-                  qs += Djm*s_Iq[k][m][i];
-                  r_qt[j][i] += Dkm*s_Iq[m][j][i];
+                  if (i>=Q1D) { continue; }
+                  MFEM_ALIGN(Real) qr, qs, qt; qr = 0.0; qs = 0.0; qt = 0.0;
+                  UNROLL(7)
+                  for (int m = 0; m < Q1D; m++)
+                  {
+                     const double Dim = s_D[i][m];
+                     const double Djm = s_D[j][m];
+                     const double Dkm = s_D[k][m];
+                     qr.fma(Dim, s_Iq[k][j][m]);
+                     qs.fma(Djm, s_Iq[k][m][i]);
+                     qt.fma(Dkm, s_Iq[m][j][i]);
+                  }
+                  const double D00 = DX(i,j,k,0);
+                  const double D01 = DX(i,j,k,1);
+                  const double D02 = DX(i,j,k,2);
+                  const double D10 = D01;
+                  const double D11 = DX(i,j,k,3);
+                  const double D12 = DX(i,j,k,4);
+                  const double D20 = D02;
+                  const double D21 = D12;
+                  const double D22 = DX(i,j,k,5);
+                  r_Gqr[j][i] = 0.0;
+                  r_Gqr[j][i].fma(D00,qr);
+                  r_Gqr[j][i].fma(D10,qs);
+                  r_Gqr[j][i].fma(D20,qt);
+                  r_Gqs[j][i] = 0.0;
+                  r_Gqs[j][i].fma(D01,qr);
+                  r_Gqs[j][i].fma(D11,qs);
+                  r_Gqs[j][i].fma(D21,qt);
+                  r_qt[j][i] = 0.0;
+                  r_qt[j][i].fma(D02,qr);
+                  r_qt[j][i].fma(D12,qs);
+                  r_qt[j][i].fma(D22,qt);
                }
-               const Real qt = r_qt[j][i];
-               const Real u[DX0] = {qr, qs, qt}; Real v[DX0];
-               kernels::Mult(DX0,DX1,&DX(0,0,i,j,k,e),u,v);
-               s_Gqr[j][i] = v[0];
-               s_Gqs[j][i] = v[1];
-               r_qt[j][i]  = v[2];
             }
-         }
-         MFEM_SYNC_THREAD;
-         MFEM_FOREACH_THREAD(j,y,Q1D)
+         } // BLOCK
+         SYNC_THREADS;
+         FOREACH_THREAD(j,y,Q1D)
          {
-            MFEM_FOREACH_THREAD(i,x,Q1D)
+            FOREACH_THREAD(i,x,Q1D)
             {
-               Real Aqtmp; Aqtmp = 0.0;
-#pragma unroll Q1D
+               MFEM_ALIGN(Real) Aqtmp; Aqtmp = 0.0;
+               UNROLL(7)
                for (int m = 0; m < Q1D; m++)
                {
                   const double Dmi = s_D[m][i];
                   const double Dmj = s_D[m][j];
                   const double Dkm = s_D[k][m];
-                  Aqtmp += Dmi*s_Gqr[j][m];
-                  Aqtmp += Dmj*s_Gqs[m][i];
-                  r_Aq[j][i][m] += Dkm*r_qt[j][i];
+                  Aqtmp.fma(Dmi, r_Gqr[j][m]);
+                  Aqtmp.fma(Dmj, r_Gqs[m][i]);
+                  r_Aq[j][i][m].fma(Dkm, r_qt[j][i]);
                }
                r_Aq[j][i][k] += Aqtmp;
             }
-         } MFEM_SYNC_THREAD;
+         } SYNC_THREADS;
       }
       // GradZT
-      MFEM_FOREACH_THREAD(j,y,Q1D)
+      FOREACH_THREAD(j,y,Q1D)
       {
-         MFEM_FOREACH_THREAD(i,x,Q1D)
+         FOREACH_THREAD(i,x,Q1D)
          {
-#pragma unroll D1D
+            UNROLL(6)
             for (int c=0; c<D1D; ++c)
             {
-               Real res; res = 0;
-#pragma unroll Q1D
+               MFEM_ALIGN(Real) res; res = 0;
+               UNROLL(7)
                for (int k=0; k<Q1D; ++k)
                {
-                  res += s_I[k][c]*r_Aq[j][i][k];
+                  res.fma(s_I[k][c], r_Aq[j][i][k]);
                }
                s_Iq[c][j][i] = res;
             }
          }
-      } MFEM_SYNC_THREAD;
+      } SYNC_THREADS;
       // GradYT
-      MFEM_FOREACH_THREAD(c,y,Q1D)
+      FOREACH_THREAD(c,y,D1D)
       {
-         MFEM_FOREACH_THREAD(i,x,Q1D)
+         FOREACH_THREAD(i,x,Q1D)
          {
-            if (c<D1D)
+            UNROLL(7)
+            for (int j=0; j<Q1D; ++j)
             {
-#pragma unroll Q1D
+               r_Aq[c][i][j] = s_Iq[c][j][i];
+            }
+            UNROLL(6)
+            for (int b=0; b<D1D; ++b)
+            {
+               MFEM_ALIGN(Real) res; res = 0;
+               UNROLL(7)
                for (int j=0; j<Q1D; ++j)
                {
-                  r_Aq[c][i][j] = s_Iq[c][j][i];
+                  res.fma(s_I[j][b], r_Aq[c][i][j]);
                }
-#pragma unroll D1D
-               for (int b=0; b<D1D; ++b)
-               {
-                  Real res; res = 0;
-#pragma unroll Q1D
-                  for (int j=0; j<Q1D; ++j)
-                  {
-                     res += s_I[j][b]*r_Aq[c][i][j];
-                  }
-                  s_Iq[c][b][i] = res;
-               }
+               s_Iq[c][b][i] = res;
             }
          }
-      } MFEM_SYNC_THREAD;
+      } SYNC_THREADS;
       // GradXT
-      MFEM_FOREACH_THREAD(c,y,Q1D)
+      FOREACH_THREAD(c,y,D1D)
       {
-         MFEM_FOREACH_THREAD(b,x,Q1D)
+         FOREACH_THREAD(b,x,D1D)
          {
-            if (b<D1D && c<D1D)
+            UNROLL(7)
+            for (int i=0; i<Q1D; ++i)
             {
-#pragma unroll Q1D
+               r_Aq[c][b][i] = s_Iq[c][b][i];
+            }
+            UNROLL(6)
+            for (int a=0; a<D1D; ++a)
+            {
+               MFEM_ALIGN(Real) res; res = 0;
+               UNROLL(7)
                for (int i=0; i<Q1D; ++i)
                {
-                  r_Aq[c][b][i] = s_Iq[c][b][i];
+                  res.fma(s_I[i][a], r_Aq[c][b][i]);
                }
-#pragma unroll D1D
-               for (int a=0; a<D1D; ++a)
-               {
-                  Real res; res = 0;
-#pragma unroll Q1D
-                  for (int i=0; i<Q1D; ++i)
-                  {
-                     res += s_I[i][a]*r_Aq[c][b][i];
-                  }
-                  s_Iq[c][b][a] = res;
-               }
+               s_Iq[c][b][a] = res;
+               s_Iq[c][b][a] = res;
             }
          }
-      } MFEM_SYNC_THREAD;
-      // Scatter
-      MFEM_FOREACH_THREAD(j,y,Q1D)
+      } SYNC_THREADS;
+      // Gather
+      FOREACH_THREAD(j,y,D1D)
       {
-         MFEM_FOREACH_THREAD(i,x,Q1D)
+         FOREACH_THREAD(i,x,D1D)
          {
-            if (i<D1D && j<D1D)
+            UNROLL(6)
+            for (int k = 0; k < D1D; k++)
             {
-#pragma unroll D1D
-               for (int k = 0; k < D1D; k++)
+               UNROLL(SMS)
+               for (size_t v = 0; v < SMS; v++)
                {
-                  for (int v = 0; v < SMS; v++)
-                  {
-                     const int gid = MAP(i, j, k, e + v);
-                     const int idx = gid >= 0 ? gid : -1 - gid;
-                     AtomicAdd(YD(idx), (s_Iq[k][j][i])[v]);
-                  }
+                  const int gid = MAP(i, j, k, e + v);
+                  const int idx = gid >= 0 ? gid : -1 - gid;
+                  YD(idx) += (s_Iq[k][j][i])[v];
                }
             }
          }
@@ -933,45 +1250,49 @@ void KMult1(const int ndofs, const int vdim, const int NE,
    } // MFEM_FORALL_2D
 } // KMult1
 
-int main(int argc, char *argv[])
+#ifndef GEOM
+#define GEOM Geometry::CUBE
+#endif
+
+#ifndef MESH_P
+#define MESH_P 1
+#endif
+
+#ifndef SOL_P
+#define SOL_P 5
+#endif
+
+#ifndef IR_ORDER
+#define IR_ORDER 0
+#endif
+
+#ifndef IR_TYPE
+#define IR_TYPE 0
+#endif
+
+#ifndef PROBLEM
+#define PROBLEM 0
+#endif
+
+#ifndef VDIM
+#define VDIM 1
+#endif
+
+int main(int argc, char* argv[])
 {
    int status = 0;
-   int num_procs, myid;
+   int num_procs = 1, myid = 0;
    MPI_Init(&argc, &argv);
    MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
    MPI_Comm_rank(MPI_COMM_WORLD, &myid);
 
-   assert(MESH_P == 1);
-   assert(IR_TYPE == 0);
-   assert(IR_ORDER == 0);
-   assert(PROBLEM == 0);
-   assert(GEOM == Geometry::CUBE);
-
-   /*
-      alignas(32) double Z[4];
-      printf("sizeof(Z):%d, "
-             "alignof(Z):%d, "
-             "MFEM_ALIGN_BYTES:%d, "
-             "MFEM_ALIGN_SIZE(4,double):%d"
-             "\n",
-             sizeof(Z),
-             alignof(Z),
-             MFEM_ALIGN_BYTES,
-             MFEM_ALIGN_SIZE(4,double));*/
-
-   const char *mesh_file = "../../data/hex-01x01x01.mesh";
-   int ser_ref_levels = 3;
-   int par_ref_levels = 1;
-   Array<int> nxyz;
-   int order = SOL_P;
-   const char *basis_type = "G";
-   bool static_cond = false;
-   const char *pc = "none";
-   bool perf = true;
-   bool matrix_free = true;
-   int max_iter = 50;
-   bool visualization = 0;
-   OptionsParser args(argc, argv);
+   assert(VDIM==1); assert(MESH_P==1); assert(IR_TYPE==0); assert(IR_ORDER==0);
+   assert(PROBLEM==0); assert(GEOM==Geometry::CUBE);
+   const char *mesh_file = "../../data/hex-01x01x01.mesh"; int ser_ref_levels = 4;
+   int par_ref_levels = 0; Array<int> nxyz; int order = SOL_P;
+   const char *basis_type = "G"; bool static_cond = false; const char *pc = "none";
+   bool perf = true; bool matrix_free = true; int max_iter = 50;
+   bool visualization = false; OptionsParser args(argc, argv);
    args.AddOption(&mesh_file, "-m", "--mesh", "Mesh file to use.");
    args.AddOption(&ser_ref_levels, "-rs", "--refine-serial",
                   "Number of times to refine the mesh uniformly in serial.");
@@ -980,8 +1301,7 @@ int main(int argc, char *argv[])
    args.AddOption(&nxyz, "-c", "--cartesian-partitioning",
                   "Use Cartesian partitioning.");
    args.AddOption(&order, "-o", "--order",
-                  "Finite element order (polynomial degree) or -1 for"
-                  " isoparametric space.");
+                  "Finite element order (polynomial degree) or -1 for" " isoparametric space.");
    args.AddOption(&basis_type, "-b", "--basis-type",
                   "Basis: G - Gauss-Lobatto, P - Positive, U - Uniform");
    args.AddOption(&perf, "-perf", "--hpc-version", "-std", "--standard-version",
@@ -994,85 +1314,17 @@ int main(int argc, char *argv[])
                   "ho - high-order (assembled) AMG, none.");
    args.AddOption(&static_cond, "-sc", "--static-condensation", "-no-sc",
                   "--no-static-condensation", "Enable static condensation.");
-   args.AddOption(&max_iter, "-mi", "--max-iter",
-                  "Maximum number of iterations.");
+   args.AddOption(&max_iter, "-mi", "--max-iter", "Maximum number of iterations.");
    args.AddOption(&visualization, "-vis", "--visualization", "-no-vis",
-                  "--no-visualization",
-                  "Enable or disable GLVis visualization.");
-   args.Parse();
-   if (!args.Good())
-   {
-      if (myid == 0)
-      {
-         args.PrintUsage(std::cout);
-      }
-      return 1;
-   }
-   if (myid == 0)
-   {
-      args.PrintOptions(std::cout);
-   }
-   ParMesh *pmesh = nullptr;
-   {
-      Mesh *mesh = new Mesh(mesh_file, 1, 1);
-      int dim = mesh->Dimension();
-      {
-         int ref_levels = (int)floor(log(10000. / mesh->GetNE()) / log(2.) / dim);
-         ref_levels = (ser_ref_levels != -1) ? ser_ref_levels : ref_levels;
-         for (int l = 0; l < ref_levels; l++)
-         {
-            if (myid == 0)
-            {
-               std::cout << "Serial refinement: level " << l << " -> level " << l + 1
-                         << " ..." << std::flush;
-            }
-            mesh->UniformRefinement();
-            MPI_Barrier(MPI_COMM_WORLD);
-            if (myid == 0)
-            {
-               std::cout << " done." << std::endl;
-            }
-         }
-      }
-      MFEM_VERIFY(nxyz.Size() == 0 || nxyz.Size() == mesh->SpaceDimension(),
-                  "Expected " << mesh->SpaceDimension()
-                  << " integers with the "
-                  "option --cartesian-partitioning.");
-      int *partitioning = nxyz.Size() ? mesh->CartesianPartitioning(nxyz) : NULL;
-      pmesh = new ParMesh(MPI_COMM_WORLD, *mesh, partitioning);
-      delete[] partitioning;
-      delete mesh;
-      {
-         for (int l = 0; l < par_ref_levels; l++)
-         {
-            if (myid == 0)
-            {
-               std::cout << "Parallel refinement: level " << l << " -> level "
-                         << l + 1 << " ..." << std::flush;
-            }
-            pmesh->UniformRefinement();
-            MPI_Barrier(MPI_COMM_WORLD);
-            if (myid == 0)
-            {
-               std::cout << " done." << std::endl;
-            }
-         }
-      }
-      pmesh->PrintInfo(std::cout);
-   }
+                  "--no-visualization", "Enable or disable GLVis visualization."); args.Parse();
+   if (!args.Good()) { if (myid == 0) { args.PrintUsage(std::cout); } return 1; } if (
+      myid == 0) { args.PrintOptions(std::cout); } assert(SOL_P == order);
+   ParMesh *pmesh = nullptr; { Mesh *mesh = new Mesh(mesh_file, 1, 1); int dim = mesh->Dimension(); { int ref_levels = (int)floor(log(10000./mesh->GetNE())/log(2.)/dim); ref_levels = (ser_ref_levels != -1) ? ser_ref_levels : ref_levels; for (int l = 0; l < ref_levels; l++) { if (myid == 0) { std::cout << "Serial refinement: level " << l << " -> level " << l+1 << " ..." << std::flush; } mesh->UniformRefinement(); MPI_Barrier(MPI_COMM_WORLD); if (myid == 0) { std::cout << " done." << std::endl; } } } MFEM_VERIFY(nxyz.Size() == 0 || nxyz.Size() == mesh->SpaceDimension(), "Expected " << mesh->SpaceDimension() << " integers with the " "option --cartesian-partitioning."); int *partitioning = nxyz.Size() ? mesh->CartesianPartitioning(nxyz) : NULL; NewParMesh(pmesh, mesh, partitioning); delete [] partitioning; { for (int l = 0; l < par_ref_levels; l++) { if (myid == 0) { std::cout << "Parallel refinement: level " << l << " -> level " << l+1 << " ..." << std::flush; } pmesh->UniformRefinement(); MPI_Barrier(MPI_COMM_WORLD); if (myid == 0) { std::cout << " done." << std::endl; } } } pmesh->PrintInfo(std::cout); }
 
-   static constexpr int Q1D = (SOL_P + 2);
-   if (myid == 0)
-   {
-      std::cout << "XFL(SIMD_" << SIMD_SIZE << ") "
-                << "version using integration rule with " << (Q1D * Q1D * Q1D)
-                << " points ...\n";
-   }
-
-   const int p = SOL_P;
+   const int p = 5;
    const int dim = 3;
    auto &mesh = xfl::Mesh(pmesh);
-   const int el = (dim == 2) ? xfl::quadrilateral : xfl::hexahedron;
+   const int el = (dim==2)?xfl::quadrilateral:xfl::hexahedron;
    FiniteElementCollection *fe = xfl::FiniteElement("Lagrange", el, p);
    mfem::ParFiniteElementSpace *fes = xfl::FunctionSpace(mesh, fe);
    const Array<int> bc = xfl::DirichletBC(fes);
@@ -1097,34 +1349,45 @@ int main(int argc, char *argv[])
       // Trial FES: 'fes':u (Grad)
       // Test FES: 'fes':v (Grad)
       ParFiniteElementSpace *fes1 = fes;
-      struct QMult1 : public xfl::Operator<3>
+      struct QMult1: public xfl::Operator<3>
       {
-         QMult1(const ParFiniteElementSpace *fes) : xfl::Operator<3>(fes)
-         {
-            dbg();
-            Setup();
-         }
-         ~QMult1() { dbg(); }
+         QMult1(const ParFiniteElementSpace *fes): xfl::Operator<3>(fes) { Setup(); }
+         ~QMult1() { }
          void Setup()
          {
-            dx.SetSize(NQ * NE * 3 * 3,
-                       Device::GetDeviceMemoryType());  // DX shape: 3x3
-            KSetup1<3, 3, 3>(NDOFS, VDIM, NE, J0.Read(), ir.GetWeights().Read(),
+            int myid = 0; MPI_Comm_rank(MPI_COMM_WORLD, &myid);
+            if (myid == 0)
+            {
+               std::cout << "XFL(SIMD_" << SIMD_SIZE
+                         <<") version using integration rule with 343 points ...\n";
+               std::cout << "D1D:6, Q1D:7\n";
+            }
+            dx.SetSize(NQ*NE*3*3, Device::GetDeviceMemoryType()); // DX shape: 3x3
+            KSetup1<3,3,3,7>(NDOFS, VDIM, NE, J0.Read(), ir.GetWeights().Read(),
                              dx.Write());
+            CoG.SetSize(7*7);
+            // Compute the collocated gradient d2q->CoG
+            kernels::GetCollocatedGrad<6,7>(
+               ConstDeviceMatrix(maps->B.HostRead(),7,6),
+               ConstDeviceMatrix(maps->G.HostRead(),7,6),
+               DeviceMatrix(CoG.HostReadWrite(),7,7));
          }
          void Mult(const mfem::Vector &x, mfem::Vector &y) const
          {
             y = 0.0;
-            KMult1<3, 3, 3>(NDOFS, VDIM, NE, maps->B.Read(), maps->G.Read(),
-                            ER.GatherMap().Read(), dx.Read(), x.Read(),
-                            y.ReadWrite());
+            KMult1<3,3,3,6,7>(NDOFS /*0*/,VDIM /*0*/, NE /*0*/,maps->B.Read(), CoG.Read(),
+                              ER.GatherMap().Read(), dx.Read(), x.Read(), y.ReadWrite());
          }
-      };  // QMult struct
+      }; // QMult struct
       QMult1 *QM1 = new QMult1(fes);
       xfl::QForm QForm1(fes1, qs1, QM1);
       return QForm1;
    }();
-   status |= xfl::benchmark(a == b, x, bc, 0, 50, -1);
+   status |= xfl::benchmark(a==b, x, bc, 0, 50, 3);
+   const bool glvis = true;
+   if (glvis) { xfl::plot(x); }
+   assert(SOL_P == p);
    MPI_Finalize();
    return status;
 }
+
