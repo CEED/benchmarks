@@ -13,6 +13,30 @@
 #include "general/forall.hpp"
 #include "linalg/kernels.hpp"
 
+#ifndef GEOM
+#define GEOM Geometry::CUBE
+#endif
+
+#ifndef MESH_P
+#define MESH_P 1
+#endif
+
+#ifndef SOL_P
+#define SOL_P 5
+#endif
+
+#ifndef IR_ORDER
+#define IR_ORDER 0
+#endif
+
+#ifndef IR_TYPE
+#define IR_TYPE 0
+#endif
+
+#ifndef PROBLEM
+#define PROBLEM 0
+#endif
+
 // Kernels addons //////////////////////////////////////////////////////////////
 #ifndef MFEM_USE_MPI
 #define HYPRE_Int int
@@ -921,14 +945,15 @@ using Real = AutoSIMDTraits<double,double>::vreal_t;
 #define FOREACH_THREAD(i,k,N) for(int i=0; i<N; i+=1)
 #define SYNC_THREADS
 
+#define D1D (SOL_P + 1)
+#define Q1D (SOL_P + 2)
 
-template<int DIM, int DX0, int DX1, int Q1D> inline static
+template<int DIM, int DX0, int DX1> inline static
 void KSetup1(const int ndofs, const int vdim, const int NE,
              const double * __restrict__ J0,
              const double * __restrict__ w,
              double * __restrict__ dx)
 {
-   assert(vdim == 1);
    const auto J = Reshape(J0, DIM,DIM, Q1D,Q1D,Q1D, NE);
    const auto W = Reshape(w, Q1D,Q1D,Q1D);
    auto DX = Reshape(dx, Q1D,Q1D,Q1D, 6);
@@ -964,7 +989,7 @@ void KSetup1(const int ndofs, const int vdim, const int NE,
    }
 }
 
-template<int DIM, int DX0, int DX1, int D1D, int Q1D> inline static
+template<int DIM, int DX0, int DX1> inline static
 void KMult1(const int ndofs, const int vdim, const int NE,
             const double * __restrict__ B,
             const double * __restrict__ G,
@@ -1002,7 +1027,7 @@ void KMult1(const int ndofs, const int vdim, const int NE,
                if (i<D1D) { s_I[j][i] = b(j,i); }
                if (i<D1D && j<D1D)
                {
-                  UNROLL(6)
+                  UNROLL(D1D)
                   for (int k = 0; k < D1D; k++)
                   {
                      MFEM_ALIGN(Real) vXD;
@@ -1025,11 +1050,11 @@ void KMult1(const int ndofs, const int vdim, const int NE,
       {
          FOREACH_THREAD(a,x,D1D)
          {
-            UNROLL(7)
+            UNROLL(Q1D)
             for (int k=0; k<Q1D; ++k)
             {
                MFEM_ALIGN(Real) res; res = 0.0;
-               UNROLL(6)
+               UNROLL(D1D)
                for (int c=0; c<D1D; ++c)
                {
                   res.fma(s_I[k][c], r_q[b][a][c]);
@@ -1052,7 +1077,7 @@ void KMult1(const int ndofs, const int vdim, const int NE,
             for (int j=0; j<Q1D; ++j)
             {
                MFEM_ALIGN(Real) res; res = 0;
-               UNROLL(6)
+               UNROLL(D1D)
                for (int b=0; b<D1D; ++b)
                {
                   res.fma(s_I[j][b], r_Aq[k][a][b]);
@@ -1071,11 +1096,11 @@ void KMult1(const int ndofs, const int vdim, const int NE,
             {
                r_Aq[k][j][a] = s_Iq[k][j][a];
             }
-            UNROLL(7)
+            UNROLL(Q1D)
             for (int i=0; i<Q1D; ++i)
             {
                MFEM_ALIGN(Real) res; res = 0;
-               UNROLL(6)
+               UNROLL(D1D)
                for (int a=0; a<D1D; ++a)
                {
                   res.fma(s_I[i][a], r_Aq[k][j][a]);
@@ -1090,13 +1115,13 @@ void KMult1(const int ndofs, const int vdim, const int NE,
       {
          FOREACH_THREAD(i,x,Q1D)
          {
-            UNROLL(7)
+            UNROLL(Q1D)
             for (int k = 0; k < Q1D; k++) { r_Aq[j][i][k] = 0.0; }
          }
       } SYNC_THREADS;
 
       // Q-Function
-      UNROLL(7)
+      UNROLL(Q1D)
       for (int k = 0; k < Q1D; k++)
       {
          SYNC_THREADS;
@@ -1110,7 +1135,7 @@ void KMult1(const int ndofs, const int vdim, const int NE,
                {
                   if (i>=Q1D) { continue; }
                   MFEM_ALIGN(Real) qr, qs, qt; qr = 0.0; qs = 0.0; qt = 0.0;
-                  UNROLL(7)
+                  UNROLL(Q1D)
                   for (int m = 0; m < Q1D; m++)
                   {
                      const double Dim = s_D[i][m];
@@ -1150,7 +1175,7 @@ void KMult1(const int ndofs, const int vdim, const int NE,
             FOREACH_THREAD(i,x,Q1D)
             {
                MFEM_ALIGN(Real) Aqtmp; Aqtmp = 0.0;
-               UNROLL(7)
+               UNROLL(Q1D)
                for (int m = 0; m < Q1D; m++)
                {
                   const double Dmi = s_D[m][i];
@@ -1169,11 +1194,11 @@ void KMult1(const int ndofs, const int vdim, const int NE,
       {
          FOREACH_THREAD(i,x,Q1D)
          {
-            UNROLL(6)
+            UNROLL(D1D)
             for (int c=0; c<D1D; ++c)
             {
                MFEM_ALIGN(Real) res; res = 0;
-               UNROLL(7)
+               UNROLL(Q1D)
                for (int k=0; k<Q1D; ++k)
                {
                   res.fma(s_I[k][c], r_Aq[j][i][k]);
@@ -1187,16 +1212,16 @@ void KMult1(const int ndofs, const int vdim, const int NE,
       {
          FOREACH_THREAD(i,x,Q1D)
          {
-            UNROLL(7)
+            UNROLL(Q1D)
             for (int j=0; j<Q1D; ++j)
             {
                r_Aq[c][i][j] = s_Iq[c][j][i];
             }
-            UNROLL(6)
+            UNROLL(D1D)
             for (int b=0; b<D1D; ++b)
             {
                MFEM_ALIGN(Real) res; res = 0;
-               UNROLL(7)
+               UNROLL(Q1D)
                for (int j=0; j<Q1D; ++j)
                {
                   res.fma(s_I[j][b], r_Aq[c][i][j]);
@@ -1210,16 +1235,16 @@ void KMult1(const int ndofs, const int vdim, const int NE,
       {
          FOREACH_THREAD(b,x,D1D)
          {
-            UNROLL(7)
+            UNROLL(Q1D)
             for (int i=0; i<Q1D; ++i)
             {
                r_Aq[c][b][i] = s_Iq[c][b][i];
             }
-            UNROLL(6)
+            UNROLL(D1D)
             for (int a=0; a<D1D; ++a)
             {
                MFEM_ALIGN(Real) res; res = 0;
-               UNROLL(7)
+               UNROLL(Q1D)
                for (int i=0; i<Q1D; ++i)
                {
                   res.fma(s_I[i][a], r_Aq[c][b][i]);
@@ -1234,7 +1259,7 @@ void KMult1(const int ndofs, const int vdim, const int NE,
       {
          FOREACH_THREAD(i,x,D1D)
          {
-            UNROLL(6)
+            UNROLL(D1D)
             for (int k = 0; k < D1D; k++)
             {
                UNROLL(SMS)
@@ -1250,34 +1275,6 @@ void KMult1(const int ndofs, const int vdim, const int NE,
    } // MFEM_FORALL_2D
 } // KMult1
 
-#ifndef GEOM
-#define GEOM Geometry::CUBE
-#endif
-
-#ifndef MESH_P
-#define MESH_P 1
-#endif
-
-#ifndef SOL_P
-#define SOL_P 5
-#endif
-
-#ifndef IR_ORDER
-#define IR_ORDER 0
-#endif
-
-#ifndef IR_TYPE
-#define IR_TYPE 0
-#endif
-
-#ifndef PROBLEM
-#define PROBLEM 0
-#endif
-
-#ifndef VDIM
-#define VDIM 1
-#endif
-
 int main(int argc, char* argv[])
 {
    int status = 0;
@@ -1286,7 +1283,7 @@ int main(int argc, char* argv[])
    MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
    MPI_Comm_rank(MPI_COMM_WORLD, &myid);
 
-   assert(VDIM==1); assert(MESH_P==1); assert(IR_TYPE==0); assert(IR_ORDER==0);
+   assert(MESH_P==1); assert(IR_TYPE==0); assert(IR_ORDER==0);
    assert(PROBLEM==0); assert(GEOM==Geometry::CUBE);
    const char *mesh_file = "../../data/hex-01x01x01.mesh"; int ser_ref_levels = 4;
    int par_ref_levels = 0; Array<int> nxyz; int order = SOL_P;
@@ -1321,8 +1318,8 @@ int main(int argc, char* argv[])
       myid == 0) { args.PrintOptions(std::cout); } assert(SOL_P == order);
    ParMesh *pmesh = nullptr; { Mesh *mesh = new Mesh(mesh_file, 1, 1); int dim = mesh->Dimension(); { int ref_levels = (int)floor(log(10000./mesh->GetNE())/log(2.)/dim); ref_levels = (ser_ref_levels != -1) ? ser_ref_levels : ref_levels; for (int l = 0; l < ref_levels; l++) { if (myid == 0) { std::cout << "Serial refinement: level " << l << " -> level " << l+1 << " ..." << std::flush; } mesh->UniformRefinement(); MPI_Barrier(MPI_COMM_WORLD); if (myid == 0) { std::cout << " done." << std::endl; } } } MFEM_VERIFY(nxyz.Size() == 0 || nxyz.Size() == mesh->SpaceDimension(), "Expected " << mesh->SpaceDimension() << " integers with the " "option --cartesian-partitioning."); int *partitioning = nxyz.Size() ? mesh->CartesianPartitioning(nxyz) : NULL; NewParMesh(pmesh, mesh, partitioning); delete [] partitioning; { for (int l = 0; l < par_ref_levels; l++) { if (myid == 0) { std::cout << "Parallel refinement: level " << l << " -> level " << l+1 << " ..." << std::flush; } pmesh->UniformRefinement(); MPI_Barrier(MPI_COMM_WORLD); if (myid == 0) { std::cout << " done." << std::endl; } } } pmesh->PrintInfo(std::cout); }
 
-   const int p = 5;
    const int dim = 3;
+   const int p = SOL_P;
    auto &mesh = xfl::Mesh(pmesh);
    const int el = (dim==2)?xfl::quadrilateral:xfl::hexahedron;
    FiniteElementCollection *fe = xfl::FiniteElement("Lagrange", el, p);
@@ -1359,24 +1356,27 @@ int main(int argc, char* argv[])
             if (myid == 0)
             {
                std::cout << "XFL(SIMD_" << SIMD_SIZE
-                         <<") version using integration rule with 343 points ...\n";
-               std::cout << "D1D:6, Q1D:7\n";
+                         <<") version using integration rule with "
+                         << (Q1D*Q1D*Q1D) <<" points ...\n";
+               std::cout << "D1D:"<<D1D<<", Q1D:"<<Q1D<<"\n";
             }
-            dx.SetSize(NQ*NE*3*3, Device::GetDeviceMemoryType()); // DX shape: 3x3
-            KSetup1<3,3,3,7>(NDOFS, VDIM, NE, J0.Read(), ir.GetWeights().Read(),
-                             dx.Write());
-            CoG.SetSize(7*7);
+            dx.SetSize(NQ*3*3, Device::GetDeviceMemoryType());
+            KSetup1<3,3,3>(NDOFS, VDIM, NE, J0.Read(), ir.GetWeights().Read(),
+                           dx.Write());
+            CoG.SetSize(Q1D*Q1D);
             // Compute the collocated gradient d2q->CoG
-            kernels::GetCollocatedGrad<6,7>(
-               ConstDeviceMatrix(maps->B.HostRead(),7,6),
-               ConstDeviceMatrix(maps->G.HostRead(),7,6),
-               DeviceMatrix(CoG.HostReadWrite(),7,7));
+            kernels::GetCollocatedGrad<D1D,Q1D>(
+               ConstDeviceMatrix(maps->B.HostRead(),Q1D,D1D),
+               ConstDeviceMatrix(maps->G.HostRead(),Q1D,D1D),
+               DeviceMatrix(CoG.HostReadWrite(),Q1D,Q1D));
          }
          void Mult(const mfem::Vector &x, mfem::Vector &y) const
          {
             y = 0.0;
-            KMult1<3,3,3,6,7>(NDOFS /*0*/,VDIM /*0*/, NE /*0*/,maps->B.Read(), CoG.Read(),
-                              ER.GatherMap().Read(), dx.Read(), x.Read(), y.ReadWrite());
+            KMult1<3,3,3>(NDOFS,VDIM, NE,
+                          maps->B.Read(), CoG.Read(),
+                          ER.GatherMap().Read(),
+                          dx.Read(), x.Read(), y.ReadWrite());
          }
       }; // QMult struct
       QMult1 *QM1 = new QMult1(fes);
@@ -1386,7 +1386,6 @@ int main(int argc, char* argv[])
    status |= xfl::benchmark(a==b, x, bc, 0, 50, 3);
    const bool glvis = true;
    if (glvis) { xfl::plot(x); }
-   assert(SOL_P == p);
    MPI_Finalize();
    return status;
 }
