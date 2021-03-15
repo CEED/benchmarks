@@ -18,15 +18,15 @@
 
 #####   Adjustable plot parameters:
 log_y=0               # use log scale on the y-axis?
-#x_range=(1e3,6e6)    # plot range for the x-axis; comment out for auto
-#y_range=(0,2.2e7)    # plot range for the y-axis; comment out for auto
+x_range=(1e3,5e6)    # plot range for the x-axis; comment out for auto
+y_range=(0,2e9)    # plot range for the y-axis; comment out for auto
 #y_range=(0,2.5e6)     # plot range for the y-axis; comment out for auto
 draw_iter_lines=0     # draw the "iter/s" lines?
 ymin_iter_lines=3e5   # minimal y value for the "iter/s" lines
 ymax_iter_lines=8e8   # maximal y value for the "iter/s" lines
 legend_ncol=(2 if log_y else 1)   # number of columns in the legend
-write_figures=1       # save the figures to files?
-show_figures=0        # display the figures on the screen?
+write_figures=0       # save the figures to files?
+show_figures=1        # display the figures on the screen?
 
 
 #####   Load the data
@@ -137,7 +137,7 @@ for plt in pl_set:
       #      label='p=%i, q=p+%i'%(sol_p,qpts_1d[0]-sol_p))
       ## Legend without 'q=...'
       plot(d[:,0],d[:,2],'o-',color=colors[i%cm_size],
-           label='p=%i'%sol_p)
+           label='p=%i, q=p+2'%sol_p)
       if list(d[:,1]) != list(d[:,2]):
          plot(d[:,0],d[:,1],'o-',color=colors[i])
          fill_between(d[:,0],d[:,1],d[:,2],facecolor=colors[i],alpha=0.2)

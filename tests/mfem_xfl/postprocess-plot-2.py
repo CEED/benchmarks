@@ -26,7 +26,7 @@ ymax_iter_lines=8e8   # maximal y value for the "iter/s" lines
 legend_ncol=(2 if log_y else 1)   # number of columns in the legend
 write_figures=1       # save the figures to files?
 show_figures=1        # display the figures on the screen?
-
+filter_orders=[1,2]
 
 #####   Load the data
 execfile('postprocess-base.py')
@@ -77,11 +77,18 @@ sel_runs=[run for run in sel_runs if
           run['test'].rsplit('/',1)[-1].rsplit('.sh',1)[0]==test]
 
 if 'case' in sel_runs[0]:
-   cases=list(set([run['case'] for run in sel_runs]))
-   case=cases[0]
-   vdim=1 if case=='scalar' else 3
-   print 'Using case:', case
-   sel_runs=[run for run in sel_runs if run['case']==case]
+    cases=list(set([run['case'] for run in sel_runs]))
+    case=cases[0]
+    vdim=1 if case=='scalar' else 3
+    print 'Using case:', case
+    sel_runs=[run for run in sel_runs if run['case']==case]
+
+# Filter orders
+if filter_orders and 'order' in sel_runs[0]:
+    orders=list(set([run['order'] for run in sel_runs]))
+    print 'Found orders:', orders
+    print 'Filtering orders:', filter_orders
+    sel_runs=[run for run in sel_runs if run['order'] in filter_orders]
 
 codes = list(set([run['code'] for run in sel_runs]))
 code  = codes[0]
