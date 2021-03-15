@@ -17,18 +17,16 @@
 function setup_gcc10()
 {
     echo "${cyan}FUGAKU setup${none}"
-    source /vol0001/apps/oss/spack/share/spack/setup-env.sh
-    spack compiler find
-    module load gcc-10.1.0-gcc-8.3.1-2wrm3no
-    CXX=g++
-    MPICC=gcc
-    MPICXX=g++
-    MPI_HOME=$(dirname $(which mpiFCC))/..
-    INCFLAGS="-I${MPI_HOME}/include/mpi/fujitsu"
-    LDFLAGS="-L${MPI_HOME}/lib64 -lmpi -lmpi_cxx"
+    CXX=/home/ra010009/a04177/usr/local/gcc/10.2.0/bin/g++
+    MPICC=/home/ra010009/a04177/usr/local/gcc/10.2.0/bin/gcc
+    MPICXX=/home/ra010009/a04177/usr/local/gcc/10.2.0/bin/g++
+    MPI_HOME=/home/ra010009/a04177/usr/local/openmpi/4.1.0
+    INCFLAGS=-I${MPI_HOME}/include
+    LDFLAGS="-L${MPI_HOME}/lib -lmpi /home/ra010009/a04177/usr/local/gcc/10.2.0/lib64/libstdc++.a"
     CFLAGS="-O3 -march=armv8.2-a+sve -msve-vector-bits=512 $INCFLAGS"
     CXX11FLAG="--std=c++11"
     export MFEM_CPPFLAGS=$INCFLAGS
+    TEST_EXTRA_CFLAGS="--param max-completely-peel-times=3"
 }
 
 function setup_fujitsu()
