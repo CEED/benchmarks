@@ -26,6 +26,7 @@ function setup_gcc10()
     CFLAGS="-O3 -march=armv8.2-a+sve -msve-vector-bits=512 $INCFLAGS"
     CXX11FLAG="--std=c++11"
     export MFEM_CPPFLAGS=$INCFLAGS
+    TEST_EXTRA_CFLAGS="--param max-completely-peel-times=3"
 }
 
 function setup_fujitsu()
