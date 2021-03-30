@@ -35,15 +35,6 @@ pkg_var_prefix="mfem_hip_"
 pkg="MFEM-HIP (branch $mfem_branch)"
 
 
-function mfem_patch()
-{
-    echo "Applying mfem/makefile patch in pkg_sources_dir:'$pkg_sources_dir' ..."
-    cd "$pkg_sources_dir" || return 1
-    patch mfem/makefile ../package-builders/mfem-hip.patch
-    return 0
-}
-
-
 function mfem_clone()
 {
    pkg_repo_list=("git@github.com:mfem/mfem.git"
@@ -56,7 +47,7 @@ function mfem_clone()
    fi
    for pkg_repo in "${pkg_repo_list[@]}"; do
       echo "Cloning $pkg from $pkg_repo ..."
-      git clone "$pkg_repo" "$pkg_src_dir" && mfem_patch && return 0
+      git clone "$pkg_repo" "$pkg_src_dir" && return 0
    done
    echo "Could not successfully clone $pkg. Stop."
    return 1

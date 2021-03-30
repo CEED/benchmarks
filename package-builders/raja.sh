@@ -76,6 +76,18 @@ function raja_build()
    else
       echo "${magenta}INFO: Building $pkg without OpenMP ...${none}"
    fi
+   local raja_hip_opts=()
+   if [[ -n "$HIP_ENABLED" ]]; then
+      raja_hip_opts=(
+        -DENABLE_HIP="YES"
+        -DHIP_ROOT_DIR="$hip_home"
+        -DHIP_RUNTIME_INCLUDE_DIRS="$hip_home/include"
+        -DHIP_HIPCC_FLAGS="--amdgpu-target=$hip_arch"
+      )
+   else
+      raja_hip_opts=(-DENABLE_HIP="OFF")
+      echo "${magenta}INFO: Building $pkg without HIP ...${none}"
+   fi
    mkdir -p "$pkg_bld_dir" || {
       echo "Error creating directory $pkg_bld_dir. Stop."
       return 1
@@ -99,6 +111,7 @@ function raja_build()
          -DENABLE_EXERCISES=OFF \
          -DENABLE_MPI=ON \
          "${raja_cuda_opts[@]}" \
+         "${raja_hip_opts[@]}" \
          -DENABLE_OPENMP="$raja_openmp" \
          -DCMAKE_VERBOSE_MAKEFILE=1 && \
       make -j $num_proc_build && \

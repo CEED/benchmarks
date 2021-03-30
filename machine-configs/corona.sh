@@ -24,10 +24,9 @@ hip_arch=${hip_arch:-gfx906}
 function setup_hip()
 {
     echo "${cyan}HIP setup${none}"
-    module load opt
-    module load rocm/3.1
+    module load rocm/4.0.1
     module load gcc/8.1.0
-    module load mvapich2/2.3
+    module load cray-mvapich2_nogpu_gnu/2.3.5
     CXX=hipcc
     MPICC=mpicc
     MPICXX=mpicxx
@@ -36,7 +35,7 @@ function setup_hip()
     export LDFLAGS="-L${MPI_HOME}/lib -lmpi"
     CFLAGS="-O3"
     CXX11FLAG="--std=c++11 -fno-gpu-rdc"
-    hip_home=${HIP_HOME:-/opt/rocm/hip}
+    hip_home=${HIP_HOME:-/opt/rocm-4.0.1/hip}
     hip_path=${hip_home}/bin
     hip_lib=${hip_home}/lib64
 }
@@ -44,16 +43,15 @@ function setup_hip()
 function setup_gcc8()
 {
     # Load additional modules from 'opt'; needed for the 'rocm' module
-    module load opt
     # ROCm 3.8.0 is using /opt/rh/devtoolset-8 for linking with libstdc++, so
     # we use the module gcc/8.3.1 which seems to be the same as the version in
     # /opt/rh/devtoolset-8
     module load gcc/8.3.1
-    module load mvapich2/2.3
+    module load cray-mvapich2_nogpu_gnu/2.3.5
 
     # ROCm and HIP
     # module load rocm/3.8.0
-    module load rocm/3.10.0
+    module load rocm/4.0.1
 
     MPICC=mpicc
     MPICXX=mpicxx
@@ -83,4 +81,5 @@ memory_per_node=256
 
 # Optional (default): MPIEXEC (mpirun), MPIEXEC_OPTS (), MPIEXEC_NP (-np)
 MPIEXEC=srun
+MPIEXEC_OPTS="-p amd"
 MPIEXEC_NP=-n

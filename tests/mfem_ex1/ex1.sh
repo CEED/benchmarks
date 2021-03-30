@@ -90,7 +90,7 @@ libceed_branch=${libceed_branch:-master}
 #packages="metis hypre cuda raja mfem"
 
 # Only with HIP
-#packages="hip metis hypre mfem-hip"
+packages="hip metis hypre raja mfem-hip"
 
 packages=${packages:-metis hypre mfem}
 
