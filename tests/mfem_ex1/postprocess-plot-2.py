@@ -122,9 +122,9 @@ for plt in pl_set:
          for run in pl_runs
          if run['order']==sol_p and
             run['quadrature-pts']==qpts[0]]
-      # print
-      # print 'order = %i'%sol_p
-      # pprint.pprint(sorted(d))
+      print
+      print 'order = %i'%sol_p
+      pprint.pprint(sorted(d))
       d=[[e[2],e[3]] for e in d if e[0]==sol_p]
       # (DOFs/[sec/iter]/node)/(DOFs/node) = iter/sec
       d=[[nun,

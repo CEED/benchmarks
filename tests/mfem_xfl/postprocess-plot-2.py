@@ -24,9 +24,10 @@ draw_iter_lines=0     # draw the "iter/s" lines?
 ymin_iter_lines=3e5   # minimal y value for the "iter/s" lines
 ymax_iter_lines=8e8   # maximal y value for the "iter/s" lines
 legend_ncol=(2 if log_y else 1)   # number of columns in the legend
-write_figures=1       # save the figures to files?
+write_figures=0       # save the figures to files?
 show_figures=1        # display the figures on the screen?
-filter_orders=[1,2]
+filter_orders=[1,2,3,4,5,6,7,8,9,10,11,12,13,14]
+show_numbers=1
 
 #####   Load the data
 execfile('postprocess-base.py')
@@ -54,9 +55,9 @@ colors=[cm(1.*i/(cm_size-1)) for i in range(cm_size)]
 #         'darkorange']
 
 sel_runs=runs
-action_type=sel_runs[0]['action-type']
-print 'Using action-type:', action_type
-sel_runs=[run for run in sel_runs if run['action-type']==action_type]
+#action_type=sel_runs[0]['action-type']
+#print 'Using action-type:', action_type
+#sel_runs=[run for run in sel_runs if run['action-type']==action_type]
 
 configs=list(set([run['config'].rsplit('/',1)[-1].rsplit('.sh',1)[0]
                   for run in sel_runs]))
@@ -132,9 +133,10 @@ for plt in pl_set:
          for run in pl_runs
          if run['order']==sol_p and
             run['quadrature-pts']==qpts[0]]
-      # print
-      # print 'order = %i'%sol_p
-      # pprint.pprint(sorted(d))
+      if show_numbers:
+        print
+        print 'order = %i'%sol_p
+        pprint.pprint(sorted(d))
       d=[[e[2],e[3]] for e in d if e[0]==sol_p]
       # (DOFs/[sec/iter]/node)/(DOFs/node) = iter/sec
       d=[[nun,
