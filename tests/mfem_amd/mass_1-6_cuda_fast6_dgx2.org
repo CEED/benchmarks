@@ -1,0 +1,192 @@
+Reading configuration /home/u00ub94upqrY9FhsjO357/home/ceed_benchmarks/machine-configs/dgx2.sh ...
+Setting up compiler gcc ...
+
+Using OUT_DIR = /home/u00ub94upqrY9FhsjO357/home/ceed_benchmarks/builds/dgx2_gcc
+
+Creating test executables directory: OUT_DIR/mfem_amd
+Reading test file: /home/u00ub94upqrY9FhsjO357/home/ceed_benchmarks/tests/mfem_amd/ex1.sh
+
+Packages required by the test: cuda mfem-coker
+Building packages using 8 processors.
+CUDA is enabled. [ cuda_home = /shared/software/modules/cuda/cuda_11.3.0 ]
+cuda version: 
+Using successfully built MFEM (branch master) from OUT_DIR.
+mfem-coker version: heads/master-0-gcd5138e3ea14ccf213dc55ba7564dd21733eee0d
+
+Running the tests using a total of 1 MPI tasks ...
+... with 1 tasks per node ...
+
+make -j 8 MFEM_DIR=/home/u00ub94upqrY9FhsjO357/home/ceed_benchmarks/builds/dgx2_gcc/mfem/install BLD=/home/u00ub94upqrY9FhsjO357/home/ceed_benchmarks/builds/dgx2_gcc/mfem_amd/
+make: Nothing to be done for 'all'.
+
+Running test:
+mpirun -np 1 ./ex1 -p 0 -o 1 -l 4 -d cuda:fast6
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 4
+   --order 1
+   --problem 0
+   --device cuda:fast6
+[32m[version:6][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 4 2 2
+Total number of elements: 16
+Number of finite element unknowns: 45
+
+Error in the test, error code: 134
+
+Running test:
+mpirun -np 1 ./ex1 -p 0 -o 1 -l 5 -d cuda:fast6
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 5
+   --order 1
+   --problem 0
+   --device cuda:fast6
+[32m[version:6][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 4 4 2
+Total number of elements: 32
+Number of finite element unknowns: 75
+
+Error in the test, error code: 134
+
+Running test:
+mpirun -np 1 ./ex1 -p 0 -o 1 -l 6 -d cuda:fast6
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 6
+   --order 1
+   --problem 0
+   --device cuda:fast6
+[32m[version:6][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 4 4 4
+Total number of elements: 64
+Number of finite element unknowns: 125
+
+Error in the test, error code: 134
+
+Running test:
+mpirun -np 1 ./ex1 -p 0 -o 1 -l 7 -d cuda:fast6
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 7
+   --order 1
+   --problem 0
+   --device cuda:fast6
+[32m[version:6][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 8 4 4
+Total number of elements: 128
+Number of finite element unknowns: 225
+
+Error in the test, error code: 134
+
+Running test:
+mpirun -np 1 ./ex1 -p 0 -o 1 -l 8 -d cuda:fast6
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 8
+   --order 1
+   --problem 0
+   --device cuda:fast6
+[32m[version:6][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 8 8 4
+Total number of elements: 256
+Number of finite element unknowns: 405
+
+Error in the test, error code: 134
+
+Running test:
+mpirun -np 1 ./ex1 -p 0 -o 1 -l 9 -d cuda:fast6
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 9
+   --order 1
+   --problem 0
+   --device cuda:fast6
+[32m[version:6][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 8 8 8
+Total number of elements: 512
+Number of finite element unknowns: 729
+
+Error in the test, error code: 134
+
+Running test:
+mpirun -np 1 ./ex1 -p 0 -o 1 -l 10 -d cuda:fast6
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 10
+   --order 1
+   --problem 0
+   --device cuda:fast6
+[32m[version:6][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 16 8 8
+Total number of elements: 1024
+Number of finite element unknowns: 1377
+
+Error in the test, error code: 134
+
+Running test:
+mpirun -np 1 ./ex1 -p 0 -o 1 -l 11 -d cuda:fast6
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 11
+   --order 1
+   --problem 0
+   --device cuda:fast6
+[32m[version:6][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 16 16 8
+Total number of elements: 2048
+Number of finite element unknowns: 2601
+
+Error in the test, error code: 134
+
+Running test:
+mpirun -np 1 ./ex1 -p 0 -o 1 -l 12 -d cuda:fast6
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 12
+   --order 1
+   --problem 0
+   --device cuda:fast6
+[32m[version:6][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 16 16 16
+Total number of elements: 4096
+Number of finite element unknowns: 4913
+
+Script interrupted.
+Sub-shell for compiler 'gcc' returned error code 33. Stop.

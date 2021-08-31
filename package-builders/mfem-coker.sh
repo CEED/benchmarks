@@ -66,7 +66,7 @@ function mfem_build()
       mkdir -p "$pkg_bld_dir"
    fi
    local cxx11_flag="${CXX11FLAG:--std=c++11}"
-   local optim_flags="$cxx11_flag $CFLAGS"
+   local optim_flags="$cxx11_flag --restrict -O3 $CFLAGS"
    local xcompiler=""
    local METIS_5="NO"
    [[ "$METIS_VERSION" = "5" ]] && METIS_5="YES"
