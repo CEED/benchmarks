@@ -26,9 +26,6 @@ MFEM_LIB_FILE = mfem_is_not_built
 -include $(CONFIG_MK)
 
 EX1 = $(BLD)ex1
-ifeq ($(MFEM_USE_MPI),NO)
-   $(error A parallel MFEM build is required.)
-endif
 
 .SUFFIXES:
 .SUFFIXES: .o .cpp .mk

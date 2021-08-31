@@ -49,10 +49,10 @@ function run_tests()
             if [ -z "$dry_run" ]; then
                echo "Running test:"
                quoted_echo $mpi_run ./$test_name "${args[@]}"
-               $mpi_run ./$test_name "${args[@]}" || \
+               ./$test_name "${args[@]}" || \
                   printf "\nError in the test, error code: $?\n\n"
             else
-               $dry_run $mpi_run ./$test_name "${args[@]}"
+               $dry_run ./$test_name "${args[@]}"
             fi
          done
       done
@@ -92,6 +92,6 @@ libceed_branch=${libceed_branch:-master}
 # Only with HIP
 #packages="hip metis hypre mfem-hip"
 
-packages=${packages:-metis hypre mfem}
+packages="cuda mfem-coker"
 
 test_required_packages=${packages}
