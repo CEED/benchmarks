@@ -18,13 +18,14 @@
 
 #####   Adjustable plot parameters:
 log_y=0               # use log scale on the y-axis?
-#x_range=(1e3,6e6)    # plot range for the x-axis; comment out for auto
+x_range=(1e3,6e6)    # plot range for the x-axis; comment out for auto
 #y_range=(0,2.2e7)    # plot range for the y-axis; comment out for auto
 #y_range=(0,2.5e6)     # plot range for the y-axis; comment out for auto
 draw_iter_lines=0     # draw the "iter/s" lines?
 ymin_iter_lines=3e5   # minimal y value for the "iter/s" lines
 ymax_iter_lines=8e8   # maximal y value for the "iter/s" lines
 legend_ncol=(2 if log_y else 1)   # number of columns in the legend
+figures_ext='pdf'     # Figures' extension
 write_figures=1       # save the figures to files?
 show_figures=0        # display the figures on the screen?
 
@@ -34,10 +35,11 @@ execfile('postprocess-base.py')
 
 
 #####   Sample plot output
-
-from matplotlib import use
-if not show_figures:
-   use('pdf')
+from matplotlib import *
+#from matplotlib import use
+#if not show_figures:
+#   use('svg')
+#   use('pdf')
 from pylab import *
 
 rcParams['font.sans-serif'].insert(0,'Noto Sans')
@@ -195,19 +197,12 @@ for plt in pl_set:
    ylabel('[DOFs x CG iterations] / [compute nodes x seconds]')
    legend(ncol=legend_ncol, loc='best')
 
-   if write_figures: # write .pdf file?
-      pdf_file='plot2_%s_%s_%s_%s_%s_N%03i_pn%i.pdf'%(
+   if write_figures: # write figures file?
+      fig_file='plot2_%s_%s_%s_%s_%s_N%03i_pn%i.%s'%(
                code,mfem_dev,test,config_short,compiler,
-               num_nodes,num_procs_node)
-      print 'saving figure --> %s'%pdf_file
-      savefig(pdf_file, format='pdf', bbox_inches='tight')
-
-   if write_figures: # write .png file?
-      png_file='plot2_%s_%s_%s_%s_%s_N%03i_pn%i.png'%(
-               code,mfem_dev,test,config_short,compiler,
-               num_nodes,num_procs_node)
-      print 'saving figure --> %s'%png_file
-      savefig(png_file, format='png', bbox_inches='tight')
+               num_nodes,num_procs_node,figures_ext)
+      print 'saving figure --> %s'%fig_file
+      savefig(fig_file, format=figures_ext, bbox_inches='tight')
 
 if show_figures: # show the figures?
    print '\nshowing figures ...'
