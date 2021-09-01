@@ -83,7 +83,7 @@ function setup_gcc()
 
    setup_mpi
 
-   CFLAGS="-O3"
+   CFLAGS+="-O3 -DMFEM_CUDA_ARCH_SM80"
    CXXFLAGS="-O3"
    setup_bigmem
    FFLAGS="$CFLAGS"
@@ -160,4 +160,4 @@ memory_per_node=8
 
 cuda_home=${CUDA_HOME:-/usr/local/cuda}
 cuda_path=${cuda_home}/bin
-cuda_arch=${cuda_arch:-sm_80}
+cuda_arch=${cuda_arch:-sm_80 -DMFEM_CUDA_ARCH_SM80}
