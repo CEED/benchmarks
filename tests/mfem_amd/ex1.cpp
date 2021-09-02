@@ -111,6 +111,7 @@ int main(int argc, char *argv[])
    //    right-hand side of the FEM linear system, which in this case is
    //    (1,phi_i) where phi_i are the basis functions in fespace.
    LinearForm *b = new LinearForm(fespace);
+   b->SetAssemblyLevel(LinearAssemblyLevel::PARTIAL);
    ConstantCoefficient one(1.0);
    b->AddDomainIntegrator(new DomainLFIntegrator(one));
    b->Assemble();
@@ -176,7 +177,7 @@ int main(int argc, char *argv[])
       int cg_iter = 1;
       double real_time = 0.0;
 
-      if (kernel_version < 5)
+      if (kernel_version != 5)
       {
          tic_toc.Clear();
          // Start & Stop CG timing.

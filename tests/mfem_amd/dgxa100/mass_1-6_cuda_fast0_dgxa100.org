@@ -11,7 +11,7 @@ Building packages using 8 processors.
 CUDA is enabled. [ cuda_home = /shared/software/modules/cuda/cuda_11.3.0 ]
 cuda version: 
 Using successfully built MFEM (branch master) from OUT_DIR.
-mfem-coker version: heads/master-0-g58982875ee7540c32d1aef1527002b7edd80674c
+mfem-coker version: heads/master-0-g49e663b2497a524e306a616792e21141298f3aa3
 
 Running the tests using a total of 1 MPI tasks ...
 ... with 1 tasks per node ...
@@ -35,7 +35,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 4 2 2
 Total number of elements: 16
 Number of finite element unknowns: 45
-[32m"DOFs/sec" in CG: 0.410148 million.[m
+[32m"DOFs/sec" in CG: 0.409247 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 1 -l 5 -d cuda:fast0
 Options used:
@@ -52,7 +52,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 4 4 2
 Total number of elements: 32
 Number of finite element unknowns: 75
-[32m"DOFs/sec" in CG: 0.688527 million.[m
+[32m"DOFs/sec" in CG: 0.681931 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 1 -l 6 -d cuda:fast0
 Options used:
@@ -69,7 +69,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 4 4 4
 Total number of elements: 64
 Number of finite element unknowns: 125
-[32m"DOFs/sec" in CG: 1.15228 million.[m
+[32m"DOFs/sec" in CG: 1.14498 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 1 -l 7 -d cuda:fast0
 Options used:
@@ -86,7 +86,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 8 4 4
 Total number of elements: 128
 Number of finite element unknowns: 225
-[32m"DOFs/sec" in CG: 2.06691 million.[m
+[32m"DOFs/sec" in CG: 2.06282 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 1 -l 8 -d cuda:fast0
 Options used:
@@ -103,7 +103,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 8 8 4
 Total number of elements: 256
 Number of finite element unknowns: 405
-[32m"DOFs/sec" in CG: 3.72133 million.[m
+[32m"DOFs/sec" in CG: 3.70735 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 1 -l 9 -d cuda:fast0
 Options used:
@@ -120,7 +120,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 8 8 8
 Total number of elements: 512
 Number of finite element unknowns: 729
-[32m"DOFs/sec" in CG: 6.60439 million.[m
+[32m"DOFs/sec" in CG: 6.58008 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 1 -l 10 -d cuda:fast0
 Options used:
@@ -137,7 +137,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 16 8 8
 Total number of elements: 1024
 Number of finite element unknowns: 1377
-[32m"DOFs/sec" in CG: 12.6547 million.[m
+[32m"DOFs/sec" in CG: 12.5217 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 1 -l 11 -d cuda:fast0
 Options used:
@@ -154,7 +154,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 16 16 8
 Total number of elements: 2048
 Number of finite element unknowns: 2601
-[32m"DOFs/sec" in CG: 24.0023 million.[m
+[32m"DOFs/sec" in CG: 23.507 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 1 -l 12 -d cuda:fast0
 Options used:
@@ -171,7 +171,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 16 16 16
 Total number of elements: 4096
 Number of finite element unknowns: 4913
-[32m"DOFs/sec" in CG: 41.8084 million.[m
+[32m"DOFs/sec" in CG: 41.6654 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 1 -l 13 -d cuda:fast0
 Options used:
@@ -188,7 +188,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 32 16 16
 Total number of elements: 8192
 Number of finite element unknowns: 9537
-[32m"DOFs/sec" in CG: 80.493 million.[m
+[32m"DOFs/sec" in CG: 80.4566 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 1 -l 14 -d cuda:fast0
 Options used:
@@ -205,7 +205,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 32 32 16
 Total number of elements: 16384
 Number of finite element unknowns: 18513
-[32m"DOFs/sec" in CG: 145.223 million.[m
+[32m"DOFs/sec" in CG: 144.755 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 1 -l 15 -d cuda:fast0
 Options used:
@@ -222,7 +222,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 32 32 32
 Total number of elements: 32768
 Number of finite element unknowns: 35937
-[32m"DOFs/sec" in CG: 237.987 million.[m
+[32m"DOFs/sec" in CG: 233.465 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 1 -l 16 -d cuda:fast0
 Options used:
@@ -239,7 +239,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 64 32 32
 Total number of elements: 65536
 Number of finite element unknowns: 70785
-[32m"DOFs/sec" in CG: 364.093 million.[m
+[32m"DOFs/sec" in CG: 361.014 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 1 -l 17 -d cuda:fast0
 Options used:
@@ -256,7 +256,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 64 64 32
 Total number of elements: 131072
 Number of finite element unknowns: 139425
-[32m"DOFs/sec" in CG: 440.062 million.[m
+[32m"DOFs/sec" in CG: 435.653 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 1 -l 18 -d cuda:fast0
 Options used:
@@ -273,7 +273,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 64 64 64
 Total number of elements: 262144
 Number of finite element unknowns: 274625
-[32m"DOFs/sec" in CG: 521.323 million.[m
+[32m"DOFs/sec" in CG: 524.386 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 1 -l 19 -d cuda:fast0
 Options used:
@@ -290,7 +290,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 128 64 64
 Total number of elements: 524288
 Number of finite element unknowns: 545025
-[32m"DOFs/sec" in CG: 583.598 million.[m
+[32m"DOFs/sec" in CG: 601.403 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 1 -l 20 -d cuda:fast0
 Options used:
@@ -307,7 +307,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 128 128 64
 Total number of elements: 1048576
 Number of finite element unknowns: 1081665
-[32m"DOFs/sec" in CG: 615.1 million.[m
+[32m"DOFs/sec" in CG: 614.508 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 1 -l 21 -d cuda:fast0
 Options used:
@@ -324,7 +324,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 128 128 128
 Total number of elements: 2097152
 Number of finite element unknowns: 2146689
-[32m"DOFs/sec" in CG: 622.936 million.[m
+[32m"DOFs/sec" in CG: 622.402 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 1 -l 22 -d cuda:fast0
 Options used:
@@ -341,7 +341,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 256 128 128
 Total number of elements: 4194304
 Number of finite element unknowns: 4276737
-[32m"DOFs/sec" in CG: 625.561 million.[m
+[32m"DOFs/sec" in CG: 624.958 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 2 -l 4 -d cuda:fast0
 Options used:
@@ -358,7 +358,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 4 2 2
 Total number of elements: 16
 Number of finite element unknowns: 225
-[32m"DOFs/sec" in CG: 2.07635 million.[m
+[32m"DOFs/sec" in CG: 2.0511 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 2 -l 5 -d cuda:fast0
 Options used:
@@ -375,7 +375,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 4 4 2
 Total number of elements: 32
 Number of finite element unknowns: 405
-[32m"DOFs/sec" in CG: 3.70677 million.[m
+[32m"DOFs/sec" in CG: 3.68314 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 2 -l 6 -d cuda:fast0
 Options used:
@@ -392,7 +392,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 4 4 4
 Total number of elements: 64
 Number of finite element unknowns: 729
-[32m"DOFs/sec" in CG: 6.58206 million.[m
+[32m"DOFs/sec" in CG: 6.60159 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 2 -l 7 -d cuda:fast0
 Options used:
@@ -409,7 +409,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 8 4 4
 Total number of elements: 128
 Number of finite element unknowns: 1377
-[32m"DOFs/sec" in CG: 12.495 million.[m
+[32m"DOFs/sec" in CG: 12.5109 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 2 -l 8 -d cuda:fast0
 Options used:
@@ -426,7 +426,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 8 8 4
 Total number of elements: 256
 Number of finite element unknowns: 2601
-[32m"DOFs/sec" in CG: 23.7172 million.[m
+[32m"DOFs/sec" in CG: 23.5438 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 2 -l 9 -d cuda:fast0
 Options used:
@@ -443,7 +443,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 8 8 8
 Total number of elements: 512
 Number of finite element unknowns: 4913
-[32m"DOFs/sec" in CG: 44.9001 million.[m
+[32m"DOFs/sec" in CG: 44.8338 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 2 -l 10 -d cuda:fast0
 Options used:
@@ -460,7 +460,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 16 8 8
 Total number of elements: 1024
 Number of finite element unknowns: 9537
-[32m"DOFs/sec" in CG: 87.1577 million.[m
+[32m"DOFs/sec" in CG: 86.7051 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 2 -l 11 -d cuda:fast0
 Options used:
@@ -477,7 +477,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 16 16 8
 Total number of elements: 2048
 Number of finite element unknowns: 18513
-[32m"DOFs/sec" in CG: 166.905 million.[m
+[32m"DOFs/sec" in CG: 166.48 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 2 -l 12 -d cuda:fast0
 Options used:
@@ -494,7 +494,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 16 16 16
 Total number of elements: 4096
 Number of finite element unknowns: 35937
-[32m"DOFs/sec" in CG: 300.839 million.[m
+[32m"DOFs/sec" in CG: 301.942 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 2 -l 13 -d cuda:fast0
 Options used:
@@ -511,7 +511,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 32 16 16
 Total number of elements: 8192
 Number of finite element unknowns: 70785
-[32m"DOFs/sec" in CG: 550.965 million.[m
+[32m"DOFs/sec" in CG: 541.552 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 2 -l 14 -d cuda:fast0
 Options used:
@@ -528,7 +528,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 32 32 16
 Total number of elements: 16384
 Number of finite element unknowns: 139425
-[32m"DOFs/sec" in CG: 955.376 million.[m
+[32m"DOFs/sec" in CG: 945.722 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 2 -l 15 -d cuda:fast0
 Options used:
@@ -545,7 +545,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 32 32 32
 Total number of elements: 32768
 Number of finite element unknowns: 274625
-[32m"DOFs/sec" in CG: 1422.65 million.[m
+[32m"DOFs/sec" in CG: 1421.55 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 2 -l 16 -d cuda:fast0
 Options used:
@@ -562,7 +562,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 64 32 32
 Total number of elements: 65536
 Number of finite element unknowns: 545025
-[32m"DOFs/sec" in CG: 1981.78 million.[m
+[32m"DOFs/sec" in CG: 1963.02 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 2 -l 17 -d cuda:fast0
 Options used:
@@ -579,7 +579,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 64 64 32
 Total number of elements: 131072
 Number of finite element unknowns: 1081665
-[32m"DOFs/sec" in CG: 2419.38 million.[m
+[32m"DOFs/sec" in CG: 2411.63 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 2 -l 18 -d cuda:fast0
 Options used:
@@ -596,7 +596,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 64 64 64
 Total number of elements: 262144
 Number of finite element unknowns: 2146689
-[32m"DOFs/sec" in CG: 2591.84 million.[m
+[32m"DOFs/sec" in CG: 2579.24 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 2 -l 19 -d cuda:fast0
 Options used:
@@ -613,7 +613,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 128 64 64
 Total number of elements: 524288
 Number of finite element unknowns: 4276737
-[32m"DOFs/sec" in CG: 2648.93 million.[m
+[32m"DOFs/sec" in CG: 2653.74 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 3 -l 4 -d cuda:fast0
 Options used:
@@ -630,7 +630,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 4 2 2
 Total number of elements: 16
 Number of finite element unknowns: 637
-[32m"DOFs/sec" in CG: 5.7712 million.[m
+[32m"DOFs/sec" in CG: 5.75136 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 3 -l 5 -d cuda:fast0
 Options used:
@@ -647,7 +647,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 4 4 2
 Total number of elements: 32
 Number of finite element unknowns: 1183
-[32m"DOFs/sec" in CG: 10.6841 million.[m
+[32m"DOFs/sec" in CG: 10.7618 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 3 -l 6 -d cuda:fast0
 Options used:
@@ -664,7 +664,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 4 4 4
 Total number of elements: 64
 Number of finite element unknowns: 2197
-[32m"DOFs/sec" in CG: 20.073 million.[m
+[32m"DOFs/sec" in CG: 19.7779 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 3 -l 7 -d cuda:fast0
 Options used:
@@ -681,7 +681,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 8 4 4
 Total number of elements: 128
 Number of finite element unknowns: 4225
-[32m"DOFs/sec" in CG: 38.8314 million.[m
+[32m"DOFs/sec" in CG: 38.0933 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 3 -l 8 -d cuda:fast0
 Options used:
@@ -698,7 +698,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 8 8 4
 Total number of elements: 256
 Number of finite element unknowns: 8125
-[32m"DOFs/sec" in CG: 74.3122 million.[m
+[32m"DOFs/sec" in CG: 77.3941 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 3 -l 9 -d cuda:fast0
 Options used:
@@ -715,7 +715,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 8 8 8
 Total number of elements: 512
 Number of finite element unknowns: 15625
-[32m"DOFs/sec" in CG: 141.454 million.[m
+[32m"DOFs/sec" in CG: 141.589 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 3 -l 10 -d cuda:fast0
 Options used:
@@ -732,7 +732,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 16 8 8
 Total number of elements: 1024
 Number of finite element unknowns: 30625
-[32m"DOFs/sec" in CG: 276.688 million.[m
+[32m"DOFs/sec" in CG: 274.911 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 3 -l 11 -d cuda:fast0
 Options used:
@@ -749,7 +749,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 16 16 8
 Total number of elements: 2048
 Number of finite element unknowns: 60025
-[32m"DOFs/sec" in CG: 500.086 million.[m
+[32m"DOFs/sec" in CG: 492.307 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 3 -l 12 -d cuda:fast0
 Options used:
@@ -766,7 +766,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 16 16 16
 Total number of elements: 4096
 Number of finite element unknowns: 117649
-[32m"DOFs/sec" in CG: 922.546 million.[m
+[32m"DOFs/sec" in CG: 906.449 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 3 -l 13 -d cuda:fast0
 Options used:
@@ -783,7 +783,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 32 16 16
 Total number of elements: 8192
 Number of finite element unknowns: 232897
-[32m"DOFs/sec" in CG: 1577.87 million.[m
+[32m"DOFs/sec" in CG: 1572.05 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 3 -l 14 -d cuda:fast0
 Options used:
@@ -800,7 +800,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 32 32 16
 Total number of elements: 16384
 Number of finite element unknowns: 461041
-[32m"DOFs/sec" in CG: 2295.57 million.[m
+[32m"DOFs/sec" in CG: 2305.09 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 3 -l 15 -d cuda:fast0
 Options used:
@@ -817,7 +817,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 32 32 32
 Total number of elements: 32768
 Number of finite element unknowns: 912673
-[32m"DOFs/sec" in CG: 3156.66 million.[m
+[32m"DOFs/sec" in CG: 3165.09 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 3 -l 16 -d cuda:fast0
 Options used:
@@ -834,7 +834,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 64 32 32
 Total number of elements: 65536
 Number of finite element unknowns: 1815937
-[32m"DOFs/sec" in CG: 3574.03 million.[m
+[32m"DOFs/sec" in CG: 3541.77 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 3 -l 17 -d cuda:fast0
 Options used:
@@ -851,7 +851,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 64 64 32
 Total number of elements: 131072
 Number of finite element unknowns: 3613153
-[32m"DOFs/sec" in CG: 3682.2 million.[m
+[32m"DOFs/sec" in CG: 3689.6 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 4 -l 4 -d cuda:fast0
 Options used:
@@ -868,7 +868,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 4 2 2
 Total number of elements: 16
 Number of finite element unknowns: 1377
-[32m"DOFs/sec" in CG: 12.6362 million.[m
+[32m"DOFs/sec" in CG: 12.5617 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 4 -l 5 -d cuda:fast0
 Options used:
@@ -885,7 +885,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 4 4 2
 Total number of elements: 32
 Number of finite element unknowns: 2601
-[32m"DOFs/sec" in CG: 23.7629 million.[m
+[32m"DOFs/sec" in CG: 23.6405 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 4 -l 6 -d cuda:fast0
 Options used:
@@ -902,7 +902,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 4 4 4
 Total number of elements: 64
 Number of finite element unknowns: 4913
-[32m"DOFs/sec" in CG: 44.7671 million.[m
+[32m"DOFs/sec" in CG: 44.5308 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 4 -l 7 -d cuda:fast0
 Options used:
@@ -919,7 +919,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 8 4 4
 Total number of elements: 128
 Number of finite element unknowns: 9537
-[32m"DOFs/sec" in CG: 86.6635 million.[m
+[32m"DOFs/sec" in CG: 86.5299 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 4 -l 8 -d cuda:fast0
 Options used:
@@ -936,7 +936,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 8 8 4
 Total number of elements: 256
 Number of finite element unknowns: 18513
-[32m"DOFs/sec" in CG: 167.16 million.[m
+[32m"DOFs/sec" in CG: 168.048 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 4 -l 9 -d cuda:fast0
 Options used:
@@ -953,7 +953,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 8 8 8
 Total number of elements: 512
 Number of finite element unknowns: 35937
-[32m"DOFs/sec" in CG: 325.19 million.[m
+[32m"DOFs/sec" in CG: 320.25 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 4 -l 10 -d cuda:fast0
 Options used:
@@ -970,7 +970,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 16 8 8
 Total number of elements: 1024
 Number of finite element unknowns: 70785
-[32m"DOFs/sec" in CG: 580.371 million.[m
+[32m"DOFs/sec" in CG: 585.825 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 4 -l 11 -d cuda:fast0
 Options used:
@@ -987,7 +987,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 16 16 8
 Total number of elements: 2048
 Number of finite element unknowns: 139425
-[32m"DOFs/sec" in CG: 1024.41 million.[m
+[32m"DOFs/sec" in CG: 1022.12 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 4 -l 12 -d cuda:fast0
 Options used:
@@ -1004,7 +1004,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 16 16 16
 Total number of elements: 4096
 Number of finite element unknowns: 274625
-[32m"DOFs/sec" in CG: 1752 million.[m
+[32m"DOFs/sec" in CG: 1741.14 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 4 -l 13 -d cuda:fast0
 Options used:
@@ -1021,7 +1021,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 32 16 16
 Total number of elements: 8192
 Number of finite element unknowns: 545025
-[32m"DOFs/sec" in CG: 2528 million.[m
+[32m"DOFs/sec" in CG: 2517.72 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 4 -l 14 -d cuda:fast0
 Options used:
@@ -1038,7 +1038,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 32 32 16
 Total number of elements: 16384
 Number of finite element unknowns: 1081665
-[32m"DOFs/sec" in CG: 3262.33 million.[m
+[32m"DOFs/sec" in CG: 3255.01 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 4 -l 15 -d cuda:fast0
 Options used:
@@ -1055,7 +1055,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 32 32 32
 Total number of elements: 32768
 Number of finite element unknowns: 2146689
-[32m"DOFs/sec" in CG: 3590.87 million.[m
+[32m"DOFs/sec" in CG: 3579.2 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 4 -l 16 -d cuda:fast0
 Options used:
@@ -1072,7 +1072,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 64 32 32
 Total number of elements: 65536
 Number of finite element unknowns: 4276737
-[32m"DOFs/sec" in CG: 3729.2 million.[m
+[32m"DOFs/sec" in CG: 3729.44 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 5 -l 4 -d cuda:fast0
 Options used:
@@ -1089,7 +1089,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 4 2 2
 Total number of elements: 16
 Number of finite element unknowns: 2541
-[32m"DOFs/sec" in CG: 23.4098 million.[m
+[32m"DOFs/sec" in CG: 23.1031 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 5 -l 5 -d cuda:fast0
 Options used:
@@ -1106,7 +1106,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 4 4 2
 Total number of elements: 32
 Number of finite element unknowns: 4851
-[32m"DOFs/sec" in CG: 43.7288 million.[m
+[32m"DOFs/sec" in CG: 43.8185 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 5 -l 6 -d cuda:fast0
 Options used:
@@ -1123,7 +1123,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 4 4 4
 Total number of elements: 64
 Number of finite element unknowns: 9261
-[32m"DOFs/sec" in CG: 83.8905 million.[m
+[32m"DOFs/sec" in CG: 83.8284 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 5 -l 7 -d cuda:fast0
 Options used:
@@ -1140,7 +1140,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 8 4 4
 Total number of elements: 128
 Number of finite element unknowns: 18081
-[32m"DOFs/sec" in CG: 163.997 million.[m
+[32m"DOFs/sec" in CG: 162.002 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 5 -l 8 -d cuda:fast0
 Options used:
@@ -1157,7 +1157,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 8 8 4
 Total number of elements: 256
 Number of finite element unknowns: 35301
-[32m"DOFs/sec" in CG: 319.871 million.[m
+[32m"DOFs/sec" in CG: 316.372 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 5 -l 9 -d cuda:fast0
 Options used:
@@ -1174,7 +1174,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 8 8 8
 Total number of elements: 512
 Number of finite element unknowns: 68921
-[32m"DOFs/sec" in CG: 568.089 million.[m
+[32m"DOFs/sec" in CG: 567.363 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 5 -l 10 -d cuda:fast0
 Options used:
@@ -1191,7 +1191,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 16 8 8
 Total number of elements: 1024
 Number of finite element unknowns: 136161
-[32m"DOFs/sec" in CG: 992.537 million.[m
+[32m"DOFs/sec" in CG: 995.401 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 5 -l 11 -d cuda:fast0
 Options used:
@@ -1208,7 +1208,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 16 16 8
 Total number of elements: 2048
 Number of finite element unknowns: 269001
-[32m"DOFs/sec" in CG: 1829.64 million.[m
+[32m"DOFs/sec" in CG: 1818.72 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 5 -l 12 -d cuda:fast0
 Options used:
@@ -1225,7 +1225,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 16 16 16
 Total number of elements: 4096
 Number of finite element unknowns: 531441
-[32m"DOFs/sec" in CG: 2612.25 million.[m
+[32m"DOFs/sec" in CG: 2657.52 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 5 -l 13 -d cuda:fast0
 Options used:
@@ -1242,7 +1242,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 32 16 16
 Total number of elements: 8192
 Number of finite element unknowns: 1056321
-[32m"DOFs/sec" in CG: 3425.72 million.[m
+[32m"DOFs/sec" in CG: 3436.79 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 5 -l 14 -d cuda:fast0
 Options used:
@@ -1259,7 +1259,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 32 32 16
 Total number of elements: 16384
 Number of finite element unknowns: 2099601
-[32m"DOFs/sec" in CG: 3830.54 million.[m
+[32m"DOFs/sec" in CG: 3828.78 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 5 -l 15 -d cuda:fast0
 Options used:
@@ -1276,7 +1276,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 32 32 32
 Total number of elements: 32768
 Number of finite element unknowns: 4173281
-[32m"DOFs/sec" in CG: 3991.66 million.[m
+[32m"DOFs/sec" in CG: 4003.71 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 6 -l 4 -d cuda:fast0
 Options used:
@@ -1293,7 +1293,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 4 2 2
 Total number of elements: 16
 Number of finite element unknowns: 4225
-[32m"DOFs/sec" in CG: 38.6517 million.[m
+[32m"DOFs/sec" in CG: 37.9878 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 6 -l 5 -d cuda:fast0
 Options used:
@@ -1310,7 +1310,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 4 4 2
 Total number of elements: 32
 Number of finite element unknowns: 8125
-[32m"DOFs/sec" in CG: 74.1233 million.[m
+[32m"DOFs/sec" in CG: 73.9252 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 6 -l 6 -d cuda:fast0
 Options used:
@@ -1327,7 +1327,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 4 4 4
 Total number of elements: 64
 Number of finite element unknowns: 15625
-[32m"DOFs/sec" in CG: 143.139 million.[m
+[32m"DOFs/sec" in CG: 141.298 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 6 -l 7 -d cuda:fast0
 Options used:
@@ -1344,7 +1344,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 8 4 4
 Total number of elements: 128
 Number of finite element unknowns: 30625
-[32m"DOFs/sec" in CG: 275.454 million.[m
+[32m"DOFs/sec" in CG: 279.044 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 6 -l 8 -d cuda:fast0
 Options used:
@@ -1361,7 +1361,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 8 8 4
 Total number of elements: 256
 Number of finite element unknowns: 60025
-[32m"DOFs/sec" in CG: 496.066 million.[m
+[32m"DOFs/sec" in CG: 497.539 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 6 -l 9 -d cuda:fast0
 Options used:
@@ -1378,7 +1378,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 8 8 8
 Total number of elements: 512
 Number of finite element unknowns: 117649
-[32m"DOFs/sec" in CG: 958.554 million.[m
+[32m"DOFs/sec" in CG: 955.26 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 6 -l 10 -d cuda:fast0
 Options used:
@@ -1395,7 +1395,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 16 8 8
 Total number of elements: 1024
 Number of finite element unknowns: 232897
-[32m"DOFs/sec" in CG: 1614.63 million.[m
+[32m"DOFs/sec" in CG: 1610.34 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 6 -l 11 -d cuda:fast0
 Options used:
@@ -1412,7 +1412,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 16 16 8
 Total number of elements: 2048
 Number of finite element unknowns: 461041
-[32m"DOFs/sec" in CG: 2502.44 million.[m
+[32m"DOFs/sec" in CG: 2483.46 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 6 -l 12 -d cuda:fast0
 Options used:
@@ -1429,7 +1429,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 16 16 16
 Total number of elements: 4096
 Number of finite element unknowns: 912673
-[32m"DOFs/sec" in CG: 3447.59 million.[m
+[32m"DOFs/sec" in CG: 3444.17 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 6 -l 13 -d cuda:fast0
 Options used:
@@ -1446,7 +1446,7 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 32 16 16
 Total number of elements: 8192
 Number of finite element unknowns: 1815937
-[32m"DOFs/sec" in CG: 3890.81 million.[m
+[32m"DOFs/sec" in CG: 3908.85 million.[m
 Running test:
 mpirun -np 1 ./ex1 -p 0 -o 6 -l 14 -d cuda:fast0
 Options used:
@@ -1463,5 +1463,5 @@ Processor partitioning: 1 1 1
 Mesh dimensions: 32 32 16
 Total number of elements: 16384
 Number of finite element unknowns: 3613153
-[32m"DOFs/sec" in CG: 4103.03 million.[m
+[32m"DOFs/sec" in CG: 4107.14 million.[m
 
