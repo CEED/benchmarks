@@ -34,7 +34,8 @@ template <typename INTEGRATOR>
 void bk2_vector_pa_integrator(int order, Mesh *mesh)
 {
    constexpr int dim = 3;
-
+   constexpr bool verif = false;
+   
    H1_FECollection fec(order, dim);
    FiniteElementSpace fes(mesh, &fec, dim);
 
@@ -44,23 +45,29 @@ void bk2_vector_pa_integrator(int order, Mesh *mesh)
    GridFunction x(&fes), y_fa(&fes), y_pa(&fes);
    x.Randomize(1);
 
-   BilinearForm blf_fa(&fes);
-   blf_fa.AddDomainIntegrator(new INTEGRATOR);
-   blf_fa.Assemble();
-   blf_fa.Finalize();
-   blf_fa.Mult(x, y_fa);
-
+   if (verif)
+   {
+      BilinearForm blf_fa(&fes);
+      blf_fa.AddDomainIntegrator(new INTEGRATOR);
+      blf_fa.Assemble();
+      blf_fa.Finalize();
+      blf_fa.Mult(x, y_fa);
+   }
+   
    BilinearForm blf_pa(&fes);
    blf_pa.SetAssemblyLevel(AssemblyLevel::PARTIAL);
    blf_pa.AddDomainIntegrator(new INTEGRATOR);
    blf_pa.Assemble();
    blf_pa.Mult(x, y_pa);
 
-   y_pa -= y_fa;
-   const double dot = y_pa*y_pa;
-   const double epsilon = numeric_limits<double>::epsilon();
-   MFEM_VERIFY(fabs(dot) < 10.*epsilon, "Error dot: "<<dot);
-
+   if (verif)
+   {
+      y_pa -= y_fa;
+      const double dot = y_pa*y_pa;
+      const double epsilon = numeric_limits<double>::epsilon();
+      MFEM_VERIFY(fabs(dot) < 10.*epsilon, "Error dot: "<<dot);
+   }
+   
    const int dofs = fes.GetVSize();
    constexpr int iter = 8;
 
