@@ -92,6 +92,8 @@ libceed_branch=${libceed_branch:-master}
 # Only with HIP
 #packages="hip metis hypre mfem-hip"
 
-packages="cuda mfem-coker"
+#packages="cuda mfem-coker"
+#packages="mfem-coker"
+packages=${packages:-"cuda mfem-coker"}
 
 test_required_packages=${packages}

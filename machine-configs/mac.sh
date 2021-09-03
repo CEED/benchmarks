@@ -119,6 +119,26 @@ function setup_gcc_8()
    NEK5K_BIGMEM="no" # used by: package-builders/nek5000.sh
 }
 
+function setup_gcc_11()
+{
+   # Homebrew open-mpi with gcc v11
+   CC=gcc-11
+   CXX=g++-11
+   FC=gfortran-11
+   OCCA_CXX="$CXX"
+
+   setup_openmpi
+
+   CFLAGS="-O3"
+   FFLAGS="$CFLAGS"
+   OCCA_CXXFLAGS="-O3 -march=native"
+   TEST_EXTRA_CFLAGS="-march=native --param max-completely-peel-times=3"
+   # "-std=c++11 -pedantic -Wall -fdump-tree-optimized-blocks"
+   NATIVE_CFLAG="-march=native"
+
+   NEK5K_BIGMEM="no" # used by: package-builders/nek5000.sh
+}
+
 
 function set_mpi_options()
 {
@@ -133,10 +153,10 @@ search_file_list LAPACK_LIB \
    "$(brew --prefix)/opt/openblas/lib/libopenblas.dylib" || \
 LAPACK_LIB="-framework Accelerate"
 
-valid_compilers="clang gcc_6 gcc_7 gcc_7a gcc_8"
+valid_compilers="clang gcc_6 gcc_7 gcc_7a gcc_8 gcc_11"
 num_proc_detect="$(getconf _NPROCESSORS_ONLN)"
 num_proc_build=${num_proc_build:-$num_proc_detect}
-num_proc_run=${num_proc_run:-2}
+num_proc_run=${num_proc_run:-1}
 num_proc_node=${num_proc_run}
 memory_per_node=8
 

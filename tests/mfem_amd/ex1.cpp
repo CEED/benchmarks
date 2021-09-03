@@ -30,6 +30,54 @@ using namespace mfem;
 Mesh *make_mesh(int myid, int num_procs, int dim, int level,
                 int &par_ref_levels, Array<int> &nxyz);
 
+template <typename INTEGRATOR>
+void bk2_vector_pa_integrator(int order, Mesh *mesh)
+{
+   constexpr int dim = 3;
+
+   H1_FECollection fec(order, dim);
+   FiniteElementSpace fes(mesh, &fec, dim);
+
+   GridFunction x(&fes), y_fa(&fes), y_pa(&fes);
+   x.Randomize(1);
+
+   BilinearForm blf_fa(&fes);
+   blf_fa.AddDomainIntegrator(new INTEGRATOR);
+   blf_fa.Assemble();
+   blf_fa.Finalize();
+   blf_fa.Mult(x, y_fa);
+
+   BilinearForm blf_pa(&fes);
+   blf_pa.SetAssemblyLevel(AssemblyLevel::PARTIAL);
+   blf_pa.AddDomainIntegrator(new INTEGRATOR);
+   blf_pa.Assemble();
+   blf_pa.Mult(x, y_pa);
+
+   y_pa -= y_fa;
+   const double dot = y_pa*y_pa;
+   const double epsilon = numeric_limits<double>::epsilon();
+   MFEM_VERIFY(fabs(dot) < 10.*epsilon, "Error dot: "<<dot);
+
+   const int dofs = fes.GetVSize();
+   constexpr int iter = 64;
+
+   tic_toc.Clear();
+   for (int i=0; i<iter; i++)
+   {
+      MFEM_DEVICE_SYNC;
+      tic_toc.Start();
+      blf_pa.Mult(x, y_pa);
+      MFEM_DEVICE_SYNC;
+      tic_toc.Stop();
+   }
+   const double real_time = tic_toc.RealTime();
+   const double mdofs = ((1e-6 * dofs) * iter) / real_time;
+   //mfem::out << "\033[38;5;87m";
+   //mfem::out << "[VectorMassIntegrator] ";
+   mfem::out << "\"DOFs/sec\" in CG: " << mdofs << " million.";
+   //mfem::out << "\033[m" << std::endl;
+}
+
 int main(int argc, char *argv[])
 {
    // 1. Initialize MPI.
@@ -84,6 +132,12 @@ int main(int argc, char *argv[])
 
    long global_ne = mesh->ReduceInt(mesh->GetNE());
    cout << "Total number of elements: " << global_ne << endl;
+
+   if (problem==1)
+   {
+      bk2_vector_pa_integrator<VectorMassIntegrator>(order,mesh);
+      return 0;
+   }
 
    // 7. Define a parallel finite element space on the parallel mesh. Here we
    //    use continuous Lagrange finite elements of the specified order. If
