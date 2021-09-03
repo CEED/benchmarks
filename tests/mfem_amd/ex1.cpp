@@ -38,6 +38,9 @@ void bk2_vector_pa_integrator(int order, Mesh *mesh)
    H1_FECollection fec(order, dim);
    FiniteElementSpace fes(mesh, &fec, dim);
 
+   const int size = fes.GetTrueVSize();
+   cout << "Number of finite element unknowns: " << size << endl;
+   
    GridFunction x(&fes), y_fa(&fes), y_pa(&fes);
    x.Randomize(1);
 
@@ -59,7 +62,7 @@ void bk2_vector_pa_integrator(int order, Mesh *mesh)
    MFEM_VERIFY(fabs(dot) < 10.*epsilon, "Error dot: "<<dot);
 
    const int dofs = fes.GetVSize();
-   constexpr int iter = 64;
+   constexpr int iter = 8;
 
    tic_toc.Clear();
    for (int i=0; i<iter; i++)
@@ -72,10 +75,10 @@ void bk2_vector_pa_integrator(int order, Mesh *mesh)
    }
    const double real_time = tic_toc.RealTime();
    const double mdofs = ((1e-6 * dofs) * iter) / real_time;
-   //mfem::out << "\033[38;5;87m";
+   mfem::out << "\033[38;5;87m";
    //mfem::out << "[VectorMassIntegrator] ";
    mfem::out << "\"DOFs/sec\" in CG: " << mdofs << " million.";
-   //mfem::out << "\033[m" << std::endl;
+   mfem::out << "\033[m" << std::endl;
 }
 
 int main(int argc, char *argv[])
@@ -165,7 +168,7 @@ int main(int argc, char *argv[])
    //    right-hand side of the FEM linear system, which in this case is
    //    (1,phi_i) where phi_i are the basis functions in fespace.
    LinearForm *b = new LinearForm(fespace);
-   b->SetAssemblyLevel(LinearAssemblyLevel::PARTIAL);
+   b->SetAssemblyLevel(LinearAssemblyLevel::FULL);
    ConstantCoefficient one(1.0);
    b->AddDomainIntegrator(new DomainLFIntegrator(one));
    b->Assemble();

@@ -77,7 +77,7 @@ function mfem_build()
          "CUDA_CXX=$cuda_home/bin/nvcc"
          "CUDA_ARCH=${cuda_arch:-sm_70}")
       xcompiler="-Xcompiler="
-      optim_flags="$cxx11_flag $xcompiler\"$CFLAGS\""
+      optim_flags="$cxx11_flag -O3 --restrict $xcompiler\"$CFLAGS\""
    else
       echo "${magenta}INFO: Building $pkg without CUDA ...${none}"
    fi
