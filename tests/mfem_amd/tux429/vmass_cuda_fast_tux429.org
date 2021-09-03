@@ -1,0 +1,1467 @@
+Reading configuration /home/camier1/home/ceed_benchmarks/machine-configs/tux429.sh ...
+Setting up compiler gcc ...
+
+Using OUT_DIR = /home/camier1/home/ceed_benchmarks/builds/tux429_gcc
+
+Creating test executables directory: OUT_DIR/mfem_amd
+Reading test file: /home/camier1/home/ceed_benchmarks/tests/mfem_amd/ex1.sh
+
+Packages required by the test: cuda mfem-coker
+Building packages using 8 processors.
+CUDA is enabled. [ cuda_home = /usr/local/cuda ]
+cuda version: 
+Using successfully built MFEM (branch master) from OUT_DIR.
+mfem-coker version: heads/master-0-g7d7036047012506d310cbf0c79ec85f190c9ce85
+
+Running the tests using a total of 1 MPI tasks ...
+... with 1 tasks per node ...
+
+make -j 8 MFEM_DIR=/home/camier1/home/ceed_benchmarks/builds/tux429_gcc/mfem/install BLD=/home/camier1/home/ceed_benchmarks/builds/tux429_gcc/mfem_amd/
+make: Nothing to be done for `all'.
+
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 1 -l 4 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 4
+   --order 1
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 4 2 2
+Total number of elements: 16
+Number of finite element unknowns: 135
+[38;5;87m"DOFs/sec" in CG: 8.60078 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 1 -l 5 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 5
+   --order 1
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 4 4 2
+Total number of elements: 32
+Number of finite element unknowns: 225
+[38;5;87m"DOFs/sec" in CG: 15.2315 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 1 -l 6 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 6
+   --order 1
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 4 4 4
+Total number of elements: 64
+Number of finite element unknowns: 375
+[38;5;87m"DOFs/sec" in CG: 22.9414 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 1 -l 7 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 7
+   --order 1
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 8 4 4
+Total number of elements: 128
+Number of finite element unknowns: 675
+[38;5;87m"DOFs/sec" in CG: 43.3422 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 1 -l 8 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 8
+   --order 1
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 8 8 4
+Total number of elements: 256
+Number of finite element unknowns: 1215
+[38;5;87m"DOFs/sec" in CG: 76.5445 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 1 -l 9 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 9
+   --order 1
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 8 8 8
+Total number of elements: 512
+Number of finite element unknowns: 2187
+[38;5;87m"DOFs/sec" in CG: 138.476 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 1 -l 10 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 10
+   --order 1
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 16 8 8
+Total number of elements: 1024
+Number of finite element unknowns: 4131
+[38;5;87m"DOFs/sec" in CG: 229.618 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 1 -l 11 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 11
+   --order 1
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 16 16 8
+Total number of elements: 2048
+Number of finite element unknowns: 7803
+[38;5;87m"DOFs/sec" in CG: 346.9 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 1 -l 12 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 12
+   --order 1
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 16 16 16
+Total number of elements: 4096
+Number of finite element unknowns: 14739
+[38;5;87m"DOFs/sec" in CG: 532.721 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 1 -l 13 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 13
+   --order 1
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 32 16 16
+Total number of elements: 8192
+Number of finite element unknowns: 28611
+[38;5;87m"DOFs/sec" in CG: 680.463 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 1 -l 14 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 14
+   --order 1
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 32 32 16
+Total number of elements: 16384
+Number of finite element unknowns: 55539
+[38;5;87m"DOFs/sec" in CG: 806.791 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 1 -l 15 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 15
+   --order 1
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 32 32 32
+Total number of elements: 32768
+Number of finite element unknowns: 107811
+[38;5;87m"DOFs/sec" in CG: 833.96 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 1 -l 16 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 16
+   --order 1
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 64 32 32
+Total number of elements: 65536
+Number of finite element unknowns: 212355
+[38;5;87m"DOFs/sec" in CG: 874.611 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 1 -l 17 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 17
+   --order 1
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 64 64 32
+Total number of elements: 131072
+Number of finite element unknowns: 418275
+[38;5;87m"DOFs/sec" in CG: 891.118 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 1 -l 18 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 18
+   --order 1
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 64 64 64
+Total number of elements: 262144
+Number of finite element unknowns: 823875
+[38;5;87m"DOFs/sec" in CG: 891.445 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 1 -l 19 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 19
+   --order 1
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 128 64 64
+Total number of elements: 524288
+Number of finite element unknowns: 1635075
+[38;5;87m"DOFs/sec" in CG: 892.099 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 1 -l 20 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 20
+   --order 1
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 128 128 64
+Total number of elements: 1048576
+Number of finite element unknowns: 3244995
+[38;5;87m"DOFs/sec" in CG: 886.435 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 1 -l 21 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 21
+   --order 1
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 128 128 128
+Total number of elements: 2097152
+Number of finite element unknowns: 6440067
+[38;5;87m"DOFs/sec" in CG: 886.815 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 1 -l 22 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 22
+   --order 1
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 256 128 128
+Total number of elements: 4194304
+Number of finite element unknowns: 12830211
+[38;5;87m"DOFs/sec" in CG: 917.419 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 2 -l 4 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 4
+   --order 2
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 4 2 2
+Total number of elements: 16
+Number of finite element unknowns: 675
+[38;5;87m"DOFs/sec" in CG: 40.7114 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 2 -l 5 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 5
+   --order 2
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 4 4 2
+Total number of elements: 32
+Number of finite element unknowns: 1215
+[38;5;87m"DOFs/sec" in CG: 75.0689 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 2 -l 6 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 6
+   --order 2
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 4 4 4
+Total number of elements: 64
+Number of finite element unknowns: 2187
+[38;5;87m"DOFs/sec" in CG: 136.326 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 2 -l 7 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 7
+   --order 2
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 8 4 4
+Total number of elements: 128
+Number of finite element unknowns: 4131
+[38;5;87m"DOFs/sec" in CG: 259.19 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 2 -l 8 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 8
+   --order 2
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 8 8 4
+Total number of elements: 256
+Number of finite element unknowns: 7803
+[38;5;87m"DOFs/sec" in CG: 464.859 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 2 -l 9 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 9
+   --order 2
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 8 8 8
+Total number of elements: 512
+Number of finite element unknowns: 14739
+[38;5;87m"DOFs/sec" in CG: 803.336 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 2 -l 10 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 10
+   --order 2
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 16 8 8
+Total number of elements: 1024
+Number of finite element unknowns: 28611
+[38;5;87m"DOFs/sec" in CG: 1362.87 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 2 -l 11 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 11
+   --order 2
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 16 16 8
+Total number of elements: 2048
+Number of finite element unknowns: 55539
+[38;5;87m"DOFs/sec" in CG: 2052.51 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 2 -l 12 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 12
+   --order 2
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 16 16 16
+Total number of elements: 4096
+Number of finite element unknowns: 107811
+[38;5;87m"DOFs/sec" in CG: 2731.29 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 2 -l 13 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 13
+   --order 2
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 32 16 16
+Total number of elements: 8192
+Number of finite element unknowns: 212355
+[38;5;87m"DOFs/sec" in CG: 3025.49 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 2 -l 14 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 14
+   --order 2
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 32 32 16
+Total number of elements: 16384
+Number of finite element unknowns: 418275
+[38;5;87m"DOFs/sec" in CG: 3531.3 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 2 -l 15 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 15
+   --order 2
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 32 32 32
+Total number of elements: 32768
+Number of finite element unknowns: 823875
+[38;5;87m"DOFs/sec" in CG: 3744.55 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 2 -l 16 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 16
+   --order 2
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 64 32 32
+Total number of elements: 65536
+Number of finite element unknowns: 1635075
+[38;5;87m"DOFs/sec" in CG: 3825.51 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 2 -l 17 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 17
+   --order 2
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 64 64 32
+Total number of elements: 131072
+Number of finite element unknowns: 3244995
+[38;5;87m"DOFs/sec" in CG: 3871.22 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 2 -l 18 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 18
+   --order 2
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 64 64 64
+Total number of elements: 262144
+Number of finite element unknowns: 6440067
+[38;5;87m"DOFs/sec" in CG: 3890.26 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 2 -l 19 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 19
+   --order 2
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 128 64 64
+Total number of elements: 524288
+Number of finite element unknowns: 12830211
+[38;5;87m"DOFs/sec" in CG: 3775.62 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 3 -l 4 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 4
+   --order 3
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 4 2 2
+Total number of elements: 16
+Number of finite element unknowns: 1911
+[38;5;87m"DOFs/sec" in CG: 105.494 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 3 -l 5 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 5
+   --order 3
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 4 4 2
+Total number of elements: 32
+Number of finite element unknowns: 3549
+[38;5;87m"DOFs/sec" in CG: 208.663 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 3 -l 6 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 6
+   --order 3
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 4 4 4
+Total number of elements: 64
+Number of finite element unknowns: 6591
+[38;5;87m"DOFs/sec" in CG: 377.527 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 3 -l 7 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 7
+   --order 3
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 8 4 4
+Total number of elements: 128
+Number of finite element unknowns: 12675
+[38;5;87m"DOFs/sec" in CG: 724.627 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 3 -l 8 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 8
+   --order 3
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 8 8 4
+Total number of elements: 256
+Number of finite element unknowns: 24375
+[38;5;87m"DOFs/sec" in CG: 1305.72 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 3 -l 9 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 9
+   --order 3
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 8 8 8
+Total number of elements: 512
+Number of finite element unknowns: 46875
+[38;5;87m"DOFs/sec" in CG: 2250.01 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 3 -l 10 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 10
+   --order 3
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 16 8 8
+Total number of elements: 1024
+Number of finite element unknowns: 91875
+[38;5;87m"DOFs/sec" in CG: 3441.59 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 3 -l 11 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 11
+   --order 3
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 16 16 8
+Total number of elements: 2048
+Number of finite element unknowns: 180075
+[38;5;87m"DOFs/sec" in CG: 4399.11 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 3 -l 12 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 12
+   --order 3
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 16 16 16
+Total number of elements: 4096
+Number of finite element unknowns: 352947
+[38;5;87m"DOFs/sec" in CG: 5202.78 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 3 -l 13 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 13
+   --order 3
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 32 16 16
+Total number of elements: 8192
+Number of finite element unknowns: 698691
+[38;5;87m"DOFs/sec" in CG: 6009.93 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 3 -l 14 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 14
+   --order 3
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 32 32 16
+Total number of elements: 16384
+Number of finite element unknowns: 1383123
+[38;5;87m"DOFs/sec" in CG: 6304.12 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 3 -l 15 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 15
+   --order 3
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 32 32 32
+Total number of elements: 32768
+Number of finite element unknowns: 2738019
+[38;5;87m"DOFs/sec" in CG: 6528.04 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 3 -l 16 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 16
+   --order 3
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 64 32 32
+Total number of elements: 65536
+Number of finite element unknowns: 5447811
+[38;5;87m"DOFs/sec" in CG: 6616.43 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 3 -l 17 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 17
+   --order 3
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 64 64 32
+Total number of elements: 131072
+Number of finite element unknowns: 10839459
+[38;5;87m"DOFs/sec" in CG: 6667.95 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 4 -l 4 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 4
+   --order 4
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 4 2 2
+Total number of elements: 16
+Number of finite element unknowns: 4131
+[38;5;87m"DOFs/sec" in CG: 223.101 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 4 -l 5 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 5
+   --order 4
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 4 4 2
+Total number of elements: 32
+Number of finite element unknowns: 7803
+[38;5;87m"DOFs/sec" in CG: 428.11 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 4 -l 6 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 6
+   --order 4
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 4 4 4
+Total number of elements: 64
+Number of finite element unknowns: 14739
+[38;5;87m"DOFs/sec" in CG: 776.651 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 4 -l 7 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 7
+   --order 4
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 8 4 4
+Total number of elements: 128
+Number of finite element unknowns: 28611
+[38;5;87m"DOFs/sec" in CG: 1425.05 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 4 -l 8 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 8
+   --order 4
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 8 8 4
+Total number of elements: 256
+Number of finite element unknowns: 55539
+[38;5;87m"DOFs/sec" in CG: 2534.06 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 4 -l 9 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 9
+   --order 4
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 8 8 8
+Total number of elements: 512
+Number of finite element unknowns: 107811
+[38;5;87m"DOFs/sec" in CG: 4107.89 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 4 -l 10 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 10
+   --order 4
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 16 8 8
+Total number of elements: 1024
+Number of finite element unknowns: 212355
+[38;5;87m"DOFs/sec" in CG: 5294.89 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 4 -l 11 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 11
+   --order 4
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 16 16 8
+Total number of elements: 2048
+Number of finite element unknowns: 418275
+[38;5;87m"DOFs/sec" in CG: 5948.6 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 4 -l 12 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 12
+   --order 4
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 16 16 16
+Total number of elements: 4096
+Number of finite element unknowns: 823875
+[38;5;87m"DOFs/sec" in CG: 6792.41 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 4 -l 13 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 13
+   --order 4
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 32 16 16
+Total number of elements: 8192
+Number of finite element unknowns: 1635075
+[38;5;87m"DOFs/sec" in CG: 7158.95 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 4 -l 14 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 14
+   --order 4
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 32 32 16
+Total number of elements: 16384
+Number of finite element unknowns: 3244995
+[38;5;87m"DOFs/sec" in CG: 7475.12 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 4 -l 15 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 15
+   --order 4
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 32 32 32
+Total number of elements: 32768
+Number of finite element unknowns: 6440067
+[38;5;87m"DOFs/sec" in CG: 7573.5 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 4 -l 16 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 16
+   --order 4
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 64 32 32
+Total number of elements: 65536
+Number of finite element unknowns: 12830211
+[38;5;87m"DOFs/sec" in CG: 7646.25 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 5 -l 4 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 4
+   --order 5
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 4 2 2
+Total number of elements: 16
+Number of finite element unknowns: 7623
+[38;5;87m"DOFs/sec" in CG: 361.151 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 5 -l 5 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 5
+   --order 5
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 4 4 2
+Total number of elements: 32
+Number of finite element unknowns: 14553
+[38;5;87m"DOFs/sec" in CG: 703.073 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 5 -l 6 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 6
+   --order 5
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 4 4 4
+Total number of elements: 64
+Number of finite element unknowns: 27783
+[38;5;87m"DOFs/sec" in CG: 1273.24 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 5 -l 7 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 7
+   --order 5
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 8 4 4
+Total number of elements: 128
+Number of finite element unknowns: 54243
+[38;5;87m"DOFs/sec" in CG: 2211.06 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 5 -l 8 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 8
+   --order 5
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 8 8 4
+Total number of elements: 256
+Number of finite element unknowns: 105903
+[38;5;87m"DOFs/sec" in CG: 3687.43 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 5 -l 9 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 9
+   --order 5
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 8 8 8
+Total number of elements: 512
+Number of finite element unknowns: 206763
+[38;5;87m"DOFs/sec" in CG: 5232.87 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 5 -l 10 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 10
+   --order 5
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 16 8 8
+Total number of elements: 1024
+Number of finite element unknowns: 408483
+[38;5;87m"DOFs/sec" in CG: 6125.23 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 5 -l 11 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 11
+   --order 5
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 16 16 8
+Total number of elements: 2048
+Number of finite element unknowns: 807003
+[38;5;87m"DOFs/sec" in CG: 7058.7 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 5 -l 12 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 12
+   --order 5
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 16 16 16
+Total number of elements: 4096
+Number of finite element unknowns: 1594323
+[38;5;87m"DOFs/sec" in CG: 7782.71 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 5 -l 13 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 13
+   --order 5
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 32 16 16
+Total number of elements: 8192
+Number of finite element unknowns: 3168963
+[38;5;87m"DOFs/sec" in CG: 6223.49 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 5 -l 14 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 14
+   --order 5
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 32 32 16
+Total number of elements: 16384
+Number of finite element unknowns: 6298803
+[38;5;87m"DOFs/sec" in CG: 8350.72 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 5 -l 15 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 15
+   --order 5
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 32 32 32
+Total number of elements: 32768
+Number of finite element unknowns: 12519843
+[38;5;87m"DOFs/sec" in CG: 8449.89 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 6 -l 4 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 4
+   --order 6
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 4 2 2
+Total number of elements: 16
+Number of finite element unknowns: 12675
+[38;5;87m"DOFs/sec" in CG: 516.12 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 6 -l 5 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 5
+   --order 6
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 4 4 2
+Total number of elements: 32
+Number of finite element unknowns: 24375
+[38;5;87m"DOFs/sec" in CG: 880.055 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 6 -l 6 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 6
+   --order 6
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 4 4 4
+Total number of elements: 64
+Number of finite element unknowns: 46875
+[38;5;87m"DOFs/sec" in CG: 1757.51 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 6 -l 7 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 7
+   --order 6
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 8 4 4
+Total number of elements: 128
+Number of finite element unknowns: 91875
+[38;5;87m"DOFs/sec" in CG: 3026.42 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 6 -l 8 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 8
+   --order 6
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 8 8 4
+Total number of elements: 256
+Number of finite element unknowns: 180075
+[38;5;87m"DOFs/sec" in CG: 4917.55 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 6 -l 9 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 9
+   --order 6
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 8 8 8
+Total number of elements: 512
+Number of finite element unknowns: 352947
+[38;5;87m"DOFs/sec" in CG: 5424.4 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 6 -l 10 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 10
+   --order 6
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 16 8 8
+Total number of elements: 1024
+Number of finite element unknowns: 698691
+[38;5;87m"DOFs/sec" in CG: 6829.16 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 6 -l 11 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 11
+   --order 6
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 16 16 8
+Total number of elements: 2048
+Number of finite element unknowns: 1383123
+[38;5;87m"DOFs/sec" in CG: 7845.32 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 6 -l 12 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 12
+   --order 6
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 16 16 16
+Total number of elements: 4096
+Number of finite element unknowns: 2738019
+[38;5;87m"DOFs/sec" in CG: 8384.54 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 6 -l 13 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 13
+   --order 6
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 32 16 16
+Total number of elements: 8192
+Number of finite element unknowns: 5447811
+[38;5;87m"DOFs/sec" in CG: 8571.9 million.[m
+Running test:
+mpirun -np 1 ./ex1 -p 1 -o 6 -l 14 -d cuda:fast
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 14
+   --order 6
+   --problem 1
+   --device cuda:fast
+[32m[version:0][m
+Device configuration: cuda,cpu
+Memory configuration: host-std,cuda
+Processor partitioning: 1 1 1
+Mesh dimensions: 32 32 16
+Total number of elements: 16384
+Number of finite element unknowns: 10839459
+[38;5;87m"DOFs/sec" in CG: 8706.57 million.[m
+
