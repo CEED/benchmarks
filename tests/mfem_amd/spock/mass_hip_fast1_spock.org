@@ -1,0 +1,1471 @@
+Reading configuration /ccs/home/camier1/home/benchmarks/machine-configs/spock.sh ...
+Setting up compiler gcc8 ...
+
+Using OUT_DIR = /ccs/home/camier1/home/benchmarks/builds/spock_gcc8
+
+Creating test executables directory: OUT_DIR/mfem_amd
+Reading test file: /ccs/home/camier1/home/benchmarks/tests/mfem_amd/ex1.sh
+
+Packages required by the test: hip mfem-coker
+Building packages using 128 processors.
+HIP build_package
+HIP is enabled. [ hip_home = /opt/rocm-4.2.0 ]
+hip version: 
+Using successfully built MFEM (branch master) from OUT_DIR.
+mfem-coker version: heads/master-0-gb880cd7c52a116d686beaf8ddb1d2a9d70cabb34-dirty
+
+Running the tests using a total of 1 MPI tasks ...
+... with 1 tasks per node ...
+
+make -j 128 MFEM_DIR=/ccs/home/camier1/home/benchmarks/builds/spock_gcc8/mfem/install BLD=/ccs/home/camier1/home/benchmarks/builds/spock_gcc8/mfem_amd/
+make: Nothing to be done for 'all'.
+
+MPI setup
+Running test:
+srun -n 1 ./ex1 -p 0 -o 1 -l 4 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 4
+   --order 1
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 4 2 2
+Total number of elements: 16
+Number of finite element unknowns: 45
+
+Error in the test, error code: 134
+
+Running test:
+srun -n 1 ./ex1 -p 0 -o 1 -l 5 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 5
+   --order 1
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 4 4 2
+Total number of elements: 32
+Number of finite element unknowns: 75
+[32m"DOFs/sec" in CG: 0.606679 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 1 -l 6 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 6
+   --order 1
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 4 4 4
+Total number of elements: 64
+Number of finite element unknowns: 125
+[32m"DOFs/sec" in CG: 0.997224 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 1 -l 7 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 7
+   --order 1
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 8 4 4
+Total number of elements: 128
+Number of finite element unknowns: 225
+[32m"DOFs/sec" in CG: 1.75531 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 1 -l 8 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 8
+   --order 1
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 8 8 4
+Total number of elements: 256
+Number of finite element unknowns: 405
+[32m"DOFs/sec" in CG: 3.07199 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 1 -l 9 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 9
+   --order 1
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 8 8 8
+Total number of elements: 512
+Number of finite element unknowns: 729
+[32m"DOFs/sec" in CG: 5.36536 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 1 -l 10 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 10
+   --order 1
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 16 8 8
+Total number of elements: 1024
+Number of finite element unknowns: 1377
+[32m"DOFs/sec" in CG: 9.41494 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 1 -l 11 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 11
+   --order 1
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 16 16 8
+Total number of elements: 2048
+Number of finite element unknowns: 2601
+[32m"DOFs/sec" in CG: 20.1187 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 1 -l 12 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 12
+   --order 1
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 16 16 16
+Total number of elements: 4096
+Number of finite element unknowns: 4913
+[32m"DOFs/sec" in CG: 36.0808 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 1 -l 13 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 13
+   --order 1
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 32 16 16
+Total number of elements: 8192
+Number of finite element unknowns: 9537
+[32m"DOFs/sec" in CG: 66.6473 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 1 -l 14 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 14
+   --order 1
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 32 32 16
+Total number of elements: 16384
+Number of finite element unknowns: 18513
+[32m"DOFs/sec" in CG: 113.613 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 1 -l 15 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 15
+   --order 1
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 32 32 32
+Total number of elements: 32768
+Number of finite element unknowns: 35937
+[32m"DOFs/sec" in CG: 191.828 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 1 -l 16 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 16
+   --order 1
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 64 32 32
+Total number of elements: 65536
+Number of finite element unknowns: 70785
+[32m"DOFs/sec" in CG: 321.101 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 1 -l 17 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 17
+   --order 1
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 64 64 32
+Total number of elements: 131072
+Number of finite element unknowns: 139425
+[32m"DOFs/sec" in CG: 483.184 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 1 -l 18 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 18
+   --order 1
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 64 64 64
+Total number of elements: 262144
+Number of finite element unknowns: 274625
+[32m"DOFs/sec" in CG: 594.386 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 1 -l 19 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 19
+   --order 1
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 128 64 64
+Total number of elements: 524288
+Number of finite element unknowns: 545025
+[32m"DOFs/sec" in CG: 751.719 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 1 -l 20 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 20
+   --order 1
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 128 128 64
+Total number of elements: 1048576
+Number of finite element unknowns: 1081665
+[32m"DOFs/sec" in CG: 845.564 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 1 -l 21 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 21
+   --order 1
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 128 128 128
+Total number of elements: 2097152
+Number of finite element unknowns: 2146689
+[32m"DOFs/sec" in CG: 891.134 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 1 -l 22 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 22
+   --order 1
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 256 128 128
+Total number of elements: 4194304
+Number of finite element unknowns: 4276737
+[32m"DOFs/sec" in CG: 908.967 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 2 -l 4 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 4
+   --order 2
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 4 2 2
+Total number of elements: 16
+Number of finite element unknowns: 225
+[32m"DOFs/sec" in CG: 1.73895 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 2 -l 5 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 5
+   --order 2
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 4 4 2
+Total number of elements: 32
+Number of finite element unknowns: 405
+[32m"DOFs/sec" in CG: 3.03625 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 2 -l 6 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 6
+   --order 2
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 4 4 4
+Total number of elements: 64
+Number of finite element unknowns: 729
+[32m"DOFs/sec" in CG: 5.31546 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 2 -l 7 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 7
+   --order 2
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 8 4 4
+Total number of elements: 128
+Number of finite element unknowns: 1377
+[32m"DOFs/sec" in CG: 9.37218 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 2 -l 8 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 8
+   --order 2
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 8 8 4
+Total number of elements: 256
+Number of finite element unknowns: 2601
+[32m"DOFs/sec" in CG: 19.9538 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 2 -l 9 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 9
+   --order 2
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 8 8 8
+Total number of elements: 512
+Number of finite element unknowns: 4913
+[32m"DOFs/sec" in CG: 37.026 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 2 -l 10 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 10
+   --order 2
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 16 8 8
+Total number of elements: 1024
+Number of finite element unknowns: 9537
+[32m"DOFs/sec" in CG: 67.6608 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 2 -l 11 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 11
+   --order 2
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 16 16 8
+Total number of elements: 2048
+Number of finite element unknowns: 18513
+[32m"DOFs/sec" in CG: 119.426 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 2 -l 12 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 12
+   --order 2
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 16 16 16
+Total number of elements: 4096
+Number of finite element unknowns: 35937
+[32m"DOFs/sec" in CG: 211.965 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 2 -l 13 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 13
+   --order 2
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 32 16 16
+Total number of elements: 8192
+Number of finite element unknowns: 70785
+[32m"DOFs/sec" in CG: 382.15 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 2 -l 14 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 14
+   --order 2
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 32 32 16
+Total number of elements: 16384
+Number of finite element unknowns: 139425
+[32m"DOFs/sec" in CG: 658.508 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 2 -l 15 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 15
+   --order 2
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 32 32 32
+Total number of elements: 32768
+Number of finite element unknowns: 274625
+[32m"DOFs/sec" in CG: 945.58 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 2 -l 16 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 16
+   --order 2
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 64 32 32
+Total number of elements: 65536
+Number of finite element unknowns: 545025
+[32m"DOFs/sec" in CG: 1414.06 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 2 -l 17 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 17
+   --order 2
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 64 64 32
+Total number of elements: 131072
+Number of finite element unknowns: 1081665
+[32m"DOFs/sec" in CG: 1768.83 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 2 -l 18 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 18
+   --order 2
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 64 64 64
+Total number of elements: 262144
+Number of finite element unknowns: 2146689
+[32m"DOFs/sec" in CG: 2108.43 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 2 -l 19 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 19
+   --order 2
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 128 64 64
+Total number of elements: 524288
+Number of finite element unknowns: 4276737
+[32m"DOFs/sec" in CG: 2293.06 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 3 -l 4 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 4
+   --order 3
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 4 2 2
+Total number of elements: 16
+Number of finite element unknowns: 637
+[32m"DOFs/sec" in CG: 4.61566 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 3 -l 5 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 5
+   --order 3
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 4 4 2
+Total number of elements: 32
+Number of finite element unknowns: 1183
+[32m"DOFs/sec" in CG: 8.09249 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 3 -l 6 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 6
+   --order 3
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 4 4 4
+Total number of elements: 64
+Number of finite element unknowns: 2197
+[32m"DOFs/sec" in CG: 16.689 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 3 -l 7 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 7
+   --order 3
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 8 4 4
+Total number of elements: 128
+Number of finite element unknowns: 4225
+[32m"DOFs/sec" in CG: 31.3378 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 3 -l 8 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 8
+   --order 3
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 8 8 4
+Total number of elements: 256
+Number of finite element unknowns: 8125
+[32m"DOFs/sec" in CG: 57.8636 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 3 -l 9 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 9
+   --order 3
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 8 8 8
+Total number of elements: 512
+Number of finite element unknowns: 15625
+[32m"DOFs/sec" in CG: 102.144 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 3 -l 10 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 10
+   --order 3
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 16 8 8
+Total number of elements: 1024
+Number of finite element unknowns: 30625
+[32m"DOFs/sec" in CG: 182.741 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 3 -l 11 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 11
+   --order 3
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 16 16 8
+Total number of elements: 2048
+Number of finite element unknowns: 60025
+[32m"DOFs/sec" in CG: 344.5 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 3 -l 12 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 12
+   --order 3
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 16 16 16
+Total number of elements: 4096
+Number of finite element unknowns: 117649
+[32m"DOFs/sec" in CG: 607.101 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 3 -l 13 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 13
+   --order 3
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 32 16 16
+Total number of elements: 8192
+Number of finite element unknowns: 232897
+[32m"DOFs/sec" in CG: 1011.28 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 3 -l 14 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 14
+   --order 3
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 32 32 16
+Total number of elements: 16384
+Number of finite element unknowns: 461041
+[32m"DOFs/sec" in CG: 1456.78 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 3 -l 15 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 15
+   --order 3
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 32 32 32
+Total number of elements: 32768
+Number of finite element unknowns: 912673
+[32m"DOFs/sec" in CG: 1982.35 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 3 -l 16 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 16
+   --order 3
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 64 32 32
+Total number of elements: 65536
+Number of finite element unknowns: 1815937
+[32m"DOFs/sec" in CG: 2383.89 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 3 -l 17 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 17
+   --order 3
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 64 64 32
+Total number of elements: 131072
+Number of finite element unknowns: 3613153
+[32m"DOFs/sec" in CG: 2663.55 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 4 -l 4 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 4
+   --order 4
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 4 2 2
+Total number of elements: 16
+Number of finite element unknowns: 1377
+[32m"DOFs/sec" in CG: 8.75646 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 4 -l 5 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 5
+   --order 4
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 4 4 2
+Total number of elements: 32
+Number of finite element unknowns: 2601
+[32m"DOFs/sec" in CG: 18.6433 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 4 -l 6 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 6
+   --order 4
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 4 4 4
+Total number of elements: 64
+Number of finite element unknowns: 4913
+[32m"DOFs/sec" in CG: 34.3202 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 4 -l 7 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 7
+   --order 4
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 8 4 4
+Total number of elements: 128
+Number of finite element unknowns: 9537
+[32m"DOFs/sec" in CG: 64.3693 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 4 -l 8 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 8
+   --order 4
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 8 8 4
+Total number of elements: 256
+Number of finite element unknowns: 18513
+[32m"DOFs/sec" in CG: 113.862 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 4 -l 9 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 9
+   --order 4
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 8 8 8
+Total number of elements: 512
+Number of finite element unknowns: 35937
+[32m"DOFs/sec" in CG: 202.535 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 4 -l 10 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 10
+   --order 4
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 16 8 8
+Total number of elements: 1024
+Number of finite element unknowns: 70785
+[32m"DOFs/sec" in CG: 371.109 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 4 -l 11 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 11
+   --order 4
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 16 16 8
+Total number of elements: 2048
+Number of finite element unknowns: 139425
+[32m"DOFs/sec" in CG: 684.739 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 4 -l 12 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 12
+   --order 4
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 16 16 16
+Total number of elements: 4096
+Number of finite element unknowns: 274625
+[32m"DOFs/sec" in CG: 952.753 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 4 -l 13 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 13
+   --order 4
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 32 16 16
+Total number of elements: 8192
+Number of finite element unknowns: 545025
+[32m"DOFs/sec" in CG: 1501.9 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 4 -l 14 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 14
+   --order 4
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 32 32 16
+Total number of elements: 16384
+Number of finite element unknowns: 1081665
+[32m"DOFs/sec" in CG: 1880.79 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 4 -l 15 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 15
+   --order 4
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 32 32 32
+Total number of elements: 32768
+Number of finite element unknowns: 2146689
+[32m"DOFs/sec" in CG: 2258 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 4 -l 16 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 16
+   --order 4
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 64 32 32
+Total number of elements: 65536
+Number of finite element unknowns: 4276737
+[32m"DOFs/sec" in CG: 2459.88 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 5 -l 4 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 4
+   --order 5
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 4 2 2
+Total number of elements: 16
+Number of finite element unknowns: 2541
+[32m"DOFs/sec" in CG: 16.3869 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 5 -l 5 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 5
+   --order 5
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 4 4 2
+Total number of elements: 32
+Number of finite element unknowns: 4851
+[32m"DOFs/sec" in CG: 30.5103 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 5 -l 6 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 6
+   --order 5
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 4 4 4
+Total number of elements: 64
+Number of finite element unknowns: 9261
+[32m"DOFs/sec" in CG: 55.7626 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 5 -l 7 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 7
+   --order 5
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 8 4 4
+Total number of elements: 128
+Number of finite element unknowns: 18081
+[32m"DOFs/sec" in CG: 100.83 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 5 -l 8 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 8
+   --order 5
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 8 8 4
+Total number of elements: 256
+Number of finite element unknowns: 35301
+[32m"DOFs/sec" in CG: 180.805 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 5 -l 9 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 9
+   --order 5
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 8 8 8
+Total number of elements: 512
+Number of finite element unknowns: 68921
+[32m"DOFs/sec" in CG: 318.281 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 5 -l 10 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 10
+   --order 5
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 16 8 8
+Total number of elements: 1024
+Number of finite element unknowns: 136161
+[32m"DOFs/sec" in CG: 478.371 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 5 -l 11 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 11
+   --order 5
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 16 16 8
+Total number of elements: 2048
+Number of finite element unknowns: 269001
+[32m"DOFs/sec" in CG: 502.712 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 5 -l 12 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 12
+   --order 5
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 16 16 16
+Total number of elements: 4096
+Number of finite element unknowns: 531441
+[32m"DOFs/sec" in CG: 695.925 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 5 -l 13 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 13
+   --order 5
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 32 16 16
+Total number of elements: 8192
+Number of finite element unknowns: 1056321
+[32m"DOFs/sec" in CG: 806.256 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 5 -l 14 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 14
+   --order 5
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 32 32 16
+Total number of elements: 16384
+Number of finite element unknowns: 2099601
+[32m"DOFs/sec" in CG: 864.586 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 5 -l 15 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 15
+   --order 5
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 32 32 32
+Total number of elements: 32768
+Number of finite element unknowns: 4173281
+[32m"DOFs/sec" in CG: 883.696 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 6 -l 4 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 4
+   --order 6
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 4 2 2
+Total number of elements: 16
+Number of finite element unknowns: 4225
+[32m"DOFs/sec" in CG: 24.0334 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 6 -l 5 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 5
+   --order 6
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 4 4 2
+Total number of elements: 32
+Number of finite element unknowns: 8125
+[32m"DOFs/sec" in CG: 44.6593 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 6 -l 6 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 6
+   --order 6
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 4 4 4
+Total number of elements: 64
+Number of finite element unknowns: 15625
+[32m"DOFs/sec" in CG: 81.5664 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 6 -l 7 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 7
+   --order 6
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 8 4 4
+Total number of elements: 128
+Number of finite element unknowns: 30625
+[32m"DOFs/sec" in CG: 145.524 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 6 -l 8 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 8
+   --order 6
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 8 8 4
+Total number of elements: 256
+Number of finite element unknowns: 60025
+[32m"DOFs/sec" in CG: 275.619 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 6 -l 9 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 9
+   --order 6
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 8 8 8
+Total number of elements: 512
+Number of finite element unknowns: 117649
+[32m"DOFs/sec" in CG: 459.121 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 6 -l 10 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 10
+   --order 6
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 16 8 8
+Total number of elements: 1024
+Number of finite element unknowns: 232897
+[32m"DOFs/sec" in CG: 649.348 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 6 -l 11 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 11
+   --order 6
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 16 16 8
+Total number of elements: 2048
+Number of finite element unknowns: 461041
+[32m"DOFs/sec" in CG: 724.93 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 6 -l 12 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 12
+   --order 6
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 16 16 16
+Total number of elements: 4096
+Number of finite element unknowns: 912673
+[32m"DOFs/sec" in CG: 880.2 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 6 -l 13 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 13
+   --order 6
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 32 16 16
+Total number of elements: 8192
+Number of finite element unknowns: 1815937
+[32m"DOFs/sec" in CG: 967.413 million.[m
+Running test:
+srun -n 1 ./ex1 -p 0 -o 6 -l 14 -d hip:fast1
+Options used:
+   --ni 32
+   --mesh-dimension 3
+   --refinement-level 14
+   --order 6
+   --problem 0
+   --device hip:fast1
+[32m[version:1][m
+Device configuration: hip,cpu
+Memory configuration: host-std,hip
+Processor partitioning: 1 1 1
+Mesh dimensions: 32 32 16
+Total number of elements: 16384
+Number of finite element unknowns: 3613153
+[32m"DOFs/sec" in CG: 1012.08 million.[m
+
