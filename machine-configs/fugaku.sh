@@ -21,7 +21,7 @@ function setup_mix()
     CXX=g++
     MPICC=gcc
     MPICXX=g++
-    MPI_HOME=$(dirname $(which mpiFCC)/..)
+    MPI_HOME=$(dirname $(which mpiFCC))/..
     INCFLAGS=-I${MPI_HOME}/include/mpi/fujitsu
     LDFLAGS="-L${MPI_HOME}/lib64 -lmpi $CXX_HOME/lib64/libstdc++.a"
     CFLAGS="-O3 -march=native -mtune=native $INCFLAGS"
