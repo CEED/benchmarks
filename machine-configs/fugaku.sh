@@ -1,5 +1,5 @@
 # Copyright (c) 2017, Lawrence Livermore National Security, LLC. Produced at
-0;95;0c0;95;0c# the Lawrence Livermore National Laboratory. LLNL-CODE-734707. All Rights
+# the Lawrence Livermore National Laboratory. LLNL-CODE-734707. All Rights
 # reserved. See files LICENSE and NOTICE for details.
 #
 # This file is part of CEED, a collection of benchmarks, miniapps, software
@@ -23,11 +23,11 @@ function setup_mix()
     MPICXX=g++
     MPI_HOME=$(dirname $(which mpiFCC))/..
     INCFLAGS=-I${MPI_HOME}/include/mpi/fujitsu
-    LDFLAGS="-L${MPI_HOME}/lib64 -lmpi $CXX_HOME/lib64/libstdc++.a"
-    CFLAGS="-O3 -march=native -mtune=native $INCFLAGS"
+    LDFLAGS="-L${MPI_HOME}/lib64 -lmpi -lmpi_cxx $CXX_HOME/lib64/libstdc++.a"
+    CFLAGS="-O3 -ffast-math -march=native -mtune=native $INCFLAGS"
     CXX11FLAG="--std=c++11"
     export MFEM_CPPFLAGS=$INCFLAGS
-    TEST_EXTRA_CFLAGS="-ffast-math -msve-vector-bits=512 --param max-completely-peel-times=3"
+    TEST_EXTRA_CFLAGS="-msve-vector-bits=512 --param max-completely-peel-times=8"
 }
 
 function setup_gcc11()

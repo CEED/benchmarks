@@ -1356,13 +1356,9 @@ int main(int argc, char* argv[])
    auto &mesh = xfl::Mesh(pmesh);
 
    const int NE = mesh.GetNE();
-   int NE_min;
-   MPI_Reduce(&NE, &NE_min, 1, MPI_INT, MPI_MIN, 0, mesh.GetComm());
-   if ((NE_min % SIMD_SIZE) != 0)
-   {
-      MPI_Finalize();
-      return -1;
-   }
+   //int NE_min;
+   //MPI_Reduce(&NE, &NE_min, 1, MPI_INT, MPI_MIN, 0, mesh.GetComm());
+   assert((NE % SIMD_SIZE) == 0);
 
    const int el = (dim==2)?xfl::quadrilateral:xfl::hexahedron;
    FiniteElementCollection *fe = xfl::FiniteElement("Lagrange", el, p);
