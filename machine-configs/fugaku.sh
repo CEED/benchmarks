@@ -1,5 +1,5 @@
 # Copyright (c) 2017, Lawrence Livermore National Security, LLC. Produced at
-# the Lawrence Livermore National Laboratory. LLNL-CODE-734707. All Rights
+0;95;0c0;95;0c# the Lawrence Livermore National Laboratory. LLNL-CODE-734707. All Rights
 # reserved. See files LICENSE and NOTICE for details.
 #
 # This file is part of CEED, a collection of benchmarks, miniapps, software
@@ -14,9 +14,25 @@
 # software, applications, hardware, advanced system engineering and early
 # testbed platforms, in support of the nation's exascale computing imperative.
 
+function setup_mix()
+{
+    echo "${cyan}FUGAKU MIX setup${none}"
+    CXX_HOME=$(dirname $(which g++))/..
+    CXX=g++
+    MPICC=gcc
+    MPICXX=g++
+    MPI_HOME=$(dirname $(which mpiFCC)/..)
+    INCFLAGS=-I${MPI_HOME}/include/mpi/fujitsu
+    LDFLAGS="-L${MPI_HOME}/lib64 -lmpi $CXX_HOME/lib64/libstdc++.a"
+    CFLAGS="-O3 -march=native -mtune=native $INCFLAGS"
+    CXX11FLAG="--std=c++11"
+    export MFEM_CPPFLAGS=$INCFLAGS
+    TEST_EXTRA_CFLAGS="-ffast-math -msve-vector-bits=512 --param max-completely-peel-times=3"
+}
+
 function setup_gcc11()
 {
-    echo "${cyan}FUGAKU setup${none}"
+    echo "${cyan}FUGAKU GCC11 setup${none}"
     CXX=/home/ra010009/a04177/usr/local/gcc/11.2.0/bin/g++
     MPICC=/home/ra010009/a04177/usr/local/gcc/11.2.0/bin/gcc
     MPICXX=/home/ra010009/a04177/usr/local/gcc/11.2.0/bin/g++
@@ -31,7 +47,7 @@ function setup_gcc11()
 
 function setup_gcc10()
 {
-    echo "${cyan}FUGAKU setup${none}"
+    echo "${cyan}FUGAKU GCC10 setup${none}"
     CXX=/home/ra010009/a04177/usr/local/gcc/10.2.0/bin/g++
     MPICC=/home/ra010009/a04177/usr/local/gcc/10.2.0/bin/gcc
     MPICXX=/home/ra010009/a04177/usr/local/gcc/10.2.0/bin/g++
@@ -47,7 +63,7 @@ function setup_gcc10()
 
 function setup_fujitsu()
 {
-    echo "${cyan}FUJITSUsetup${none}"
+    echo "${cyan}FUGAKU setup${none}"
     CXX=FCC
     MPICC=mpifcc
     MPICXX=mpiFCC
@@ -64,7 +80,7 @@ function set_mpi_options()
     compose_mpi_run_command
 }
 
-valid_compilers="gcc10 gcc11 fujitsu"
+valid_compilers="mix gcc10 gcc11 fujitsu"
 
 num_proc_detect="$(getconf _NPROCESSORS_ONLN)"
 num_proc_build=${num_proc_build:-$num_proc_detect}
