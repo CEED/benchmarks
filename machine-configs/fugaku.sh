@@ -47,7 +47,7 @@ function setup_gcc10()
 
 function setup_fujitsu()
 {
-    echo "${cyan}FUGAKU setup${none}"
+    echo "${cyan}FUJITSUsetup${none}"
     CXX=FCC
     MPICC=mpifcc
     MPICXX=mpiFCC
@@ -64,7 +64,7 @@ function set_mpi_options()
     compose_mpi_run_command
 }
 
-valid_compilers="gcc10 fujitsu"
+valid_compilers="gcc10 gcc11 fujitsu"
 
 num_proc_detect="$(getconf _NPROCESSORS_ONLN)"
 num_proc_build=${num_proc_build:-$num_proc_detect}
