@@ -22,10 +22,10 @@ x_range=(1e1,1e7)     # plot range for the x-axis; comment out for auto
 y_range=(0,7e7)       # plot range for the y-axis; comment out for auto
 draw_iter_lines=0     # draw the "iter/s" lines?
 ymin_iter_lines=3e5   # minimal y value for the "iter/s" lines
-ymax_iter_lines=8e8   # maximal y value for the "iter/s" lines
+ymax_iter_lines=1e9   # maximal y value for the "iter/s" lines
 legend_ncol=(2 if log_y else 1)   # number of columns in the legend
 write_figures=1       # save the figures to files?
-show_figures=1        # display the figures on the screen?
+show_figures=0        # display the figures on the screen?
 
 
 #####   Load the data

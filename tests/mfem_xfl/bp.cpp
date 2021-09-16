@@ -240,9 +240,9 @@ public:
         NR(nfes->GetElementRestriction(e_ordering)),
         type(mesh->GetElementBaseGeometry(0)),
         ir(IntRules.Get(type, q)),
-        geom(mesh->GetGeometricFactors(ir, flags, mode)),
+        geom(mesh->GetGeometricFactors(ir, flags)),
         maps(&pfes->GetFE(0)->GetDofToQuad(ir, mode)),
-        nqi(nfes->GetQuadratureInterpolator(ir, mode)),
+        nqi(nfes->GetQuadratureInterpolator(ir)),
         SDIM(mesh->SpaceDimension()),
         VDIM(pfes->GetVDim()),
         NDOFS(pfes->GetNDofs()),
@@ -326,10 +326,10 @@ public:
         NR(nfes->GetElementRestriction(e_ordering)),
         type(mesh->GetElementBaseGeometry(0)),
         ir(IntRules.Get(type, q)),
-        geom(mesh->GetGeometricFactors(ir, flags, mode)),
+        geom(mesh->GetGeometricFactors(ir, flags)),
         maps(&pfes->GetFE(0)->GetDofToQuad(ir, mode)),
-        qi(pfes->GetQuadratureInterpolator(ir, mode)),
-        nqi(nfes->GetQuadratureInterpolator(ir, mode)),
+        qi(pfes->GetQuadratureInterpolator(ir)),
+        nqi(nfes->GetQuadratureInterpolator(ir)),
         SDIM(mesh->SpaceDimension()),
         VDIM(pfes->GetVDim()),
         NDOFS(pfes->GetNDofs()),
@@ -431,6 +431,7 @@ public:
    // + operator on QForms
    QForm &operator+(QForm &rhs)
    {
+      MFEM_CONTRACT_VAR(rhs);
       assert(false);  // not supported
       return *this;
    }
@@ -494,7 +495,7 @@ public:
    ParFiniteElementSpace *ParFESpace() const { return nullptr; }
    double Value() const { return value; }
    double Value() { return value; }
-   double operator*(TestFunction &v) { return 0.0; }
+   double operator*(TestFunction &v) { MFEM_CONTRACT_VAR(v); return 0.0; }
    ConstantCoefficient *ConstantCoeff() const { return cst; }
    FunctionCoefficient *FunctionCoeff() const { return nullptr; }
    operator const double *() const { return nullptr; }  // qf eval
@@ -563,22 +564,16 @@ mfem::Mesh &Mesh(mfem::Mesh *mesh) { return *mesh; }
 
 mfem::ParMesh &UnitSquareMesh(int nx, int ny)
 {
-   const double sx = 1.0, sy = 1.0;
    Element::Type quad = Element::Type::QUADRILATERAL;
-   const bool edges = false, sfc = true;
-   mfem::Mesh *mesh =
-      new mfem::Mesh(nx, ny, quad, edges, sx, sy, sfc);
-   return *MeshToPMesh(mesh);
+   mfem::Mesh mesh = Mesh::MakeCartesian2D(nx, ny, quad);
+   return *MeshToPMesh(&mesh);
 }
 
 mfem::ParMesh &UnitHexMesh(int nx, int ny, int nz)
 {
    Element::Type hex = Element::Type::HEXAHEDRON;
-   const bool edges = false, sfc = true;
-   const double sx = 1.0, sy = 1.0, sz = 1.0;
-   mfem::Mesh *mesh =
-      new mfem::Mesh(nx, ny, nz, hex, edges, sx, sy, sz, sfc);
-   return *MeshToPMesh(mesh);
+   mfem::Mesh mesh = Mesh::MakeCartesian3D(nx, ny, nz, hex);
+   return *MeshToPMesh(&mesh);
 }
 
 /** ****************************************************************************
@@ -752,7 +747,9 @@ int benchmark(xfl::Problem *pb, xfl::Function &x, Array<int> ess_tdof_list,
 #endif
 
    cg.SetRelTol(rtol);
+   cg.SetAbsTol(0.0);
    cg.SetOperator(*A);
+   cg.iterative_mode = false;
 
    // Warm-up CG solve (in case of JIT to avoid timing it)
    {
@@ -949,7 +946,7 @@ using Real = AutoSIMDTraits<double,double>::vreal_t;
 #define Q1D (SOL_P + 2)
 
 template<int DIM, int DX0, int DX1> inline static
-void KSetup1(const int ndofs, const int vdim, const int NE,
+void KSetup1(const int NE,
              const double * __restrict__ J0,
              const double * __restrict__ w,
              double * __restrict__ dx)
@@ -990,7 +987,7 @@ void KSetup1(const int ndofs, const int vdim, const int NE,
 }
 
 template<int DIM, int DX0, int DX1> inline static
-void KMult1(const int ndofs, const int vdim, const int NE,
+void KMult1(const int ndofs, const int NE,
             const double * __restrict__ B,
             const double * __restrict__ G,
             const int * __restrict__ map,
@@ -1008,7 +1005,8 @@ void KMult1(const int ndofs, const int vdim, const int NE,
    MFEM_ALIGN(Real) s_Iq[Q1D][Q1D][Q1D];
    MFEM_ALIGN(double) s_D[Q1D][Q1D];
    MFEM_ALIGN(double) s_I[Q1D][D1D];
-   MFEM_VERIFY((NE % SIMD_SIZE) == 0, "NE vs SIMD_SIZE error!");
+
+
    for (int e = 0; e < NE; e+=SMS)
    {
       MFEM_ALIGN(Real) r_qt[Q1D][Q1D];
@@ -1073,7 +1071,7 @@ void KMult1(const int ndofs, const int vdim, const int NE,
             {
                r_Aq[k][a][b] = s_Iq[k][b][a];
             }
-            UNROLL(7)
+            UNROLL(Q1D)
             for (int j=0; j<Q1D; ++j)
             {
                MFEM_ALIGN(Real) res; res = 0;
@@ -1272,23 +1270,29 @@ void KMult1(const int ndofs, const int vdim, const int NE,
             }
          }
       }
-   } // MFEM_FORALL_2D
+   } // MFEM_FORALL
 } // KMult1
 
 int main(int argc, char* argv[])
 {
+   assert(MESH_P==1);
+   assert(IR_TYPE==0);
+   assert(IR_ORDER==0);
+   assert(PROBLEM==0);
+   assert(GEOM==Geometry::CUBE);
+
    int status = 0;
    int num_procs = 1, myid = 0;
+
    MPI_Init(&argc, &argv);
    MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
    MPI_Comm_rank(MPI_COMM_WORLD, &myid);
 
-   assert(MESH_P==1); assert(IR_TYPE==0); assert(IR_ORDER==0);
-   assert(PROBLEM==0); assert(GEOM==Geometry::CUBE);
-   const char *mesh_file = "../../data/hex-01x01x01.mesh"; int ser_ref_levels = 4;
-   int par_ref_levels = 0; Array<int> nxyz; int order = SOL_P;
-   const char *basis_type = "G"; bool static_cond = false; const char *pc = "none";
-   bool perf = true; bool matrix_free = true; int max_iter = 50;
+   const char *mesh_file = "../../data/hex-01x01x01.mesh";
+   int ser_ref_levels = 4;
+   int par_ref_levels = 0;
+   Array<int> nxyz; int order = SOL_P;
+   int max_iter = 50;
    bool visualization = false; OptionsParser args(argc, argv);
    args.AddOption(&mesh_file, "-m", "--mesh", "Mesh file to use.");
    args.AddOption(&ser_ref_levels, "-rs", "--refine-serial",
@@ -1299,28 +1303,69 @@ int main(int argc, char* argv[])
                   "Use Cartesian partitioning.");
    args.AddOption(&order, "-o", "--order",
                   "Finite element order (polynomial degree) or -1 for" " isoparametric space.");
-   args.AddOption(&basis_type, "-b", "--basis-type",
-                  "Basis: G - Gauss-Lobatto, P - Positive, U - Uniform");
-   args.AddOption(&perf, "-perf", "--hpc-version", "-std", "--standard-version",
-                  "Enable high-performance, tensor-based, assembly/evaluation.");
-   args.AddOption(&matrix_free, "-mf", "--matrix-free", "-asm", "--assembly",
-                  "Use matrix-free evaluation or efficient matrix assembly in "
-                  "the high-performance version.");
-   args.AddOption(&pc, "-pc", "--preconditioner",
-                  "Preconditioner: lor - low-order-refined (matrix-free) AMG, "
-                  "ho - high-order (assembled) AMG, none.");
-   args.AddOption(&static_cond, "-sc", "--static-condensation", "-no-sc",
-                  "--no-static-condensation", "Enable static condensation.");
    args.AddOption(&max_iter, "-mi", "--max-iter", "Maximum number of iterations.");
    args.AddOption(&visualization, "-vis", "--visualization", "-no-vis",
                   "--no-visualization", "Enable or disable GLVis visualization."); args.Parse();
-   if (!args.Good()) { if (myid == 0) { args.PrintUsage(std::cout); } return 1; } if (
-      myid == 0) { args.PrintOptions(std::cout); } assert(SOL_P == order);
-   ParMesh *pmesh = nullptr; { Mesh *mesh = new Mesh(mesh_file, 1, 1); int dim = mesh->Dimension(); { int ref_levels = (int)floor(log(10000./mesh->GetNE())/log(2.)/dim); ref_levels = (ser_ref_levels != -1) ? ser_ref_levels : ref_levels; for (int l = 0; l < ref_levels; l++) { if (myid == 0) { std::cout << "Serial refinement: level " << l << " -> level " << l+1 << " ..." << std::flush; } mesh->UniformRefinement(); MPI_Barrier(MPI_COMM_WORLD); if (myid == 0) { std::cout << " done." << std::endl; } } } MFEM_VERIFY(nxyz.Size() == 0 || nxyz.Size() == mesh->SpaceDimension(), "Expected " << mesh->SpaceDimension() << " integers with the " "option --cartesian-partitioning."); int *partitioning = nxyz.Size() ? mesh->CartesianPartitioning(nxyz) : NULL; NewParMesh(pmesh, mesh, partitioning); delete [] partitioning; { for (int l = 0; l < par_ref_levels; l++) { if (myid == 0) { std::cout << "Parallel refinement: level " << l << " -> level " << l+1 << " ..." << std::flush; } pmesh->UniformRefinement(); MPI_Barrier(MPI_COMM_WORLD); if (myid == 0) { std::cout << " done." << std::endl; } } } pmesh->PrintInfo(std::cout); }
+
+   if (!args.Good()) { if (myid == 0) { args.PrintUsage(std::cout); } return 1; }
+
+   if (myid == 0) { args.PrintOptions(std::cout); }
+
+
+   ParMesh *pmesh = nullptr;
+   {
+      Mesh *mesh = new Mesh(mesh_file, 1, 1);
+      const int dim = mesh->Dimension();
+      {
+         int ref_levels = (int)floor(log(10000./mesh->GetNE())/log(2.)/dim);
+         ref_levels = (ser_ref_levels != -1) ? ser_ref_levels : ref_levels;
+         for (int l = 0; l < ref_levels; l++)
+         {
+            if (myid == 0) { std::cout << "Serial refinement: level " << l << " -> level " << l+1 << " ..." << std::flush; } mesh->UniformRefinement();
+            MPI_Barrier(MPI_COMM_WORLD);
+            if (myid == 0) { std::cout << " done." << std::endl; }
+         }
+      }
+
+      MFEM_VERIFY(nxyz.Size() == 0 ||
+                  nxyz.Size() == mesh->SpaceDimension(),
+                  "Expected " << mesh->SpaceDimension() << " integers with the "
+                  "option --cartesian-partitioning.");
+      int *partitioning = nxyz.Size() ? mesh->CartesianPartitioning(nxyz) : NULL;
+      NewParMesh(pmesh, mesh, partitioning);
+      delete [] partitioning;
+
+      {
+         for (int l = 0; l < par_ref_levels; l++)
+         {
+            if (myid == 0)
+            {
+               std::cout << "Parallel refinement: level " << l
+                         << " -> level " << l+1 << " ..."
+                         << std::flush;
+            }
+            pmesh->UniformRefinement();
+            MPI_Barrier(MPI_COMM_WORLD);
+            if (myid == 0) { std::cout << " done." << std::endl; }
+         }
+      }
+      pmesh->PrintInfo(std::cout);
+   }
 
    const int dim = 3;
    const int p = SOL_P;
+   assert(SOL_P == order);
    auto &mesh = xfl::Mesh(pmesh);
+
+   const int NE = mesh.GetNE();
+   int NE_min;
+   MPI_Reduce(&NE, &NE_min, 1, MPI_INT, MPI_MIN, 0, mesh.GetComm());
+   if ((NE_min % SIMD_SIZE) != 0)
+   {
+      MPI_Finalize();
+      return -1;
+   }
+
    const int el = (dim==2)?xfl::quadrilateral:xfl::hexahedron;
    FiniteElementCollection *fe = xfl::FiniteElement("Lagrange", el, p);
    mfem::ParFiniteElementSpace *fes = xfl::FunctionSpace(mesh, fe);
@@ -1344,7 +1389,7 @@ int main(int argc, char* argv[])
       constexpr const char *qs1 = "dot(grad(u), grad(v))";
       // var:[u,v], ops:[Xe,u,G,*,D,*,v,G,T,*,Ye]
       // Trial FES: 'fes':u (Grad)
-      // Test FES: 'fes':v (Grad)
+      //  Test FES: 'fes':v (Grad)
       ParFiniteElementSpace *fes1 = fes;
       struct QMult1: public xfl::Operator<3>
       {
@@ -1361,8 +1406,7 @@ int main(int argc, char* argv[])
                std::cout << "D1D:"<<D1D<<", Q1D:"<<Q1D<<"\n";
             }
             dx.SetSize(NQ*3*3, Device::GetDeviceMemoryType());
-            KSetup1<3,3,3>(NDOFS, VDIM, NE, J0.Read(), ir.GetWeights().Read(),
-                           dx.Write());
+            KSetup1<3,3,3>(NE, J0.Read(), ir.GetWeights().Read(), dx.Write());
             CoG.SetSize(Q1D*Q1D);
             // Compute the collocated gradient d2q->CoG
             kernels::GetCollocatedGrad<D1D,Q1D>(
@@ -1373,7 +1417,7 @@ int main(int argc, char* argv[])
          void Mult(const mfem::Vector &x, mfem::Vector &y) const
          {
             y = 0.0;
-            KMult1<3,3,3>(NDOFS,VDIM, NE,
+            KMult1<3,3,3>(NDOFS, NE,
                           maps->B.Read(), CoG.Read(),
                           ER.GatherMap().Read(),
                           dx.Read(), x.Read(), y.ReadWrite());
@@ -1383,9 +1427,8 @@ int main(int argc, char* argv[])
       xfl::QForm QForm1(fes1, qs1, QM1);
       return QForm1;
    }();
-   status |= xfl::benchmark(a==b, x, bc, 0, 50, 3);
-   const bool glvis = true;
-   if (glvis) { xfl::plot(x); }
+   status |= xfl::benchmark(a==b, x, bc, 0, max_iter, 3);
+   if (visualization) { xfl::plot(x); }
    MPI_Finalize();
    return status;
 }

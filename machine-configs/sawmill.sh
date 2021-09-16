@@ -77,8 +77,8 @@ function setup_intel()
 
 function setup_gcc()
 {
-   CC=gcc-10
-   CXX=g++-10
+   CC=gcc-11
+   CXX=g++-11
    FC=gfortran
 
    setup_mpi

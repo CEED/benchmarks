@@ -107,7 +107,7 @@ function run_test()
 {
    set_mpi_options
    local test_name_sfx="${test_name}${suffix}"
-   local common_args="-no-vis $mesh_opt -rs $ser_ref -rp $par_ref -pc none"
+   local common_args="-no-vis $mesh_opt -rs $ser_ref -rp $par_ref"
    local num_args="${#args_list[@]}" args= all_args=()
    for ((i = 0; i < num_args; i++)) do
       args="${args_list[$i]}"
@@ -247,7 +247,7 @@ function run_tests_if_enabled()
    for test_id; do
       if [[ -z "${enabled_tests_pat##* $test_id *}" ]]; then
          for ((sft = mesh_s_reduction_base;
-               sft <= mesh_s_reduction_limit; sft++ )); do
+               sft <= mesh_s_reduction_limit; sft++)); do
             (( mesh_s_shift = -sft ))
             set_test_params $test_id && run_test || {
                if (( mesh_s+3*(ser_ref+par_ref) >= 0 )); then
