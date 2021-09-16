@@ -88,7 +88,7 @@ function setup_gcc()
    FFLAGS="$CFLAGS"
 
    # The following options assume GCC:
-   TEST_EXTRA_CFLAGS="-march=native --param max-completely-peel-times=3"
+   TEST_EXTRA_CFLAGS="-ffast-math -march=native --param max-completely-peel-times=8"
    # "-std=c++11 -pedantic -Wall -fdump-tree-optimized-blocks"
 
    NATIVE_CFLAG="-march=native"

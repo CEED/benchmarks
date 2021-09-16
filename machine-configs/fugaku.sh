@@ -14,6 +14,21 @@
 # software, applications, hardware, advanced system engineering and early
 # testbed platforms, in support of the nation's exascale computing imperative.
 
+function setup_gcc11()
+{
+    echo "${cyan}FUGAKU setup${none}"
+    CXX=/home/ra010009/a04177/usr/local/gcc/11.2.0/bin/g++
+    MPICC=/home/ra010009/a04177/usr/local/gcc/11.2.0/bin/gcc
+    MPICXX=/home/ra010009/a04177/usr/local/gcc/11.2.0/bin/g++
+    MPI_HOME=/home/ra010009/a04177/usr/local/openmpi-4.1.1
+    INCFLAGS=-I${MPI_HOME}/include
+    LDFLAGS="-L${MPI_HOME}/lib -lmpi /home/ra010009/a04177/usr/local/gcc/11.2.0/lib64/libstdc++.a"
+    CFLAGS="-O3 -ffast-math -march=native -msve-vector-bits=512 $INCFLAGS"
+    CXX11FLAG="--std=c++11"
+    export MFEM_CPPFLAGS=$INCFLAGS
+    TEST_EXTRA_CFLAGS="--param max-completely-peel-times=8"
+}
+
 function setup_gcc10()
 {
     echo "${cyan}FUGAKU setup${none}"
@@ -26,8 +41,9 @@ function setup_gcc10()
     CFLAGS="-O3 -march=armv8.2-a+sve -msve-vector-bits=512 $INCFLAGS"
     CXX11FLAG="--std=c++11"
     export MFEM_CPPFLAGS=$INCFLAGS
-    TEST_EXTRA_CFLAGS="--param max-completely-peel-times=3"
+    TEST_EXTRA_CFLAGS="--param max-completely-peel-times=8"
 }
+
 
 function setup_fujitsu()
 {
