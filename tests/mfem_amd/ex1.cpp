@@ -27,21 +27,21 @@
 using namespace std;
 using namespace mfem;
 
-Mesh *make_mesh(int myid, int num_procs, int dim, int level,
-                int &par_ref_levels, Array<int> &nxyz);
+Mesh make_mesh(int myid, int num_procs, int dim, int level,
+               int &par_ref_levels, Array<int> &nxyz);
 
 template <typename INTEGRATOR>
 void bk2_vector_pa_integrator(int order, Mesh *mesh)
 {
    constexpr int dim = 3;
    constexpr bool verif = false;
-   
+
    H1_FECollection fec(order, dim);
    FiniteElementSpace fes(mesh, &fec, dim);
 
    const int size = fes.GetTrueVSize();
    cout << "Number of finite element unknowns: " << size << endl;
-   
+
    GridFunction x(&fes), y_fa(&fes), y_pa(&fes);
    x.Randomize(1);
 
@@ -53,7 +53,7 @@ void bk2_vector_pa_integrator(int order, Mesh *mesh)
       blf_fa.Finalize();
       blf_fa.Mult(x, y_fa);
    }
-   
+
    BilinearForm blf_pa(&fes);
    blf_pa.SetAssemblyLevel(AssemblyLevel::PARTIAL);
    blf_pa.AddDomainIntegrator(new INTEGRATOR);
@@ -67,7 +67,7 @@ void bk2_vector_pa_integrator(int order, Mesh *mesh)
       const double epsilon = numeric_limits<double>::epsilon();
       MFEM_VERIFY(fabs(dot) < 10.*epsilon, "Error dot: "<<dot);
    }
-   
+
    const int dofs = fes.GetVSize();
    constexpr int iter = 8;
 
@@ -99,6 +99,7 @@ int main(int argc, char *argv[])
    int level = 0;
    int order = 1;
    int problem = 0;
+   bool all_levels = false;
    const char *device_config = "cpu";
 
    OptionsParser args(argc, argv);
@@ -112,6 +113,8 @@ int main(int argc, char *argv[])
    args.AddOption(&problem, "-p", "--problem", "Problem 0:Mass, 1:Diffusion.");
    args.AddOption(&device_config, "-d", "--device",
                   "Device configuration string, see Device::Configure().");
+   args.AddOption(&all_levels, "-all", "--all-levels", "-no-all",
+                  "--no-all-levels", "Enable or disable scanning all levels.");
    args.Parse();
    if (!args.Good())
    {
@@ -130,22 +133,22 @@ int main(int argc, char *argv[])
    //    and volume meshes with the same code.
    int par_ref_levels;
    Array<int> nxyz;
-   Mesh *mesh = make_mesh(myid, num_procs, dim, level, par_ref_levels, nxyz);
+   Mesh mesh = make_mesh(myid, num_procs, dim, level, par_ref_levels, nxyz);
 
    // 6. Define a parallel mesh by a partitioning of the serial mesh. Refine
    //    this mesh further in parallel to increase the resolution. Once the
    //    parallel mesh is defined, the serial mesh can be deleted.
    for (int l = 0; l < par_ref_levels; l++)
    {
-      mesh->UniformRefinement();
+      mesh.UniformRefinement();
    }
 
-   long global_ne = mesh->ReduceInt(mesh->GetNE());
+   long global_ne = mesh.ReduceInt(mesh.GetNE());
    cout << "Total number of elements: " << global_ne << endl;
 
    if (problem==1)
    {
-      bk2_vector_pa_integrator<VectorMassIntegrator>(order,mesh);
+      bk2_vector_pa_integrator<VectorMassIntegrator>(order, &mesh);
       return 0;
    }
 
@@ -155,7 +158,7 @@ int main(int argc, char *argv[])
    FiniteElementCollection *fec;
    MFEM_VERIFY(order > 0, "invalid 'order': " << order);
    fec = new H1_FECollection(order, dim);
-   FiniteElementSpace *fespace = new FiniteElementSpace(mesh, fec);
+   FiniteElementSpace *fespace = new FiniteElementSpace(&mesh, fec);
    int size = fespace->GetTrueVSize();
    cout << "Number of finite element unknowns: " << size << endl;
 
@@ -164,9 +167,9 @@ int main(int argc, char *argv[])
    //    by marking all the boundary attributes from the mesh as essential
    //    (Dirichlet) and converting them to a list of true dofs.
    Array<int> ess_tdof_list;
-   if (mesh->bdr_attributes.Size())
+   if (mesh.bdr_attributes.Size())
    {
-      Array<int> ess_bdr(mesh->bdr_attributes.Max());
+      Array<int> ess_bdr(mesh.bdr_attributes.Max());
       ess_bdr = 1;
       fespace->GetEssentialTrueDofs(ess_bdr, ess_tdof_list);
    }
@@ -279,8 +282,8 @@ int main(int argc, char *argv[])
    return 0;
 }
 
-Mesh *make_mesh(int myid, int num_procs, int dim, int level,
-                int &par_ref_levels, Array<int> &nxyz)
+Mesh make_mesh(int myid, int num_procs, int dim, int level,
+               int &par_ref_levels, Array<int> &nxyz)
 {
    int log_p = (int)floor(log((double)num_procs)/log(2.0) + 0.5);
    MFEM_VERIFY((1 << log_p) == num_procs,
@@ -307,11 +310,11 @@ Mesh *make_mesh(int myid, int num_procs, int dim, int level,
    t[2] = log_n/3;
 
    // Create the Mesh.
-   const bool gen_edges = true;
-   const bool sfc_ordering = true;
-   Mesh *mesh = new Mesh(1 << t[0], 1 << t[1], 1 << t[2],
-                         Element::HEXAHEDRON, gen_edges,
-                         1.0, 1.0, 1.0, sfc_ordering);
+   const int nx = 1 << t[0];
+   const int ny = 1 << t[1];
+   const int nz = 1 << t[2];
+   Mesh mesh = Mesh::MakeCartesian3D(nx, ny, nz, Element::HEXAHEDRON);
+
    if (myid == 0)
    {
       cout << "Processor partitioning: ";
