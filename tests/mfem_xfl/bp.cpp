@@ -8,11 +8,17 @@
 // MFEM is free software; you can redistribute it and/or modify it under the
 // terms of the BSD-3 license. We welcome feedback and contributions, see file
 // CONTRIBUTING.md for details.
-#include "mfem.hpp"
 
+#include "mfem.hpp"
 #include "general/forall.hpp"
 #include "linalg/kernels.hpp"
 
+using namespace mfem;
+
+// Optimized CG switch /////////////////////////////////////////////////////////
+#undef MFEM_OPTIMIZED_CG
+
+// DEFINES /////////////////////////////////////////////////////////////////////
 #ifndef GEOM
 #define GEOM Geometry::CUBE
 #endif
@@ -58,17 +64,882 @@ typedef int MPI_Session;
 #define MPI_Comm_rank(...)
 #define MPI_Allreduce(src,dst,...) *dst = *src
 #define MPI_Reduce(src, dst, n, T,...) *dst = *src
-#define NewParMesh(pmesh, mesh, partitioning) pmesh = mesh
+#define NewParMesh(pmesh, mesh, partitioning) \
+    MFEM_CONTRACT_VAR(partitioning);pmesh = mesh
 #else
 #define NewParMesh(pmesh, mesh, partitioning) \
     pmesh = new ParMesh(MPI_COMM_WORLD, *mesh, partitioning);\
     delete mesh;
 #endif
 
-using namespace mfem;
+// SIMD - Headers and Sizes ////////////////////////////////////////////////////
+#include "linalg/simd.hpp"
+using Real = AutoSIMDTraits<double,double>::vreal_t;
+#define SIMD_SIZE (MFEM_SIMD_BYTES/sizeof(double))
+#define SMS SIMD_SIZE
+
+// Pragma - UNROLL & ALIGN
+#define MFEM_ALIGN(T) alignas(alignof(T)) T
+#define PRAGMA(X) _Pragma(#X)
+#ifdef __clang__
+#define UNROLL(N) PRAGMA(unroll(N))
+#elif defined(__FUJITSU)
+#define UNROLL(N) PRAGMA(loop unroll N)
+#elif defined(__GNUC__) || defined(__GNUG__)
+#define UNROLL(N) PRAGMA(GCC unroll(N))
+#else
+#define UNROLL(N)
+#endif
+
+// Threads macros //////////////////////////////////////////////////////////////
+#define SYNC_THREADS
+#define FOREACH_THREAD(i,k,N) PRAGMA(unroll(N))\
+    for(int i=0; i<N; ++i)
+
+// D1D & Q1D ///////////////////////////////////////////////////////////////////
+#define D1D (SOL_P + 1)
+#define Q1D (SOL_P + 2)
+
+// PA Kernel Setup /////////////////////////////////////////////////////////////
+template<int DIM, int DX0, int DX1> inline static
+void KSetup1(const int NE,
+             const double * __restrict__ J0,
+             const double * __restrict__ w,
+             double * __restrict__ dx)
+{
+   const auto J = Reshape(J0, DIM,DIM, Q1D,Q1D,Q1D, NE);
+   const auto W = Reshape(w, Q1D,Q1D,Q1D);
+   auto DX = Reshape(dx, Q1D,Q1D,Q1D, 6);
+   const int e = 0;
+   {
+      MFEM_FOREACH_THREAD(qz,z,Q1D)
+      {
+         MFEM_FOREACH_THREAD(qy,y,Q1D)
+         {
+            MFEM_FOREACH_THREAD(qx,x,Q1D)
+            {
+               const double irw = W(qx,qy,qz);
+               const double *Jtr = &J(0,0,qx,qy,qz, e);
+               const double detJ = kernels::Det<DIM>(Jtr);
+               const double wd = irw * detJ;
+               double Jrt[DIM*DIM];
+               kernels::CalcInverse<DIM>(Jtr, Jrt);
+               double A[DX0*DX1];
+               const double D[DX0*DX1] = {wd,0,0,0,wd,0,0,0,wd};
+               kernels::MultABt(DIM,DIM,DIM,D,Jrt,A);
+               double B[DX0*DX1];
+               kernels::Mult(DIM,DIM,DIM,A,Jrt,B);
+               DX(qx,qy,qz,0) = B[0+DX0*0];
+               DX(qx,qy,qz,1) = B[1+DX0*0];
+               DX(qx,qy,qz,2) = B[2+DX0*0];
+               DX(qx,qy,qz,3) = B[1+DX0*1];
+               DX(qx,qy,qz,4) = B[2+DX0*1];
+               DX(qx,qy,qz,5) = B[2+DX0*2];
+            }
+         }
+      }
+      MFEM_SYNC_THREAD;
+   }
+}
+
+// PA Kernel Mult //////////////////////////////////////////////////////////////
+#define KMult1 KMult1_v3
+
+template<int DIM, int DX0, int DX1> inline static
+void KMult1_v3(const int ndofs,
+               const int NE,
+               const double * __restrict__ iB,
+               const double * __restrict__ iG,
+               const int * __restrict__ iM,
+               const double * __restrict__ iD,
+               const double * __restrict__ iX,
+               double * __restrict__ iY)
+{
+   const auto B = Reshape(iB, Q1D,D1D);
+   const auto G = Reshape(iG, Q1D,Q1D);
+   const auto D = Reshape(iD, Q1D,Q1D,Q1D, 6);
+   const auto M = Reshape(iM, D1D,D1D,D1D, NE);
+   const auto X = Reshape(iX, ndofs);
+   auto Y = Reshape(iY, ndofs);
+
+   MFEM_ALIGN(Real) s_q[Q1D][Q1D][Q1D];
+   MFEM_ALIGN(Real) s_Jqr[Q1D][Q1D];
+   MFEM_ALIGN(Real) s_Jqs[Q1D][Q1D];
+
+   MFEM_ALIGN(double) s_B[Q1D][D1D];
+   MFEM_ALIGN(double) s_G[Q1D][Q1D];
+
+   MFEM_ALIGN(Real) r_wk[Q1D][Q1D][Q1D];
+   MFEM_ALIGN(Real) l_wk[Q1D];
+
+   for (int e = 0; e < NE; e+=SMS)
+   {
+      FOREACH_THREAD(b,y,Q1D)
+      {
+         FOREACH_THREAD(a,x,Q1D)
+         {
+            s_G[b][a] = G(b,a);
+            if (a<D1D) { s_B[b][a] =  B(b,a); }
+         }
+      }
+      SYNC_THREADS;
+
+      // Grad1Z
+      FOREACH_THREAD(b,y,D1D)
+      {
+         FOREACH_THREAD(a,x,D1D)
+         {
+            UNROLL(Q1D)
+            for (int k=0; k<Q1D; ++k) { l_wk[k] = 0.0; }
+            UNROLL(D1D)
+            for (int c=0; c<D1D; ++c)
+            {
+               MFEM_ALIGN(Real) vX;
+               UNROLL(SMS)
+               for (size_t v = 0; v < SMS; v++)
+               {
+                  const int gid = M(a,b,c,e+v);
+                  const int idx = gid >= 0 ? gid : -1 - gid;
+                  vX[v] = X(idx);
+               }
+               MFEM_ALIGN(Real) q_cba = vX;
+               UNROLL(Q1D)
+               for (int k=0; k<Q1D; ++k) { l_wk[k] += s_B[k][c] * q_cba; }
+            }
+            UNROLL(Q1D)
+            for (int k=0; k<Q1D; ++k) { s_q[k][b][a] = l_wk[k]; }
+         }
+      }
+
+      // Grad1Y
+      FOREACH_THREAD(k,y,Q1D)
+      {
+         FOREACH_THREAD(a,x,D1D)
+         {
+            UNROLL(Q1D)
+            for (int j=0; j<Q1D; ++j) { l_wk[j] = 0.0; }
+            UNROLL(D1D)
+            for (int b=0; b<D1D; ++b)
+            {
+               MFEM_ALIGN(Real) q_kba; q_kba = s_q[k][b][a];
+               UNROLL(Q1D)
+               for (int j=0; j<Q1D; ++j) { l_wk[j] += s_B[j][b] * q_kba; }
+            }
+            UNROLL(Q1D)
+            for (int j=0; j<Q1D; ++j) { s_q[k][j][a] = l_wk[j]; }
+         }
+      }
+
+      // Grad1X
+      FOREACH_THREAD(k,y,Q1D)
+      {
+         FOREACH_THREAD(j,x,Q1D)
+         {
+            UNROLL(Q1D)
+            for (int i=0; i<Q1D; ++i) { l_wk[i] = 0.0; r_wk[k][j][i] = 0.0; }
+            UNROLL(D1D)
+            for (int a=0; a<D1D; ++a)
+            {
+               MFEM_ALIGN(Real) q_kja; q_kja = s_q[k][j][a];
+               UNROLL(Q1D)
+               for (int i=0; i<Q1D; ++i) { l_wk[i] += s_B[i][a]*q_kja; }
+            }
+            UNROLL(Q1D)
+            for (int i=0; i<Q1D; ++i) { s_q[k][j][i] = l_wk[i]; }
+         }
+      }
+
+#pragma unroll Q1D
+      for (int k=0; k<Q1D; ++k)
+      {
+         SYNC_THREADS;
+         FOREACH_THREAD(j,y,Q1D)
+         {
+            FOREACH_THREAD(i,x,Q1D)
+            {
+               MFEM_ALIGN(Real) qr, qs, qt;
+               qr = 0.0; qs = 0.0; qt = 0.0;
+               UNROLL(Q1D)
+               for (int n=0; n<Q1D; ++n)
+               {
+                  const double Dim = s_G[i][n];
+                  const double Djm = s_G[j][n];
+                  const double Dkm = s_G[k][n];
+                  qr.fma(Dim, s_q[k][j][n]);
+                  qs.fma(Djm, s_q[k][n][i]);
+                  qt.fma(Dkm, s_q[n][j][i]);
+               }
+               const double D00 = D(i,j,k,0);
+               const double D01 = D(i,j,k,1);
+               const double D02 = D(i,j,k,2);
+               const double D11 = D(i,j,k,3);
+               const double D12 = D(i,j,k,4);
+               const double D22 = D(i,j,k,5);
+
+               MFEM_ALIGN(Real) Jqr, Jqs, Jqt;
+               Jqr = 0.0;
+               Jqr.fma(D00,qr);
+               Jqr.fma(D01,qs);
+               Jqr.fma(D02,qt);
+
+               Jqs = 0.0;
+               Jqs.fma(D01,qr);
+               Jqs.fma(D11,qs);
+               Jqs.fma(D12,qt);
+
+               Jqt = 0.0;
+               Jqt.fma(D02,qr);
+               Jqt.fma(D12,qs);
+               Jqt.fma(D22,qt);
+
+               s_Jqr[j][i] = Jqr;
+               s_Jqs[j][i] = Jqs;
+
+               UNROLL(Q1D)
+               for (int n=0; n<Q1D; ++n) { r_wk[j][i][n] += s_G[k][n] * Jqt; }
+            }
+         }
+         SYNC_THREADS;
+
+         FOREACH_THREAD(j,y,Q1D)
+         {
+            FOREACH_THREAD(i,x,Q1D)
+            {
+               UNROLL(Q1D)
+               for (int n=0; n<Q1D; ++n)
+               {
+                  r_wk[j][i][k] += s_G[n][i] * s_Jqr[j][n];
+                  r_wk[j][i][k] += s_G[n][j] * s_Jqs[n][i];
+               }
+            }
+         }
+      }
+
+      // GradXT
+      FOREACH_THREAD(k,y,Q1D)
+      {
+         FOREACH_THREAD(j,x,Q1D)
+         {
+            UNROLL(Q1D)
+            for (int i=0; i<Q1D; ++i) { l_wk[i] = r_wk[j][i][k]; }
+            UNROLL(D1D)
+            for (int a=0; a<D1D; ++a)
+            {
+               MFEM_ALIGN(Real) u; u = 0.0;
+               UNROLL(Q1D)
+               for (int i=0; i<Q1D; ++i) { u += s_B[i][a] * l_wk[i]; }
+               s_q[k][j][a] = u;
+            }
+         }
+      }
+
+      // GradYT
+      FOREACH_THREAD(k,y,Q1D)
+      {
+         FOREACH_THREAD(a,y,D1D)
+         {
+            UNROLL(Q1D)
+            for (int j=0; j<Q1D; ++j) { l_wk[j] = s_q[k][j][a]; }
+            UNROLL(D1D)
+            for (int b=0; b<D1D; ++b)
+            {
+               MFEM_ALIGN(Real) u; u = 0.0;
+               UNROLL(Q1D)
+               for (int j=0; j<Q1D; ++j) { u += s_B[j][b] * l_wk[j]; }
+               s_q[k][b][a] = u;
+            }
+         }
+      }
+
+      // GradZT + Save
+      FOREACH_THREAD(b,y,D1D)
+      {
+         FOREACH_THREAD(a,x,D1D)
+         {
+            UNROLL(Q1D)
+            for (int k=0; k<Q1D; ++k) { l_wk[k] = s_q[k][b][a]; }
+            UNROLL(D1D)
+            for (int c=0; c<D1D; ++c)
+            {
+               MFEM_ALIGN(Real) u; u = 0.0;
+               UNROLL(Q1D)
+               for (int k=0; k<Q1D; ++k) {  u += s_B[k][c] * l_wk[k]; }
+
+               UNROLL(SMS)
+               for (size_t v = 0; v < SMS; v++)
+               {
+                  const int gid = M(a,b,c,e+v);
+                  const int idx = gid >= 0 ? gid : -1 - gid;
+                  Y(idx) += u[v];
+               }
+            }
+         }
+      }
+   }
+} // KMult1_v3
+
+template<int DIM, int DX0, int DX1> inline static
+void KMult1_v2(const int ndofs,
+               const int NE,
+               const double * __restrict__ iB,
+               const double * __restrict__ iG,
+               const int * __restrict__ iM,
+               const double * __restrict__ iD,
+               const double * __restrict__ iX,
+               double * __restrict__ iY)
+{
+   // kernel operations: u,G,*,D,*,v,G,T,*,Ye
+   const auto B = Reshape(iB, Q1D,D1D);
+   const auto G = Reshape(iG, Q1D,Q1D);
+   const auto D = Reshape(iD, Q1D,Q1D,Q1D, 6);
+   const auto M = Reshape(iM, D1D,D1D,D1D, NE);
+   const auto X = Reshape(iX, ndofs);
+   auto Y = Reshape(iY, ndofs);
+
+   MFEM_ALIGN(Real) s_q[Q1D][Q1D][Q1D];
+   MFEM_ALIGN(double) s_G[Q1D][Q1D];
+   MFEM_ALIGN(double) s_B[Q1D][D1D];
+
+   MFEM_ALIGN(Real) s_Jqr[Q1D][Q1D];
+   MFEM_ALIGN(Real) s_Jqs[Q1D][Q1D];
+
+   MFEM_ALIGN(Real) r_qt[Q1D][Q1D];
+   MFEM_ALIGN(Real) r_q[Q1D][Q1D][Q1D];
+   MFEM_ALIGN(Real) r_Aq[Q1D][Q1D][Q1D];
+   //MFEM_ALIGN(Real) l_q[Q1D];
+
+   for (int e = 0; e < NE; e+=SMS)
+   {
+      // Scatter X
+      FOREACH_THREAD(b,y,Q1D)
+      {
+         FOREACH_THREAD(a,x,Q1D)
+         {
+            s_G[b][a] = G(b,a);
+            if (a<D1D) { s_B[b][a] = B(b,a); }
+            if (a<D1D && b<D1D)
+            {
+               UNROLL(D1D)
+               for (int c=0; c<D1D; ++c)
+               {
+                  MFEM_ALIGN(Real) vX;
+                  UNROLL(SMS)
+                  for (size_t v = 0; v < SMS; v++)
+                  {
+                     const int gid = M(a,b,c,e+v);
+                     const int idx = gid >= 0 ? gid : -1 - gid;
+                     vX[v] = X(idx);
+                  }
+                  r_q[b][a][c] = vX;
+               }
+            }
+         }
+      } SYNC_THREADS;
+
+      // Grad1Z
+      FOREACH_THREAD(b,y,D1D)
+      {
+         FOREACH_THREAD(a,x,D1D)
+         {
+            UNROLL(Q1D)
+            for (int k=0; k<Q1D; ++k)
+            {
+               MFEM_ALIGN(Real) u; u = 0.0;
+               UNROLL(D1D)
+               for (int c=0; c<D1D; ++c) { u.fma(s_B[k][c], r_q[b][a][c]); }
+               s_q[k][b][a] = u;
+            }
+         }
+      } SYNC_THREADS;
+
+      // Grad1Y
+      FOREACH_THREAD(k,y,Q1D)
+      {
+         FOREACH_THREAD(a,x,D1D)
+         {
+            UNROLL(D1D)
+            for (int b=0; b<D1D; ++b) { r_Aq[k][a]/*l_q*/[b] = s_q[k][b][a]; }
+            UNROLL(Q1D)
+            for (int j=0; j<Q1D; ++j)
+            {
+               MFEM_ALIGN(Real) u; u = 0.0;
+               UNROLL(D1D)
+               for (int b=0; b<D1D; ++b) { u.fma(s_B[j][b],  r_Aq[k][a]/*l_q*/[b]); }
+               s_q[k][j][a] = u;
+            }
+         }
+      } SYNC_THREADS;
+
+      // Grad1X
+      FOREACH_THREAD(k,y,Q1D)
+      {
+         FOREACH_THREAD(j,x,Q1D)
+         {
+            for (int a=0; a<D1D; ++a) { r_Aq[k][j]/*l_q*/[a] = s_q[k][j][a]; }
+            UNROLL(Q1D)
+            for (int i=0; i<Q1D; ++i)
+            {
+               MFEM_ALIGN(Real) u; u = 0.0;
+               UNROLL(D1D)
+               for (int a=0; a<D1D; ++a) { u.fma(s_B[i][a], r_Aq[k][j]/*l_q*/[a]); }
+               s_q[k][j][i] = u;
+            }
+         }
+      } SYNC_THREADS;
+
+      // Flush
+      FOREACH_THREAD(j,y,Q1D)
+      {
+         FOREACH_THREAD(i,x,Q1D)
+         {
+            UNROLL(Q1D)
+            for (int k = 0; k < Q1D; ++k) { r_Aq/*r_q*/[j][i][k] = 0.0; }
+         }
+      } SYNC_THREADS;
+
+      // Q-Function
+      UNROLL(Q1D)
+      for (int k = 0; k < Q1D; ++k)
+      {
+         SYNC_THREADS;
+         FOREACH_THREAD(j,y,Q1D)
+         {
+            FOREACH_THREAD(i,x,Q1D)
+            {
+               MFEM_ALIGN(Real) qr, qs, qt;
+               qr = 0.0; qs = 0.0; qt = 0.0;
+               UNROLL(Q1D)
+               for (int m = 0; m < Q1D; ++m)
+               {
+                  const double Dim = s_G[i][m];
+                  const double Djm = s_G[j][m];
+                  const double Dkm = s_G[k][m];
+                  qr.fma(Dim, s_q[k][j][m]);
+                  qs.fma(Djm, s_q[k][m][i]);
+                  qt.fma(Dkm, s_q[m][j][i]);
+               }
+               const double D00 = D(i,j,k,0);
+               const double D01 = D(i,j,k,1);
+               const double D02 = D(i,j,k,2);
+               const double D10 = D01;
+               const double D11 = D(i,j,k,3);
+               const double D12 = D(i,j,k,4);
+               const double D20 = D02;
+               const double D21 = D12;
+               const double D22 = D(i,j,k,5);
+               s_Jqr[j][i] = 0.0;
+               s_Jqr[j][i].fma(D00,qr);
+               s_Jqr[j][i].fma(D10,qs);
+               s_Jqr[j][i].fma(D20,qt);
+               s_Jqs[j][i] = 0.0;
+               s_Jqs[j][i].fma(D01,qr);
+               s_Jqs[j][i].fma(D11,qs);
+               s_Jqs[j][i].fma(D21,qt);
+               r_qt[j][i] = 0.0;
+               r_qt[j][i].fma(D02,qr);
+               r_qt[j][i].fma(D12,qs);
+               r_qt[j][i].fma(D22,qt);
+               UNROLL(Q1D)
+               for (int m = 0; m < Q1D; ++m)
+               {
+                  r_Aq/*r_q*/[j][i][m].fma(s_G[k][m], r_qt[j][i]);
+               }
+            }
+         }
+         SYNC_THREADS;
+
+         FOREACH_THREAD(j,y,Q1D)
+         {
+            FOREACH_THREAD(i,x,Q1D)
+            {
+               MFEM_ALIGN(Real) u; u = 0.0;
+               UNROLL(Q1D)
+               for (int m = 0; m < Q1D; ++m)
+               {
+                  const double Dmi = s_G[m][i];
+                  const double Dmj = s_G[m][j];
+                  u.fma(Dmi, s_Jqr[j][m]);
+                  u.fma(Dmj, s_Jqs[m][i]);
+               }
+               r_Aq/*r_q*/[j][i][k] += u;
+            }
+         } SYNC_THREADS;
+      }
+
+      // GradZT
+      FOREACH_THREAD(j,y,Q1D)
+      {
+         FOREACH_THREAD(i,x,Q1D)
+         {
+            UNROLL(D1D)
+            for (int c=0; c<D1D; ++c)
+            {
+               MFEM_ALIGN(Real) u; u = 0.0;
+               UNROLL(Q1D)
+               for (int k=0; k<Q1D; ++k) { u.fma(s_B[k][c], r_Aq/*r_q*/[j][i][k]); }
+               s_q[c][j][i] = u;
+            }
+         }
+      } SYNC_THREADS;
+
+      // GradYT
+      FOREACH_THREAD(c,y,D1D)
+      {
+         FOREACH_THREAD(i,x,Q1D)
+         {
+            UNROLL(Q1D)
+            for (int j=0; j<Q1D; ++j) { r_Aq[c][i]/*l_q*/[j] = s_q[c][j][i]; }
+            UNROLL(D1D)
+            for (int b=0; b<D1D; ++b)
+            {
+               MFEM_ALIGN(Real) u; u = 0.0;
+               UNROLL(Q1D)
+               for (int j=0; j<Q1D; ++j) { u.fma(s_B[j][b], r_Aq[c][i]/*l_q*/[j]); }
+               s_q[c][b][i] = u;
+            }
+         }
+      } SYNC_THREADS;
+
+      // GradXT
+      FOREACH_THREAD(c,y,D1D)
+      {
+         FOREACH_THREAD(b,x,D1D)
+         {
+            UNROLL(Q1D)
+            for (int i=0; i<Q1D; ++i) { r_Aq[c][b]/*l_q*/[i] = s_q[c][b][i]; }
+            UNROLL(D1D)
+            for (int a=0; a<D1D; ++a)
+            {
+               MFEM_ALIGN(Real) u; u = 0.0;
+               UNROLL(Q1D)
+               for (int i=0; i<Q1D; ++i) { u.fma(s_B[i][a], r_Aq[c][b]/*l_q*/[i]); }
+               s_q[c][b][a] = u;
+            }
+         }
+      } SYNC_THREADS;
+
+      // Gather
+      FOREACH_THREAD(b,y,D1D)
+      {
+         FOREACH_THREAD(a,x,D1D)
+         {
+            UNROLL(D1D)
+            for (int c = 0; c < D1D; c++)
+            {
+               UNROLL(SMS)
+               for (size_t v = 0; v < SMS; v++)
+               {
+                  const int gid = M(a,b,c,e+v);
+                  const int idx = gid >= 0 ? gid : -1 - gid;
+                  Y(idx) += (s_q[c][b][a])[v];
+               }
+            }
+         }
+      }
+   } // MFEM_FORALL
+} // KMult1_v2
+
+template<int DIM, int DX0, int DX1> inline static
+void KMult1_v1(const int ndofs,
+               const int NE,
+               const double * __restrict__ B,
+               const double * __restrict__ G,
+               const int * __restrict__ map,
+               const double * __restrict__ dx,
+               const double * __restrict__ xd,
+               double * __restrict__ yd)
+{
+   // kernel operations: u,G,*,D,*,v,G,T,*,Ye
+   const auto b = Reshape(B, Q1D,D1D);
+   const auto g = Reshape(G, Q1D,Q1D);
+   const auto DX = Reshape(dx, Q1D,Q1D,Q1D, 6);
+   const auto MAP = Reshape(map, D1D,D1D,D1D, NE);
+   const auto XD = Reshape(xd, ndofs);
+   auto YD = Reshape(yd, ndofs);
+
+   MFEM_ALIGN(Real) s_Iq[Q1D][Q1D][Q1D];
+   MFEM_ALIGN(double) s_D[Q1D][Q1D];
+   MFEM_ALIGN(double) s_I[Q1D][D1D];
+
+   MFEM_ALIGN(Real) r_qt[Q1D][Q1D];
+   MFEM_ALIGN(Real) r_q[Q1D][Q1D][Q1D];
+   MFEM_ALIGN(Real) r_Aq[Q1D][Q1D][Q1D];
+
+   for (int e = 0; e < NE; e+=SMS)
+   {
+      // Scatter X
+      UNROLL(Q1D)
+      for (int j = 0; j < Q1D; ++j)
+      {
+         UNROLL(D1D)
+         for (int i = 0; i < D1D; ++i)
+         {
+            s_D[j][i] = g(i,j);
+            s_I[j][i] = b(j,i);
+            if (j<D1D)
+            {
+               UNROLL(D1D)
+               for (int k = 0; k < D1D; k++)
+               {
+                  MFEM_ALIGN(Real) vXD;
+                  UNROLL(SMS)
+                  for (size_t v = 0; v < SMS; v++)
+                  {
+                     const int gid = MAP(i, j, k, e + v);
+                     vXD[v] = XD(gid);
+                  }
+                  r_q[j][i][k] = vXD;
+               }
+            }
+         }
+      } SYNC_THREADS;
+
+      // Grad1X
+      UNROLL(D1D)
+      for (int b=0; b<D1D; ++b)
+      {
+         UNROLL(D1D)
+         for (int a=0; a<D1D; ++a)
+         {
+            UNROLL(Q1D)
+            for (int k=0; k<Q1D; ++k)
+            {
+               MFEM_ALIGN(Real) res; res = 0.0;
+               UNROLL(D1D)
+               for (int c=0; c<D1D; ++c)
+               {
+                  res.fma(s_I[k][c], r_q[b][a][c]);
+               }
+               s_Iq[k][b][a] = res;
+            }
+         }
+      } SYNC_THREADS;
+
+      // Grad1Y
+      FOREACH_THREAD(k,y,Q1D)
+      {
+         FOREACH_THREAD(a,x,D1D)
+         {
+            for (int b=0; b<D1D; ++b)
+            {
+               r_Aq[k][a][b] = s_Iq[k][b][a];
+            }
+            UNROLL(Q1D)
+            for (int j=0; j<Q1D; ++j)
+            {
+               MFEM_ALIGN(Real) res; res = 0.0;
+               UNROLL(D1D)
+               for (int b=0; b<D1D; ++b)
+               {
+                  res.fma(s_I[j][b], r_Aq[k][a][b]);
+               }
+               s_Iq[k][j][a] = res;
+            }
+         }
+      } SYNC_THREADS;
+
+      // Grad1Z
+      FOREACH_THREAD(k,y,Q1D)
+      {
+         FOREACH_THREAD(j,x,Q1D)
+         {
+            for (int a=0; a<D1D; ++a)
+            {
+               r_Aq[k][j][a] = s_Iq[k][j][a];
+            }
+            UNROLL(Q1D)
+            for (int i=0; i<Q1D; ++i)
+            {
+               MFEM_ALIGN(Real) res; res = 0.0;
+               UNROLL(D1D)
+               for (int a=0; a<D1D; ++a)
+               {
+                  res.fma(s_I[i][a], r_Aq[k][j][a]);
+               }
+               s_Iq[k][j][i] = res;
+            }
+         }
+      } SYNC_THREADS;
+
+      // Flush
+      FOREACH_THREAD(j,y,Q1D)
+      {
+         FOREACH_THREAD(i,x,Q1D)
+         {
+            UNROLL(Q1D)
+            for (int k = 0; k < Q1D; ++k) { r_Aq[j][i][k] = 0.0; }
+         }
+      } SYNC_THREADS;
+
+      // Q-Function
+      UNROLL(Q1D)
+      for (int k = 0; k < Q1D; ++k)
+      {
+         SYNC_THREADS;
+         MFEM_ALIGN(Real) r_Gqr[Q1D][Q1D];
+         MFEM_ALIGN(Real) r_Gqs[Q1D][Q1D];
+         FOREACH_THREAD(j,y,Q1D)
+         {
+            for (int i = 0; i < Q1D; ++i)
+            {
+               MFEM_ALIGN(Real) qr, qs, qt;
+               qr = 0.0; qs = 0.0; qt = 0.0;
+               UNROLL(Q1D)
+               for (int m = 0; m < Q1D; ++m)
+               {
+                  const double Dim = s_D[i][m];
+                  const double Djm = s_D[j][m];
+                  const double Dkm = s_D[k][m];
+                  qr.fma(Dim, s_Iq[k][j][m]);
+                  qs.fma(Djm, s_Iq[k][m][i]);
+                  qt.fma(Dkm, s_Iq[m][j][i]);
+               }
+               const double D00 = DX(i,j,k,0);
+               const double D01 = DX(i,j,k,1);
+               const double D02 = DX(i,j,k,2);
+               const double D10 = D01;
+               const double D11 = DX(i,j,k,3);
+               const double D12 = DX(i,j,k,4);
+               const double D20 = D02;
+               const double D21 = D12;
+               const double D22 = DX(i,j,k,5);
+               r_Gqr[j][i] = 0.0;
+               r_Gqr[j][i].fma(D00,qr);
+               r_Gqr[j][i].fma(D10,qs);
+               r_Gqr[j][i].fma(D20,qt);
+               r_Gqs[j][i] = 0.0;
+               r_Gqs[j][i].fma(D01,qr);
+               r_Gqs[j][i].fma(D11,qs);
+               r_Gqs[j][i].fma(D21,qt);
+               r_qt[j][i] = 0.0;
+               r_qt[j][i].fma(D02,qr);
+               r_qt[j][i].fma(D12,qs);
+               r_qt[j][i].fma(D22,qt);
+            }
+         }
+         SYNC_THREADS;
+
+         FOREACH_THREAD(j,y,Q1D)
+         {
+            FOREACH_THREAD(i,x,Q1D)
+            {
+               MFEM_ALIGN(Real) Aqtmp; Aqtmp = 0.0;
+               UNROLL(Q1D)
+               for (int m = 0; m < Q1D; ++m)
+               {
+                  const double Dmi = s_D[m][i];
+                  const double Dmj = s_D[m][j];
+                  const double Dkm = s_D[k][m];
+                  Aqtmp.fma(Dmi, r_Gqr[j][m]);
+                  Aqtmp.fma(Dmj, r_Gqs[m][i]);
+                  r_Aq[j][i][m].fma(Dkm, r_qt[j][i]);
+               }
+               r_Aq[j][i][k] += Aqtmp;
+            }
+         } SYNC_THREADS;
+      }
+      // GradZT
+      FOREACH_THREAD(j,y,Q1D)
+      {
+         FOREACH_THREAD(i,x,Q1D)
+         {
+            UNROLL(D1D)
+            for (int c=0; c<D1D; ++c)
+            {
+               MFEM_ALIGN(Real) res; res = 0.0;
+               UNROLL(Q1D)
+               for (int k=0; k<Q1D; ++k)
+               {
+                  res.fma(s_I[k][c], r_Aq[j][i][k]);
+               }
+               s_Iq[c][j][i] = res;
+            }
+         }
+      } SYNC_THREADS;
+      // GradYT
+      FOREACH_THREAD(c,y,D1D)
+      {
+         FOREACH_THREAD(i,x,Q1D)
+         {
+            UNROLL(Q1D)
+            for (int j=0; j<Q1D; ++j)
+            {
+               r_Aq[c][i][j] = s_Iq[c][j][i];
+            }
+            UNROLL(D1D)
+            for (int b=0; b<D1D; ++b)
+            {
+               MFEM_ALIGN(Real) res; res = 0.0;
+               UNROLL(Q1D)
+               for (int j=0; j<Q1D; ++j)
+               {
+                  res.fma(s_I[j][b], r_Aq[c][i][j]);
+               }
+               s_Iq[c][b][i] = res;
+            }
+         }
+      } SYNC_THREADS;
+      // GradXT
+      FOREACH_THREAD(c,y,D1D)
+      {
+         FOREACH_THREAD(b,x,D1D)
+         {
+            UNROLL(Q1D)
+            for (int i=0; i<Q1D; ++i)
+            {
+               r_Aq[c][b][i] = s_Iq[c][b][i];
+            }
+            UNROLL(D1D)
+            for (int a=0; a<D1D; ++a)
+            {
+               MFEM_ALIGN(Real) res; res = 0.0;
+               UNROLL(Q1D)
+               for (int i=0; i<Q1D; ++i)
+               {
+                  res.fma(s_I[i][a], r_Aq[c][b][i]);
+               }
+               s_Iq[c][b][a] = res;
+               s_Iq[c][b][a] = res;
+            }
+         }
+      } SYNC_THREADS;
+      // Gather
+      FOREACH_THREAD(j,y,D1D)
+      {
+         FOREACH_THREAD(i,x,D1D)
+         {
+            UNROLL(D1D)
+            for (int k = 0; k < D1D; k++)
+            {
+               UNROLL(SMS)
+               for (size_t v = 0; v < SMS; v++)
+               {
+                  const int gid = MAP(i, j, k, e + v);
+                  YD(gid) += (s_Iq[k][j][i])[v];
+               }
+            }
+         }
+      }
+   } // MFEM_FORALL
+} // KMult1_v1
+
+#undef D1D
+#undef Q1D
 
 namespace mfem
 {
+
+#ifdef MFEM_OPTIMIZED_CG
+void OptimizedCG(const FiniteElementSpace &fes,
+                 const mfem::Operator &A,
+                 const Vector &B,
+                 Vector &X,
+                 const Array<int> &ess_tdof_list,
+                 const Vector &pa_data,
+                 int &cg_iter, double &real_time,
+                 int print_iter = 0, int max_num_iter = 1000,
+                 double RTOLERANCE = 1e-12, double ATOLERANCE = 1e-24);
+#endif // MFEM_OPTIMIZED_CG
 
 mfem::Mesh *CreateMeshEx7(int order);
 
@@ -186,6 +1057,11 @@ struct XElementRestriction : public ElementRestriction
    XElementRestriction(const ParFiniteElementSpace *fes,
                        ElementDofOrdering ordering)
       : ElementRestriction(*fes, ordering) { }
+
+   XElementRestriction(const FiniteElementSpace &fes,
+                       ElementDofOrdering ordering)
+      : ElementRestriction(fes, ordering) { }
+
    const Array<int> &GatherMap() const { return gatherMap; }
 };
 
@@ -193,92 +1069,6 @@ struct XElementRestriction : public ElementRestriction
  * @brief The Operator class
  **************************************************************************** */
 template <int DIM> class Operator;
-
-/** ****************************************************************************
- * @brief The 2D Operator class
- **************************************************************************** */
-template <>
-class Operator<2> : public mfem::Operator
-{
-protected:
-   static constexpr int DIM = 2;
-   static constexpr int NBZ = 1;
-
-   const DofToQuad::Mode mode = DofToQuad::TENSOR;
-   const int flags = GeometricFactors::JACOBIANS |
-                     GeometricFactors::COORDINATES |
-                     GeometricFactors::DETERMINANTS;
-   const ElementDofOrdering e_ordering = ElementDofOrdering::LEXICOGRAPHIC;
-
-   mfem::ParMesh *mesh;
-   const ParFiniteElementSpace *pfes;
-   const GridFunction *nodes;
-   const mfem::FiniteElementSpace *nfes;
-   const int p, q;
-   const xfl::XElementRestriction ER;
-   const mfem::Operator *NR;
-   const Geometry::Type type;
-   const IntegrationRule &ir;
-   const GeometricFactors *geom;
-   const DofToQuad *maps;
-   const QuadratureInterpolator *nqi;
-   const int SDIM, VDIM, NDOFS, NE, NQ, D1D, Q1D;
-   mutable Vector val_xq, grad_xq;
-   Vector J0, dx;
-   const mfem::Operator *P, *R;
-
-public:
-   Operator(const ParFiniteElementSpace *pfes)
-      : mfem::Operator(pfes->GetVSize()),
-        mesh(pfes->GetParMesh()),
-        pfes(pfes),
-        nodes((mesh->EnsureNodes(), mesh->GetNodes())),
-        nfes(nodes->FESpace()),
-        p(pfes->GetFE(0)->GetOrder()),
-        q(2 * p + mesh->GetElementTransformation(0)->OrderW()),
-        ER(pfes, e_ordering),
-        NR(nfes->GetElementRestriction(e_ordering)),
-        type(mesh->GetElementBaseGeometry(0)),
-        ir(IntRules.Get(type, q)),
-        geom(mesh->GetGeometricFactors(ir, flags)),
-        maps(&pfes->GetFE(0)->GetDofToQuad(ir, mode)),
-        nqi(nfes->GetQuadratureInterpolator(ir)),
-        SDIM(mesh->SpaceDimension()),
-        VDIM(pfes->GetVDim()),
-        NDOFS(pfes->GetNDofs()),
-        NE(mesh->GetNE()),
-        NQ(ir.GetNPoints()),
-        D1D(pfes->GetFE(0)->GetOrder() + 1),
-        Q1D(IntRules.Get(Geometry::SEGMENT, ir.GetOrder()).GetNPoints()),
-        val_xq(NQ * VDIM * NE),
-        grad_xq(NQ * VDIM * DIM * NE),
-        J0(SDIM * DIM * NQ * NE),
-        dx(NQ * NE, MemoryType::HOST_32),
-        P(pfes->GetProlongationMatrix()),
-        R(pfes->GetRestrictionMatrix())
-   {
-      MFEM_VERIFY(DIM == 2, "");
-      MFEM_VERIFY(VDIM == 1, "");
-      MFEM_VERIFY(SDIM == DIM, "");
-      MFEM_VERIFY(NQ == Q1D * Q1D, "");
-      MFEM_VERIFY(DIM == mesh->Dimension(), "");
-      nqi->SetOutputLayout(QVectorLayout::byVDIM);
-      const FiniteElement *fe = nfes->GetFE(0);
-      const int vdim = nfes->GetVDim();
-      const int nd = fe->GetDof();
-      Vector Enodes(vdim * nd * NE);
-      NR->Mult(*nodes, Enodes);
-      nqi->Derivatives(Enodes, J0);
-   }
-
-   virtual void Mult(const mfem::Vector &, mfem::Vector &) const {}
-
-   virtual void QMult(const mfem::Vector &, mfem::Vector &) const {}
-
-   virtual const mfem::Operator *GetProlongation() const { return P; }
-
-   virtual const mfem::Operator *GetRestriction() const { return R; }
-};
 
 /** ****************************************************************************
  * @brief The 3D Operator class
@@ -366,6 +1156,8 @@ public:
    virtual const mfem::Operator *GetProlongation() const { return P; }
 
    virtual const mfem::Operator *GetRestriction() const { return R; }
+
+   Vector& GetData() { return dx; }
 };
 
 /** ****************************************************************************
@@ -391,11 +1183,15 @@ public:
    mfem::ConstantCoefficient *constant_coeff = nullptr;
    mfem::FunctionCoefficient *function_coeff = nullptr;
    mfem::ParFiniteElementSpace *pfes;
+   const Vector &dx;
 
 public:
 
-   QForm(ParFiniteElementSpace *pfes, const char *qs, mfem::Operator *QM)
-      : qs(qs), QM(QM), pfes(pfes) { }
+   QForm(ParFiniteElementSpace *pfes,
+         const char *qs,
+         mfem::Operator *QM,
+         const Vector &dx = Vector())
+      : qs(qs), QM(QM), pfes(pfes), dx(dx) { }
 
    ~QForm() { }
 
@@ -721,10 +1517,14 @@ int solve(xfl::Problem *pb, xfl::Function &x)
    return solve(pb, x, empty_tdof_list);
 }
 
+
 /** ****************************************************************************
  * @brief benchmark this prblem with boundary conditions
  ******************************************************************************/
-int benchmark(xfl::Problem *pb, xfl::Function &x, Array<int> ess_tdof_list,
+int benchmark(xfl::Problem *pb,
+              xfl::Function &x,
+              Array<int> ess_tdof_list,
+              const Vector &pa_data,
               const double rtol, const int max_it, const int print_lvl)
 {
    assert(x.ParFESpace());
@@ -740,11 +1540,13 @@ int benchmark(xfl::Problem *pb, xfl::Function &x, Array<int> ess_tdof_list,
    mfem::Operator &a = *(pb->QM);
    a.FormLinearSystem(ess_tdof_list, x, b, A, X, B);
 
+#ifndef MFEM_OPTIMIZED_CG
 #ifndef MFEM_USE_MPI
    CGSolver cg;
 #else
    CGSolver cg(MPI_COMM_WORLD);
 #endif
+
 
    cg.SetRelTol(rtol);
    cg.SetAbsTol(0.0);
@@ -771,8 +1573,26 @@ int benchmark(xfl::Problem *pb, xfl::Function &x, Array<int> ess_tdof_list,
       }
    }
 
-   // MFEM_VERIFY(cg.GetConverged(), "CG did not converged!");
+   //MFEM_VERIFY(cg.GetConverged(), "CG did not converged!");
    MFEM_VERIFY(cg.GetNumIterations() <= max_it, "");
+   const HYPRE_Int dofs = pfes->GlobalTrueVSize();
+   const int cg_iter = cg.GetNumIterations();
+   MFEM_CONTRACT_VAR(pa_data);
+#else
+   int final_iter;
+   double real_time;
+   OptimizedCG(*pfes,
+               *A, B, X,
+               ess_tdof_list, pa_data,
+               final_iter, real_time,
+               print_lvl, max_it, rtol, 0.0);
+   const HYPRE_Int dofs = pfes->GlobalTrueVSize();
+   const double mdofs = ((1e-6 * dofs) * max_it) / real_time;
+   mfem::out << "\"DOFs/sec\" in CG: " << mdofs << " million.\n";
+   const int cg_iter = max_it;
+   assert(false);
+#endif
+
    a.RecoverFEMSolution(X, b, x);
    x.HostReadWrite();
 
@@ -786,8 +1606,6 @@ int benchmark(xfl::Problem *pb, xfl::Function &x, Array<int> ess_tdof_list,
    MPI_Reduce(&rt, &rt_max, 1, MPI_DOUBLE, MPI_MAX, 0,
               pfes->GetParMesh()->GetComm());
 
-   const HYPRE_Int dofs = pfes->GlobalTrueVSize();
-   const int cg_iter = cg.GetNumIterations();
    const double mdofs_max = ((1e-6 * dofs) * cg_iter) / rt_max;
    const double mdofs_min = ((1e-6 * dofs) * cg_iter) / rt_min;
 
@@ -796,6 +1614,7 @@ int benchmark(xfl::Problem *pb, xfl::Function &x, Array<int> ess_tdof_list,
       std::cout << "Number of finite element unknowns: " << dofs <<  std::endl;
       std::cout << "Total CG time:    " << rt_max << " (" << rt_min << ") sec."
                 << std::endl;
+      std::cout << "CG iter: " <<  cg_iter << std::endl;
       std::cout << "Time per CG step: "
                 << rt_max / cg_iter << " ("
                 << rt_min / cg_iter << ") sec." << std::endl;
@@ -808,9 +1627,12 @@ int benchmark(xfl::Problem *pb, xfl::Function &x, Array<int> ess_tdof_list,
    return 0;
 }
 
-int benchmark(xfl::Problem *pb, xfl::Function &x, Array<int> ess_tdof_list)
+int benchmark(xfl::Problem *pb,
+              xfl::Function &x,
+              const Vector &pa_data,
+              Array<int> ess_tdof_list)
 {
-   return benchmark(pb, x, ess_tdof_list, 1e-12, 200, -1);
+   return benchmark(pb, x, ess_tdof_list, pa_data, 1e-12, 200, -1);
 }
 
 /** ****************************************************************************
@@ -914,363 +1736,305 @@ int dot(int u, int v) { return u * v; }
 }  // namespace mfem
 
 
-// SIMD - Headers and Sizes
-#include "linalg/simd.hpp"
-using Real = AutoSIMDTraits<double,double>::vreal_t;
-#define SIMD_SIZE (MFEM_SIMD_BYTES/sizeof(double))
-#define SMS SIMD_SIZE
+#ifdef MFEM_OPTIMIZED_CG
 
-// Pragma - UNROLL & ALIGN
-#define MFEM_ALIGN(T) alignas(alignof(T)) T
-#define PRAGMA(X) _Pragma(#X)
-#ifdef __clang__
-#define UNROLL(N) PRAGMA(unroll(N))
-#elif defined(__FUJITSU)
-#define UNROLL(N) PRAGMA(loop unroll N)
-#elif defined(__GNUC__) || defined(__GNUG__)
-#define UNROLL(N) PRAGMA(GCC unroll(N))
-#else
-#define UNROLL(N)
-#endif
+/// Optimized CG solver
 
-// Blocking
-#define BLK_SZ 1
-#define FOREACH_BLOCK(i,N) for(int i##i=0; i##i<N+BLK_SZ-1; i##i+=BLK_SZ)
-#define FOREACH_INNER(i) for(int i=i##i; i<i##i+BLK_SZ; ++i)
+#define MFEM_FORALL_GRID_1D(i,N) for(int i=0; i<N; ++i)
 
-// Foreach Thread
-#define FOREACH_THREAD(i,k,N) \
-    PRAGMA(unroll(N))\
-    for(int i=0; i<N; ++i)
-#define SYNC_THREADS
-
-#define D1D (SOL_P + 1)
-#define Q1D (SOL_P + 2)
-
-template<int DIM, int DX0, int DX1> inline static
-void KSetup1(const int NE,
-             const double * __restrict__ J0,
-             const double * __restrict__ w,
-             double * __restrict__ dx)
+/// OptDot
+template<int Q1D> static
+double OptDot(const double * __restrict__ A,
+              const double * __restrict__ B,
+              double *__restrict__ dot_result,
+              const int N)
 {
-   const auto J = Reshape(J0, DIM,DIM, Q1D,Q1D,Q1D, NE);
-   const auto W = Reshape(w, Q1D,Q1D,Q1D);
-   auto DX = Reshape(dx, Q1D,Q1D,Q1D, 6);
-   const int e = 0;
+   *dot_result = 0.0;
+   MFEM_FORALL_GRID_1D(i,N) { *dot_result += A[i] * B[i]; }
+   return *dot_result;
+}
+
+/// OperMult
+template<int D1D, int Q1D, int NBZ> static
+void OperMult(const int N,
+              const int csz,
+              const int *__restrict__ ess_tdof_list,
+              const int NE,
+              const DeviceTensor<4,const int> MAP,
+              const DeviceTensor<2,const double> B,
+              const DeviceTensor<4,const double> Q,
+              const double *__restrict__ d,
+              double *__restrict__ w,
+              double *__restrict__ z)
+{
+   assert(false);
+   MFEM_FORALL_GRID_1D(i,N) { w[i] = d[i]; z[i] = 0.0; }
+   MFEM_FORALL_GRID_1D(i,csz) { w[ess_tdof_list[i]] = 0.0; }
+   // kPAMassApply3D<D1D,Q1D,NBZ>(NE,MAP,B,Q,w,z);
+#warning here
+   /*
+   KMult1<3,3,3>(N, NE,
+                 maps->B.Read(),
+                 CoG.Read(),
+                 MAP,
+                 pa_data, w, z);
+                 */
+   MFEM_FORALL_GRID_1D(i,csz) { z[ess_tdof_list[i]] = d[ess_tdof_list[i]]; }
+}
+
+/// Optimized CG Solver
+template<int D1D, int Q1D, int NBZ>  static
+void OptCGSolver(const int N,
+                 /* CG Solver */
+                 const double rel_tol,
+                 const double abs_tol,
+                 double *__restrict__ dot_result,
+                 int max_iter,
+                 int print_level,
+                 double *__restrict__ r,
+                 double *__restrict__ d,
+                 double *__restrict__ z,
+                 double *__restrict__ w,
+                 const double *__restrict__ b,
+                 double *__restrict__ x,
+                 /* ConstrainedOperator */
+                 const int csz,
+                 const int *__restrict__ etdl,
+                 /* SmRgPAMassApply3D */
+                 const int NE,
+                 const DeviceTensor<4,const int> MAP,
+                 const DeviceTensor<2,const double> B,
+                 const DeviceTensor<4,const double> Q)
+{
+   MFEM_CONTRACT_VAR(rel_tol);
+   MFEM_CONTRACT_VAR(abs_tol);
+   int iter;
+   double betanom;
+
+   MFEM_FORALL_GRID_1D(i,N)
    {
-      MFEM_FOREACH_THREAD(qz,z,Q1D)
+      x[i] = 0.0;  // x = 0.0;
+      d[i] = r[i] = b[i]; // d = r = b;
+   }
+
+   double nom = OptDot<Q1D>(d,r,dot_result, N);
+
+   if (print_level > 0)
+   {
+      printf("   Iteration : %3d  (B r, r) = %.5e\n", 0, nom);
+   }
+
+   OperMult<D1D,Q1D,NBZ>(N,csz,etdl,NE,MAP,B,Q,d,w,z); // 1ms order 6
+
+   double den = OptDot<Q1D>(z,d,dot_result,N); // .2
+
+   for (iter = 1; iter <= max_iter; ++iter)
+   {
+      const double alpha = nom / den;
+      MFEM_FORALL_GRID_1D(i,N)
       {
-         MFEM_FOREACH_THREAD(qy,y,Q1D)
-         {
-            MFEM_FOREACH_THREAD(qx,x,Q1D)
-            {
-               const double irw = W(qx,qy,qz);
-               const double *Jtr = &J(0,0,qx,qy,qz, e);
-               const double detJ = kernels::Det<DIM>(Jtr);
-               const double wd = irw * detJ;
-               double Jrt[DIM*DIM];
-               kernels::CalcInverse<DIM>(Jtr, Jrt);
-               double A[DX0*DX1];
-               const double D[DX0*DX1] = {wd,0,0,0,wd,0,0,0,wd};
-               kernels::MultABt(DIM,DIM,DIM,D,Jrt,A);
-               double B[DX0*DX1];
-               kernels::Mult(DIM,DIM,DIM,A,Jrt,B);
-               DX(qx,qy,qz,0) = B[0+DX0*0];
-               DX(qx,qy,qz,1) = B[1+DX0*0];
-               DX(qx,qy,qz,2) = B[2+DX0*0];
-               DX(qx,qy,qz,3) = B[1+DX0*1];
-               DX(qx,qy,qz,4) = B[2+DX0*1];
-               DX(qx,qy,qz,5) = B[2+DX0*2];
-            }
-         }
+         x[i] += alpha * d[i]; //  x = x + alpha d
+         r[i] -= alpha * z[i]; //  r = r - alpha A d
       }
-      MFEM_SYNC_THREAD;
+      betanom = OptDot<Q1D>(r,r,dot_result,N);
+      const double beta = betanom / nom;
+      MFEM_FORALL_GRID_1D(i,N) { d[i] = r[i] + beta * d[i]; }
+      OperMult<D1D,Q1D,NBZ>(N,csz,etdl,NE,MAP,B,Q,d,w,z);
+      den = OptDot<Q1D>(d,z,dot_result,N);
+      nom = betanom;
+   }
+
+   if (print_level > 0)
+   {
+      printf("   Iteration : %3d  (B r, r) = %.5e\n", iter-1, betanom);
    }
 }
 
-template<int DIM, int DX0, int DX1> inline static
-void KMult1(const int ndofs, const int NE,
-            const double * __restrict__ B,
-            const double * __restrict__ G,
-            const int * __restrict__ map,
-            const double * __restrict__ dx,
-            const double * __restrict__ xd,
-            double * __restrict__ yd)
+/// Optimized Conjugate gradient method
+class OptimizedCGSolver : public IterativeSolver
 {
-   // kernel operations: u,G,*,D,*,v,G,T,*,Ye
-   const auto b = Reshape(B, Q1D,D1D);
-   const auto g = Reshape(G, Q1D,Q1D);
-   const auto DX = Reshape(dx, Q1D,Q1D,Q1D, 6);
-   const auto MAP = Reshape(map, D1D,D1D,D1D, NE);
-   const auto XD = Reshape(xd, ndofs);
-   auto YD = Reshape(yd, ndofs);
+protected:
+   const FiniteElementSpace &fes;
+   const Array<int> &ess_tdof_list;
+   const Vector &pa_data;
+   mfem::Mesh *mesh;
+   const mfem::FiniteElement *el;
+   ElementTransformation *Tr;
+   const int qorder;
+   const IntegrationRule &ir;
+   const DofToQuad &maps;
+   const unsigned int D1D, Q1D, ND, NE;
+   mutable Vector r, d, z, w;
 
-   MFEM_ALIGN(Real) s_Iq[Q1D][Q1D][Q1D];
-   MFEM_ALIGN(double) s_D[Q1D][Q1D];
-   MFEM_ALIGN(double) s_I[Q1D][D1D];
-
-   MFEM_ALIGN(Real) r_qt[Q1D][Q1D];
-   MFEM_ALIGN(Real) r_q[Q1D][Q1D][Q1D];
-   MFEM_ALIGN(Real) r_Aq[Q1D][Q1D][Q1D];
-
-   for (int e = 0; e < NE; e+=SMS)
+   void UpdateVectors()
    {
-      // Scatter X
-      UNROLL(Q1D)
-      for (int j = 0; j < Q1D; ++j)
-      {
-         UNROLL(D1D)
-         for (int i = 0; i < D1D; ++i)
-         {
-            s_D[j][i] = g(i,j);
-            s_I[j][i] = b(j,i);
-            if (j<D1D)
-            {
-               UNROLL(D1D)
-               for (int k = 0; k < D1D; k++)
-               {
-                  MFEM_ALIGN(Real) vXD;
-                  UNROLL(SMS)
-                  for (size_t v = 0; v < SMS; v++)
-                  {
-                     const int gid = MAP(i, j, k, e + v);
-                     vXD[v] = XD(gid);
-                  }
-                  r_q[j][i][k] = vXD;
-               }
-            }
-         }
-      } SYNC_THREADS;
+      MemoryType mt = GetMemoryType(oper->GetMemoryClass());
+      r.SetSize(width, mt); r.UseDevice(true);
+      d.SetSize(width, mt); d.UseDevice(true);
+      z.SetSize(width, mt); z.UseDevice(true);
+      w.SetSize(width, mt); w.UseDevice(true);
+   }
 
-      // Grad1X
-      UNROLL(D1D)
-      for (int b=0; b<D1D; ++b)
-      {
-         UNROLL(D1D)
-         for (int a=0; a<D1D; ++a)
-         {
-            UNROLL(Q1D)
-            for (int k=0; k<Q1D; ++k)
-            {
-               MFEM_ALIGN(Real) res; res = 0.0;
-               UNROLL(D1D)
-               for (int c=0; c<D1D; ++c)
-               {
-                  res.fma(s_I[k][c], r_q[b][a][c]);
-               }
-               s_Iq[k][b][a] = res;
-            }
-         }
-      } SYNC_THREADS;
+public:
+   OptimizedCGSolver(const FiniteElementSpace &fes,
+                     const Array<int> &ess_tdof_list,
+                     const Vector &pa_data):
+      fes(fes),
+      ess_tdof_list(ess_tdof_list),
+      pa_data(pa_data),
+      mesh(fes.GetMesh()),
+      el(fes.GetFE(0)),
+      Tr(mesh->GetElementTransformation(0)),
+      qorder(el->GetOrder() + el->GetOrder() + Tr->OrderW()),
+      ir(IntRules.Get(el->GetGeomType(), qorder)),
+      maps(el->GetDofToQuad(ir, DofToQuad::TENSOR)),
+      D1D(maps.ndof),
+      Q1D(maps.nqpt),
+      ND(fes.GetNDofs()),
+      NE(mesh->GetNE()) { /**/ }
 
-      // Grad1Y
-      FOREACH_THREAD(k,y,Q1D)
-      {
-         FOREACH_THREAD(a,x,D1D)
-         {
-            for (int b=0; b<D1D; ++b)
-            {
-               r_Aq[k][a][b] = s_Iq[k][b][a];
-            }
-            UNROLL(Q1D)
-            for (int j=0; j<Q1D; ++j)
-            {
-               MFEM_ALIGN(Real) res; res = 0.0;
-               UNROLL(D1D)
-               for (int b=0; b<D1D; ++b)
-               {
-                  res.fma(s_I[j][b], r_Aq[k][a][b]);
-               }
-               s_Iq[k][j][a] = res;
-            }
-         }
-      } SYNC_THREADS;
+   virtual void SetOperator(const Operator &op)
+   {
+      IterativeSolver::SetOperator(op);
+      UpdateVectors();
+   }
 
-      // Grad1Z
-      FOREACH_THREAD(k,y,Q1D)
-      {
-         FOREACH_THREAD(j,x,Q1D)
-         {
-            for (int a=0; a<D1D; ++a)
-            {
-               r_Aq[k][j][a] = s_Iq[k][j][a];
-            }
-            UNROLL(Q1D)
-            for (int i=0; i<Q1D; ++i)
-            {
-               MFEM_ALIGN(Real) res; res = 0.0;
-               UNROLL(D1D)
-               for (int a=0; a<D1D; ++a)
-               {
-                  res.fma(s_I[i][a], r_Aq[k][j][a]);
-               }
-               s_Iq[k][j][i] = res;
-            }
-         }
-      } SYNC_THREADS;
+   virtual void Mult(const Vector &b, Vector &x) const
+   {
+      assert(!monitor);
+      assert(!iterative_mode);
+      assert(!prec);
 
-      // Flush
-      FOREACH_THREAD(j,y,Q1D)
-      {
-         FOREACH_THREAD(i,x,Q1D)
-         {
-            UNROLL(Q1D)
-            for (int k = 0; k < Q1D; ++k) { r_Aq[j][i][k] = 0.0; }
-         }
-      } SYNC_THREADS;
+      final_iter = max_iter;
+      OptLaunch(b, x);
+   }
 
-      // Q-Function
-      UNROLL(Q1D)
-      for (int k = 0; k < Q1D; ++k)
-      {
-         SYNC_THREADS;
-         MFEM_ALIGN(Real) r_Gqr[Q1D][Q1D];
-         MFEM_ALIGN(Real) r_Gqs[Q1D][Q1D];
-         FOREACH_THREAD(j,y,Q1D)
-         {
-            for (int i = 0; i < Q1D; ++i)
-            {
-               MFEM_ALIGN(Real) qr, qs, qt;
-               qr = 0.0; qs = 0.0; qt = 0.0;
-               UNROLL(Q1D)
-               for (int m = 0; m < Q1D; ++m)
-               {
-                  const double Dim = s_D[i][m];
-                  const double Djm = s_D[j][m];
-                  const double Dkm = s_D[k][m];
-                  qr.fma(Dim, s_Iq[k][j][m]);
-                  qs.fma(Djm, s_Iq[k][m][i]);
-                  qt.fma(Dkm, s_Iq[m][j][i]);
-               }
-               const double D00 = DX(i,j,k,0);
-               const double D01 = DX(i,j,k,1);
-               const double D02 = DX(i,j,k,2);
-               const double D10 = D01;
-               const double D11 = DX(i,j,k,3);
-               const double D12 = DX(i,j,k,4);
-               const double D20 = D02;
-               const double D21 = D12;
-               const double D22 = DX(i,j,k,5);
-               r_Gqr[j][i] = 0.0;
-               r_Gqr[j][i].fma(D00,qr);
-               r_Gqr[j][i].fma(D10,qs);
-               r_Gqr[j][i].fma(D20,qt);
-               r_Gqs[j][i] = 0.0;
-               r_Gqs[j][i].fma(D01,qr);
-               r_Gqs[j][i].fma(D11,qs);
-               r_Gqs[j][i].fma(D21,qt);
-               r_qt[j][i] = 0.0;
-               r_qt[j][i].fma(D02,qr);
-               r_qt[j][i].fma(D12,qs);
-               r_qt[j][i].fma(D22,qt);
-            }
-         }
-         SYNC_THREADS;
+private:
+   void OptLaunch(const Vector &b, Vector &x) const
+   {
+      const int N = r.Size();
 
-         FOREACH_THREAD(j,y,Q1D)
-         {
-            FOREACH_THREAD(i,x,Q1D)
-            {
-               MFEM_ALIGN(Real) Aqtmp; Aqtmp = 0.0;
-               UNROLL(Q1D)
-               for (int m = 0; m < Q1D; ++m)
-               {
-                  const double Dmi = s_D[m][i];
-                  const double Dmj = s_D[m][j];
-                  const double Dkm = s_D[k][m];
-                  Aqtmp.fma(Dmi, r_Gqr[j][m]);
-                  Aqtmp.fma(Dmj, r_Gqs[m][i]);
-                  r_Aq[j][i][m].fma(Dkm, r_qt[j][i]);
-               }
-               r_Aq[j][i][k] += Aqtmp;
-            }
-         } SYNC_THREADS;
+      double *R = r.ReadWrite();
+      double *D = d.ReadWrite();
+      double *Z = z.ReadWrite();
+      double *W = w.ReadWrite();
+
+      const double *B = b.Read();
+      double *X = x.ReadWrite();
+
+      const int csz = ess_tdof_list.Size();
+      const int *ETDL = ess_tdof_list.Read();
+
+      constexpr ElementDofOrdering ordering = ElementDofOrdering::LEXICOGRAPHIC;
+      //const Operator *ERop = fes.GetElementRestriction(ordering);
+      xfl::XElementRestriction XER(fes, ordering);
+      const int *map = XER.GatherMap().Read();
+      const DeviceTensor<4,const int> &MAP = Reshape(map, D1D,D1D,D1D, NE);
+      const ConstDeviceMatrix &Bqd = Reshape(maps.B.Read(), Q1D, D1D);
+      const DeviceTensor<4,const double> &Dq =
+         Reshape(pa_data.Read(), Q1D,Q1D,Q1D,NE);
+
+      void (*Kernel)(const int N,
+                     /* CG Solver */
+                     const double rel_tol,
+                     const double abs_tol,
+                     double *dot_result,
+                     int max_iter,
+                     int print_level,
+                     double *r,
+                     double *d,
+                     double *z,
+                     double *w,
+                     const double *b,
+                     double *x,
+                     /* ConstrainedOperator */
+                     const int csz,
+                     const int *ess_tdof_list,
+                     /* SmRgPAMassApply3D */
+                     const int NE,
+                     const DeviceTensor<4,const int> MAP,
+                     const DeviceTensor<2,const double> Bqd,
+                     const DeviceTensor<4,const double> Dq) = nullptr;
+
+      const int id = (D1D << 4) | Q1D;
+      switch (id) // orders 1~6
+      {
+         case 0x23: Kernel=OptCGSolver<2,3,32>; break; // 1
+         case 0x34: Kernel=OptCGSolver<3,4,16>; break; // 2
+         case 0x45: Kernel=OptCGSolver<4,5, 4>; break; // 3
+         case 0x56: Kernel=OptCGSolver<5,6, 2>; break; // 4
+         case 0x67: Kernel=OptCGSolver<6,7, 2>; break; // 5
+         case 0x78: Kernel=OptCGSolver<7,8, 2>; break; // 6
+         default: MFEM_ABORT("Unknown kernel 0x" << std::hex << id);
       }
-      // GradZT
-      FOREACH_THREAD(j,y,Q1D)
-      {
-         FOREACH_THREAD(i,x,Q1D)
-         {
-            UNROLL(D1D)
-            for (int c=0; c<D1D; ++c)
-            {
-               MFEM_ALIGN(Real) res; res = 0.0;
-               UNROLL(Q1D)
-               for (int k=0; k<Q1D; ++k)
-               {
-                  res.fma(s_I[k][c], r_Aq[j][i][k]);
-               }
-               s_Iq[c][j][i] = res;
-            }
-         }
-      } SYNC_THREADS;
-      // GradYT
-      FOREACH_THREAD(c,y,D1D)
-      {
-         FOREACH_THREAD(i,x,Q1D)
-         {
-            UNROLL(Q1D)
-            for (int j=0; j<Q1D; ++j)
-            {
-               r_Aq[c][i][j] = s_Iq[c][j][i];
-            }
-            UNROLL(D1D)
-            for (int b=0; b<D1D; ++b)
-            {
-               MFEM_ALIGN(Real) res; res = 0.0;
-               UNROLL(Q1D)
-               for (int j=0; j<Q1D; ++j)
-               {
-                  res.fma(s_I[j][b], r_Aq[c][i][j]);
-               }
-               s_Iq[c][b][i] = res;
-            }
-         }
-      } SYNC_THREADS;
-      // GradXT
-      FOREACH_THREAD(c,y,D1D)
-      {
-         FOREACH_THREAD(b,x,D1D)
-         {
-            UNROLL(Q1D)
-            for (int i=0; i<Q1D; ++i)
-            {
-               r_Aq[c][b][i] = s_Iq[c][b][i];
-            }
-            UNROLL(D1D)
-            for (int a=0; a<D1D; ++a)
-            {
-               MFEM_ALIGN(Real) res; res = 0.0;
-               UNROLL(Q1D)
-               for (int i=0; i<Q1D; ++i)
-               {
-                  res.fma(s_I[i][a], r_Aq[c][b][i]);
-               }
-               s_Iq[c][b][a] = res;
-               s_Iq[c][b][a] = res;
-            }
-         }
-      } SYNC_THREADS;
-      // Gather
-      FOREACH_THREAD(j,y,D1D)
-      {
-         FOREACH_THREAD(i,x,D1D)
-         {
-            UNROLL(D1D)
-            for (int k = 0; k < D1D; k++)
-            {
-               UNROLL(SMS)
-               for (size_t v = 0; v < SMS; v++)
-               {
-                  const int gid = MAP(i, j, k, e + v);
-                  YD(gid) += (s_Iq[k][j][i])[v];
-               }
-            }
-         }
-      }
-   } // MFEM_FORALL
-} // KMult1
 
+
+      static Vector dot_result(1, Device::GetDeviceMemoryType());
+      dot_result.UseDevice(true);
+      double *device_dot = dot_result.Write();
+
+      assert(Kernel);
+      Kernel(N,
+             rel_tol, abs_tol,
+             device_dot,
+             max_iter, print_level,
+             R,D,Z,W,B,X,
+             csz,ETDL,
+             NE, MAP, Bqd, Dq);
+   }
+};
+
+namespace mfem
+{
+
+/// Conjugate gradient method on device. (tolerances are squared)
+void OptimizedCG(const FiniteElementSpace &fes,
+                 const mfem::Operator &A,
+                 const Vector &B,
+                 Vector &X,
+                 const Array<int> &ess_tdof_list,
+                 const Vector &pa_data,
+                 int &cg_iter, double &real_time,
+                 int print_iter, int max_num_iter,
+                 double RTOLERANCE, double ATOLERANCE)
+{
+   OptimizedCGSolver cg(fes, ess_tdof_list, pa_data);
+   cg.SetRelTol(RTOLERANCE);
+   cg.SetAbsTol(sqrt(ATOLERANCE));
+   cg.SetOperator(A);
+   cg.iterative_mode = false;
+
+   // Warm-up CG solve (in case of JIT to avoid timing it)
+   {
+      Vector Y(X);
+      cg.SetMaxIter(2);
+      cg.SetPrintLevel(-1);
+      cg.Mult(B, Y);
+      MFEM_DEVICE_SYNC;
+   }
+
+   {
+      tic_toc.Clear();
+      cg.SetPrintLevel(print_iter);
+      cg.SetMaxIter(max_num_iter);
+      {
+         MFEM_DEVICE_SYNC;
+         tic_toc.Start();
+         cg.Mult(B, X);
+         MFEM_DEVICE_SYNC;
+         tic_toc.Stop();
+      }
+   }
+   real_time = tic_toc.RealTime();
+   cg_iter = cg.GetNumIterations();
+   assert(cg_iter==max_num_iter);
+}
+
+} // mfem namespace
+
+#endif // MFEM_OPTIMIZED_CG
+
+/// MAIN
 int main(int argc, char* argv[])
 {
    assert(MESH_P==1);
@@ -1281,10 +2045,15 @@ int main(int argc, char* argv[])
 
    int status = 0;
    int num_procs = 1, myid = 0;
+   MFEM_CONTRACT_VAR(num_procs);
 
    MPI_Init(&argc, &argv);
    MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
    MPI_Comm_rank(MPI_COMM_WORLD, &myid);
+
+#ifdef MFEM_OPTIMIZED_CG
+   assert(num_procs==1); // serial for now
+#endif
 
    const char *mesh_file = "../../data/hex-01x01x01.mesh";
    int ser_ref_levels = 4;
@@ -1403,10 +2172,23 @@ int main(int argc, char* argv[])
             KSetup1<3,3,3>(NE, J0.Read(), ir.GetWeights().Read(), dx.Write());
             CoG.SetSize(Q1D*Q1D);
             // Compute the collocated gradient d2q->CoG
+#define D1D (SOL_P + 1)
+#define Q1D (SOL_P + 2)
             kernels::GetCollocatedGrad<D1D,Q1D>(
                ConstDeviceMatrix(maps->B.HostRead(),Q1D,D1D),
                ConstDeviceMatrix(maps->G.HostRead(),Q1D,D1D),
                DeviceMatrix(CoG.HostReadWrite(),Q1D,Q1D));
+            /*const auto cog = DeviceMatrix(CoG.HostReadWrite(),Q1D,Q1D);
+            for (int i=0; i<Q1D; ++i)
+            {
+               for (int j=0; j<Q1D; ++j)
+               {
+                  printf("%f ",cog(i,j));
+               }
+               printf("\n");
+            }*/
+#undef D1D
+#undef Q1D
          }
          void Mult(const mfem::Vector &x, mfem::Vector &y) const
          {
@@ -1414,14 +2196,15 @@ int main(int argc, char* argv[])
             KMult1<3,3,3>(NDOFS, NE,
                           maps->B.Read(), CoG.Read(),
                           ER.GatherMap().Read(),
-                          dx.Read(), x.Read(), y.ReadWrite());
+                          dx.Read(),
+                          x.Read(), y.ReadWrite());
          }
       }; // QMult struct
       QMult1 *QM1 = new QMult1(fes);
-      xfl::QForm QForm1(fes1, qs1, QM1);
+      xfl::QForm QForm1(fes1, qs1, QM1, QM1->GetData());
       return QForm1;
    }();
-   status |= xfl::benchmark(a==b, x, bc, 0, max_iter, 3);
+   status |= xfl::benchmark(a==b, x, bc, a.dx, 0, max_iter, 3);
    if (visualization) { xfl::plot(x); }
    MPI_Finalize();
    return status;
