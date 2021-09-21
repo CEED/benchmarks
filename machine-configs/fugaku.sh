@@ -39,7 +39,7 @@ function setup_gcc11()
     MPI_HOME=/home/ra010009/a04177/usr/local/openmpi-4.1.1
     INCFLAGS=-I${MPI_HOME}/include
     LDFLAGS="-L${MPI_HOME}/lib -lmpi /home/ra010009/a04177/usr/local/gcc/11.2.0/lib64/libstdc++.a"
-    CFLAGS="-O3 -ffast-math -march=native -msve-vector-bits=512 $INCFLAGS"
+    CFLAGS="-O3 -ffast-math -march=native -mtube=native -msve-vector-bits=512 $INCFLAGS"
     CXX11FLAG="--std=c++11"
     export MFEM_CPPFLAGS=$INCFLAGS
     TEST_EXTRA_CFLAGS="--param max-completely-peel-times=8"
