@@ -179,7 +179,7 @@ void KMult1_v3(const int ndofs,
          FOREACH_THREAD(a,x,Q1D)
          {
             s_G[b][a] = G(b,a);
-            if (a<D1D) { s_B[b][a] =  B(b,a); }
+            if (a<D1D) { s_B[b][a] = B(b,a); }
          }
       }
       SYNC_THREADS;
@@ -204,7 +204,7 @@ void KMult1_v3(const int ndofs,
                }
                MFEM_ALIGN(Real) q_cba = vX;
                UNROLL(Q1D)
-               for (int k=0; k<Q1D; ++k) { l_wk[k] += s_B[k][c] * q_cba; }
+               for (int k=0; k<Q1D; ++k) { l_wk[k].fma(s_B[k][c], q_cba); }
             }
             UNROLL(Q1D)
             for (int k=0; k<Q1D; ++k) { s_q[k][b][a] = l_wk[k]; }
@@ -223,7 +223,7 @@ void KMult1_v3(const int ndofs,
             {
                MFEM_ALIGN(Real) q_kba; q_kba = s_q[k][b][a];
                UNROLL(Q1D)
-               for (int j=0; j<Q1D; ++j) { l_wk[j] += s_B[j][b] * q_kba; }
+               for (int j=0; j<Q1D; ++j) { l_wk[j].fma(s_B[j][b], q_kba); }
             }
             UNROLL(Q1D)
             for (int j=0; j<Q1D; ++j) { s_q[k][j][a] = l_wk[j]; }
@@ -242,7 +242,7 @@ void KMult1_v3(const int ndofs,
             {
                MFEM_ALIGN(Real) q_kja; q_kja = s_q[k][j][a];
                UNROLL(Q1D)
-               for (int i=0; i<Q1D; ++i) { l_wk[i] += s_B[i][a]*q_kja; }
+               for (int i=0; i<Q1D; ++i) { l_wk[i].fma(s_B[i][a], q_kja); }
             }
             UNROLL(Q1D)
             for (int i=0; i<Q1D; ++i) { s_q[k][j][i] = l_wk[i]; }
@@ -296,7 +296,7 @@ void KMult1_v3(const int ndofs,
                s_Jqs[j][i] = Jqs;
 
                UNROLL(Q1D)
-               for (int n=0; n<Q1D; ++n) { r_wk[j][i][n] += s_G[k][n] * Jqt; }
+               for (int n=0; n<Q1D; ++n) { r_wk[j][i][n].fma(s_G[k][n], Jqt); }
             }
          }
          SYNC_THREADS;
@@ -308,8 +308,8 @@ void KMult1_v3(const int ndofs,
                UNROLL(Q1D)
                for (int n=0; n<Q1D; ++n)
                {
-                  r_wk[j][i][k] += s_G[n][i] * s_Jqr[j][n];
-                  r_wk[j][i][k] += s_G[n][j] * s_Jqs[n][i];
+                  r_wk[j][i][k].fma(s_G[n][i], s_Jqr[j][n]);
+                  r_wk[j][i][k].fma(s_G[n][j], s_Jqs[n][i]);
                }
             }
          }
@@ -327,7 +327,7 @@ void KMult1_v3(const int ndofs,
             {
                MFEM_ALIGN(Real) u; u = 0.0;
                UNROLL(Q1D)
-               for (int i=0; i<Q1D; ++i) { u += s_B[i][a] * l_wk[i]; }
+               for (int i=0; i<Q1D; ++i) { u.fma(s_B[i][a], l_wk[i]); }
                s_q[k][j][a] = u;
             }
          }
@@ -345,7 +345,7 @@ void KMult1_v3(const int ndofs,
             {
                MFEM_ALIGN(Real) u; u = 0.0;
                UNROLL(Q1D)
-               for (int j=0; j<Q1D; ++j) { u += s_B[j][b] * l_wk[j]; }
+               for (int j=0; j<Q1D; ++j) { u.fma(s_B[j][b], l_wk[j]); }
                s_q[k][b][a] = u;
             }
          }
@@ -363,7 +363,7 @@ void KMult1_v3(const int ndofs,
             {
                MFEM_ALIGN(Real) u; u = 0.0;
                UNROLL(Q1D)
-               for (int k=0; k<Q1D; ++k) {  u += s_B[k][c] * l_wk[k]; }
+               for (int k=0; k<Q1D; ++k) {  u.fma(s_B[k][c], l_wk[k]); }
 
                UNROLL(SMS)
                for (size_t v = 0; v < SMS; v++)
@@ -2059,7 +2059,7 @@ int main(int argc, char* argv[])
    int ser_ref_levels = 4;
    int par_ref_levels = 0;
    Array<int> nxyz; int order = SOL_P;
-   int max_iter = 50;
+   int max_iter = 100;
    bool visualization = false; OptionsParser args(argc, argv);
    args.AddOption(&mesh_file, "-m", "--mesh", "Mesh file to use.");
    args.AddOption(&ser_ref_levels, "-rs", "--refine-serial",
@@ -2125,8 +2125,6 @@ int main(int argc, char* argv[])
    auto &mesh = xfl::Mesh(pmesh);
 
    const int NE = mesh.GetNE();
-   //int NE_min;
-   //MPI_Reduce(&NE, &NE_min, 1, MPI_INT, MPI_MIN, 0, mesh.GetComm());
    assert((NE % SIMD_SIZE) == 0);
 
    const int el = (dim==2)?xfl::quadrilateral:xfl::hexahedron;
@@ -2178,15 +2176,6 @@ int main(int argc, char* argv[])
                ConstDeviceMatrix(maps->B.HostRead(),Q1D,D1D),
                ConstDeviceMatrix(maps->G.HostRead(),Q1D,D1D),
                DeviceMatrix(CoG.HostReadWrite(),Q1D,Q1D));
-            /*const auto cog = DeviceMatrix(CoG.HostReadWrite(),Q1D,Q1D);
-            for (int i=0; i<Q1D; ++i)
-            {
-               for (int j=0; j<Q1D; ++j)
-               {
-                  printf("%f ",cog(i,j));
-               }
-               printf("\n");
-            }*/
 #undef D1D
 #undef Q1D
          }
