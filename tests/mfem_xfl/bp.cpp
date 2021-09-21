@@ -71,7 +71,7 @@ namespace mfem
 {
 
 /// Use optimized CG
-#define MFEM_OPTIMIZED_CG
+#undef MFEM_OPTIMIZED_CG
 
 void OptimizedCG(const FiniteElementSpace &fes,
                  const mfem::Operator &A,
@@ -775,7 +775,6 @@ int benchmark(xfl::Problem *pb,
    CGSolver cg(MPI_COMM_WORLD);
 #endif
 
-
    cg.SetRelTol(rtol);
    cg.SetAbsTol(0.0);
    cg.SetOperator(*A);
@@ -801,10 +800,11 @@ int benchmark(xfl::Problem *pb,
       }
    }
 
-   // MFEM_VERIFY(cg.GetConverged(), "CG did not converged!");
+   MFEM_VERIFY(cg.GetConverged(), "CG did not converged!");
    MFEM_VERIFY(cg.GetNumIterations() <= max_it, "");
    const HYPRE_Int dofs = pfes->GlobalTrueVSize();
    const int cg_iter = cg.GetNumIterations();
+   MFEM_CONTRACT_VAR(pa_data);
 #else
    int final_iter;
    double real_time;
@@ -841,6 +841,7 @@ int benchmark(xfl::Problem *pb,
       std::cout << "Number of finite element unknowns: " << dofs <<  std::endl;
       std::cout << "Total CG time:    " << rt_max << " (" << rt_min << ") sec."
                 << std::endl;
+      std::cout << "CG iter: " <<  cg_iter << std::endl;
       std::cout << "Time per CG step: "
                 << rt_max / cg_iter << " ("
                 << rt_min / cg_iter << ") sec." << std::endl;
@@ -1321,6 +1322,7 @@ void OperMult(const int N,
               double *__restrict__ w,
               double *__restrict__ z)
 {
+   assert(false);
    MFEM_FORALL_GRID_1D(i,N) { w[i] = d[i]; z[i] = 0.0; }
    MFEM_FORALL_GRID_1D(i,csz) { w[ess_tdof_list[i]] = 0.0; }
    // kPAMassApply3D<D1D,Q1D,NBZ>(NE,MAP,B,Q,w,z);
@@ -1480,7 +1482,7 @@ private:
 
       constexpr ElementDofOrdering ordering = ElementDofOrdering::LEXICOGRAPHIC;
       //const Operator *ERop = fes.GetElementRestriction(ordering);
-      XElementRestriction XER(fes, ordering);
+      xfl::XElementRestriction XER(fes, ordering);
       const int *map = XER.GatherMap().Read();
       const DeviceTensor<4,const int> &MAP = Reshape(map, D1D,D1D,D1D, NE);
       const ConstDeviceMatrix &Bqd = Reshape(maps.B.Read(), Q1D, D1D);
@@ -1537,6 +1539,9 @@ private:
    }
 };
 
+namespace mfem
+{
+
 /// Conjugate gradient method on device. (tolerances are squared)
 void OptimizedCG(const FiniteElementSpace &fes,
                  const mfem::Operator &A,
@@ -1545,8 +1550,8 @@ void OptimizedCG(const FiniteElementSpace &fes,
                  const Array<int> &ess_tdof_list,
                  const Vector &pa_data,
                  int &cg_iter, double &real_time,
-                 int print_iter = 0, int max_num_iter = 1000,
-                 double RTOLERANCE = 1e-12, double ATOLERANCE = 1e-24)
+                 int print_iter, int max_num_iter,
+                 double RTOLERANCE, double ATOLERANCE)
 {
    OptimizedCGSolver cg(fes, ess_tdof_list, pa_data);
    cg.SetRelTol(RTOLERANCE);
@@ -1579,6 +1584,8 @@ void OptimizedCG(const FiniteElementSpace &fes,
    cg_iter = cg.GetNumIterations();
    assert(cg_iter==max_num_iter);
 }
+
+} // mfem namespace
 
 
 /// MAIN
@@ -1718,10 +1725,14 @@ int main(int argc, char* argv[])
             KSetup1<3,3,3>(NE, J0.Read(), ir.GetWeights().Read(), dx.Write());
             CoG.SetSize(Q1D*Q1D);
             // Compute the collocated gradient d2q->CoG
+#define D1D (SOL_P + 1)
+#define Q1D (SOL_P + 2)
             kernels::GetCollocatedGrad<D1D,Q1D>(
                ConstDeviceMatrix(maps->B.HostRead(),Q1D,D1D),
                ConstDeviceMatrix(maps->G.HostRead(),Q1D,D1D),
                DeviceMatrix(CoG.HostReadWrite(),Q1D,Q1D));
+#undef D1D
+#undef Q1D
          }
          void Mult(const mfem::Vector &x, mfem::Vector &y) const
          {
@@ -1729,7 +1740,8 @@ int main(int argc, char* argv[])
             KMult1<3,3,3>(NDOFS, NE,
                           maps->B.Read(), CoG.Read(),
                           ER.GatherMap().Read(),
-                          dx.Read(), x.Read(), y.ReadWrite());
+                          dx.Read(),
+                          x.Read(), y.ReadWrite());
          }
       }; // QMult struct
       QMult1 *QM1 = new QMult1(fes);
