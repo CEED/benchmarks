@@ -16,7 +16,7 @@
 using namespace mfem;
 
 // Optimized CG switch /////////////////////////////////////////////////////////
-#undef MFEM_OPTIMIZED_CG
+#define MFEM_OPTIMIZED_CG
 
 // DEFINES /////////////////////////////////////////////////////////////////////
 #ifndef GEOM
@@ -1042,7 +1042,6 @@ int benchmark(xfl::Problem *pb,
    const double mdofs = ((1e-6 * dofs) * max_it) / real_time;
    mfem::out << "\"DOFs/sec\" in CG: " << mdofs << " million.\n";
    const int cg_iter = max_it;
-   assert(false);
 #endif
 
    a.RecoverFEMSolution(X, b, x);
@@ -1066,7 +1065,6 @@ int benchmark(xfl::Problem *pb,
       std::cout << "Number of finite element unknowns: " << dofs <<  std::endl;
       std::cout << "Total CG time:    " << rt_max << " (" << rt_min << ") sec."
                 << std::endl;
-      std::cout << "CG iter: " <<  cg_iter << std::endl;
       std::cout << "Time per CG step: "
                 << rt_max / cg_iter << " ("
                 << rt_min / cg_iter << ") sec." << std::endl;
@@ -1188,9 +1186,8 @@ int dot(int u, int v) { return u * v; }
 }  // namespace mfem
 
 
+// Optimized CG solver /////////////////////////////////////////////////////////
 #ifdef MFEM_OPTIMIZED_CG
-
-/// Optimized CG solver
 
 #define MFEM_FORALL_GRID_1D(i,N) for(int i=0; i<N; ++i)
 
@@ -1208,35 +1205,27 @@ double OptDot(const double * __restrict__ A,
 
 /// OperMult
 template<int D1D, int Q1D, int NBZ> static
-void OperMult(const int N,
+void OperMult(const int ND,
               const int csz,
               const int *__restrict__ ess_tdof_list,
               const int NE,
-              const DeviceTensor<4,const int> MAP,
-              const DeviceTensor<2,const double> B,
-              const DeviceTensor<4,const double> Q,
+              const int * __restrict__ iM,
+              const double * __restrict__ iB,
+              const double * __restrict__ iG,
+              const double * __restrict__ iD,
               const double *__restrict__ d,
               double *__restrict__ w,
               double *__restrict__ z)
 {
-   assert(false);
-   MFEM_FORALL_GRID_1D(i,N) { w[i] = d[i]; z[i] = 0.0; }
+   MFEM_FORALL_GRID_1D(i,ND) { w[i] = d[i]; z[i] = 0.0; }
    MFEM_FORALL_GRID_1D(i,csz) { w[ess_tdof_list[i]] = 0.0; }
-   // kPAMassApply3D<D1D,Q1D,NBZ>(NE,MAP,B,Q,w,z);
-#warning here
-   /*
-   KMult1<3,3,3>(N, NE,
-                 maps->B.Read(),
-                 CoG.Read(),
-                 MAP,
-                 pa_data, w, z);
-                 */
+   KMult1<3,3,3>(ND, NE, iB, iG, iM, iD, w, z);
    MFEM_FORALL_GRID_1D(i,csz) { z[ess_tdof_list[i]] = d[ess_tdof_list[i]]; }
 }
 
 /// Optimized CG Solver
-template<int D1D, int Q1D, int NBZ>  static
-void OptCGSolver(const int N,
+template<int D1D, int Q1D, int NBZ=1>  static
+void OptCGSolver(const int ND,
                  /* CG Solver */
                  const double rel_tol,
                  const double abs_tol,
@@ -1254,45 +1243,46 @@ void OptCGSolver(const int N,
                  const int *__restrict__ etdl,
                  /* SmRgPAMassApply3D */
                  const int NE,
-                 const DeviceTensor<4,const int> MAP,
-                 const DeviceTensor<2,const double> B,
-                 const DeviceTensor<4,const double> Q)
+                 const double * __restrict__ iB,
+                 const double * __restrict__ iG,
+                 const int * __restrict__ iM,
+                 const double * __restrict__ iD)
 {
    MFEM_CONTRACT_VAR(rel_tol);
    MFEM_CONTRACT_VAR(abs_tol);
    int iter;
    double betanom;
 
-   MFEM_FORALL_GRID_1D(i,N)
+   MFEM_FORALL_GRID_1D(i,ND)
    {
       x[i] = 0.0;  // x = 0.0;
       d[i] = r[i] = b[i]; // d = r = b;
    }
 
-   double nom = OptDot<Q1D>(d,r,dot_result, N);
+   double nom = OptDot<Q1D>(d,r,dot_result, ND);
 
    if (print_level > 0)
    {
       printf("   Iteration : %3d  (B r, r) = %.5e\n", 0, nom);
    }
 
-   OperMult<D1D,Q1D,NBZ>(N,csz,etdl,NE,MAP,B,Q,d,w,z); // 1ms order 6
+   OperMult<D1D,Q1D,NBZ>(ND,csz,etdl,NE,iM,iB,iG,iD,d,w,z); // 1ms order 6
 
-   double den = OptDot<Q1D>(z,d,dot_result,N); // .2
+   double den = OptDot<Q1D>(z,d,dot_result,ND); // .2
 
    for (iter = 1; iter <= max_iter; ++iter)
    {
       const double alpha = nom / den;
-      MFEM_FORALL_GRID_1D(i,N)
+      MFEM_FORALL_GRID_1D(i,ND)
       {
          x[i] += alpha * d[i]; //  x = x + alpha d
          r[i] -= alpha * z[i]; //  r = r - alpha A d
       }
-      betanom = OptDot<Q1D>(r,r,dot_result,N);
+      betanom = OptDot<Q1D>(r,r,dot_result,ND);
       const double beta = betanom / nom;
-      MFEM_FORALL_GRID_1D(i,N) { d[i] = r[i] + beta * d[i]; }
-      OperMult<D1D,Q1D,NBZ>(N,csz,etdl,NE,MAP,B,Q,d,w,z);
-      den = OptDot<Q1D>(d,z,dot_result,N);
+      MFEM_FORALL_GRID_1D(i,ND) { d[i] = r[i] + beta * d[i]; }
+      OperMult<D1D,Q1D,NBZ>(ND,csz,etdl,NE,iM,iB,iG,iD,d,w,z);
+      den = OptDot<Q1D>(d,z,dot_result,ND);
       nom = betanom;
    }
 
@@ -1315,8 +1305,9 @@ protected:
    const int qorder;
    const IntegrationRule &ir;
    const DofToQuad &maps;
-   const unsigned int D1D, Q1D, ND, NE;
+   const int D1D, Q1D, ND, NE;
    mutable Vector r, d, z, w;
+   mutable Array<double> CoG;
 
    void UpdateVectors()
    {
@@ -1343,12 +1334,23 @@ public:
       D1D(maps.ndof),
       Q1D(maps.nqpt),
       ND(fes.GetNDofs()),
-      NE(mesh->GetNE()) { /**/ }
+      NE(mesh->GetNE()),
+      CoG(Q1D*Q1D) { /**/ }
 
    virtual void SetOperator(const Operator &op)
    {
       IterativeSolver::SetOperator(op);
       UpdateVectors();
+
+      // Compute the collocated gradient d2q->CoG
+#define D1D (SOL_P + 1)
+#define Q1D (SOL_P + 2)
+      kernels::GetCollocatedGrad<D1D,Q1D>(
+         ConstDeviceMatrix(maps.B.HostRead(),Q1D,D1D),
+         ConstDeviceMatrix(maps.G.HostRead(),Q1D,D1D),
+         DeviceMatrix(CoG.HostReadWrite(),Q1D,Q1D));
+#undef D1D
+#undef Q1D
    }
 
    virtual void Mult(const Vector &b, Vector &x) const
@@ -1365,6 +1367,7 @@ private:
    void OptLaunch(const Vector &b, Vector &x) const
    {
       const int N = r.Size();
+      assert(N==ND);
 
       double *R = r.ReadWrite();
       double *D = d.ReadWrite();
@@ -1377,14 +1380,12 @@ private:
       const int csz = ess_tdof_list.Size();
       const int *ETDL = ess_tdof_list.Read();
 
-      constexpr ElementDofOrdering ordering = ElementDofOrdering::LEXICOGRAPHIC;
-      //const Operator *ERop = fes.GetElementRestriction(ordering);
-      xfl::XElementRestriction XER(fes, ordering);
-      const int *map = XER.GatherMap().Read();
-      const DeviceTensor<4,const int> &MAP = Reshape(map, D1D,D1D,D1D, NE);
-      const ConstDeviceMatrix &Bqd = Reshape(maps.B.Read(), Q1D, D1D);
-      const DeviceTensor<4,const double> &Dq =
-         Reshape(pa_data.Read(), Q1D,Q1D,Q1D,NE);
+      xfl::XElementRestriction XER(fes, ElementDofOrdering::LEXICOGRAPHIC);
+      const int *iM = XER.GatherMap().Read();
+
+      const double *iB = maps.B.Read();
+      const double *iG = CoG.Read();
+      const double *iD = pa_data.Read();
 
       void (*Kernel)(const int N,
                      /* CG Solver */
@@ -1404,19 +1405,20 @@ private:
                      const int *ess_tdof_list,
                      /* SmRgPAMassApply3D */
                      const int NE,
-                     const DeviceTensor<4,const int> MAP,
-                     const DeviceTensor<2,const double> Bqd,
-                     const DeviceTensor<4,const double> Dq) = nullptr;
+                     const double * __restrict__ iB,
+                     const double * __restrict__ iG,
+                     const int * __restrict__ iM,
+                     const double * __restrict__ iD) = nullptr;
 
       const int id = (D1D << 4) | Q1D;
       switch (id) // orders 1~6
       {
-         case 0x23: Kernel=OptCGSolver<2,3,32>; break; // 1
-         case 0x34: Kernel=OptCGSolver<3,4,16>; break; // 2
-         case 0x45: Kernel=OptCGSolver<4,5, 4>; break; // 3
-         case 0x56: Kernel=OptCGSolver<5,6, 2>; break; // 4
-         case 0x67: Kernel=OptCGSolver<6,7, 2>; break; // 5
-         case 0x78: Kernel=OptCGSolver<7,8, 2>; break; // 6
+         //case 0x23: Kernel=OptCGSolver<2,3>; break; // 1
+         //case 0x34: Kernel=OptCGSolver<3,4>; break; // 2
+         case 0x45: Kernel=OptCGSolver<4,5>; break; // 3
+         //case 0x56: Kernel=OptCGSolver<5,6>; break; // 4
+         //case 0x67: Kernel=OptCGSolver<6,7>; break; // 5
+         //case 0x78: Kernel=OptCGSolver<7,8>; break; // 6
          default: MFEM_ABORT("Unknown kernel 0x" << std::hex << id);
       }
 
@@ -1426,13 +1428,13 @@ private:
       double *device_dot = dot_result.Write();
 
       assert(Kernel);
-      Kernel(N,
+      Kernel(ND,
              rel_tol, abs_tol,
              device_dot,
              max_iter, print_level,
              R,D,Z,W,B,X,
-             csz,ETDL,
-             NE, MAP, Bqd, Dq);
+             csz, ETDL,
+             NE, iB, iG, iM, iD);
    }
 };
 
