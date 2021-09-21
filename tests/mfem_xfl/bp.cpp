@@ -1034,75 +1034,71 @@ void KSetup1(const int NE,
 template<int DIM, int DX0, int DX1> inline static
 void KMult1(const int ndofs,
             const int NE,
-            const double * __restrict__ B,
-            const double * __restrict__ G,
+            const double * __restrict__ B_,
+            const double * __restrict__ G_,
             const int * __restrict__ map,
             const double * __restrict__ dx,
             const double * __restrict__ xd,
             double * __restrict__ yd)
 {
    // kernel operations: u,G,*,D,*,v,G,T,*,Ye
-   const auto b = Reshape(B, Q1D,D1D);
-   const auto g = Reshape(G, Q1D,Q1D);
+   const auto B = Reshape(B_, Q1D,D1D);
+   const auto G = Reshape(G_, Q1D,Q1D);
    const auto DX = Reshape(dx, Q1D,Q1D,Q1D, 6);
    const auto MAP = Reshape(map, D1D,D1D,D1D, NE);
    const auto XD = Reshape(xd, ndofs);
    auto YD = Reshape(yd, ndofs);
 
-   MFEM_ALIGN(Real) s_Iq[Q1D][Q1D][Q1D];
-   MFEM_ALIGN(double) s_D[Q1D][Q1D];
-   MFEM_ALIGN(double) s_I[Q1D][D1D];
+   MFEM_ALIGN(Real) s_q[Q1D][Q1D][Q1D];
+   MFEM_ALIGN(double) s_G[Q1D][Q1D];
+   MFEM_ALIGN(double) s_B[Q1D][D1D];
 
-   MFEM_ALIGN(Real) r_qt[Q1D][Q1D];
-   MFEM_ALIGN(Real) r_q[Q1D][Q1D][Q1D];
-   MFEM_ALIGN(Real) r_Aq[Q1D][Q1D][Q1D];
+   MFEM_ALIGN(Real) s_Gqr[Q1D][D1D];
+   MFEM_ALIGN(Real) s_Gqs[Q1D][D1D];
+
+   MFEM_ALIGN(Real) l_q[Q1D];
+   MFEM_ALIGN(Real) r_qt[Q1D]/**/[Q1D]/**/;
+   MFEM_ALIGN(Real) r_q[Q1D]/**/[Q1D][Q1D]/**/;
 
    for (int e = 0; e < NE; e+=SMS)
    {
       // Scatter X
-      UNROLL(Q1D)
-      for (int j = 0; j < Q1D; ++j)
+      FOREACH_THREAD(b,y,Q1D)
       {
-         UNROLL(D1D)
-         for (int i = 0; i < D1D; ++i)
+         FOREACH_THREAD(a,x,Q1D)
          {
-            s_D[j][i] = g(i,j);
-            s_I[j][i] = b(j,i);
-            if (j<D1D)
+            s_G[b][a] = G(b,a);
+            if (a<D1D) { s_B[b][a] = B(b,a); }
+            if (a<D1D && b<D1D)
             {
                UNROLL(D1D)
-               for (int k = 0; k < D1D; k++)
+               for (int c=0; c<D1D; ++c)
                {
                   MFEM_ALIGN(Real) vXD;
                   UNROLL(SMS)
                   for (size_t v = 0; v < SMS; v++)
                   {
-                     const int gid = MAP(i, j, k, e + v);
+                     const int gid = MAP(a,b,a,e+v);
                      vXD[v] = XD(gid);
                   }
-                  r_q[j][i][k] = vXD;
+                  s_q[c][b][a] = vXD;
                }
             }
          }
       } SYNC_THREADS;
 
-      // Grad1X
-      UNROLL(D1D)
-      for (int b=0; b<D1D; ++b)
+      // Grad1Z
+      FOREACH_THREAD(b,y,D1D)
       {
-         UNROLL(D1D)
-         for (int a=0; a<D1D; ++a)
+         FOREACH_THREAD(a,x,D1D)
          {
             UNROLL(Q1D)
             for (int k=0; k<Q1D; ++k)
             {
-               MFEM_ALIGN(Real) res; res = 0.0;
+               MFEM_ALIGN(Real) u; u = 0.0;
                UNROLL(D1D)
-               for (int c=0; c<D1D; ++c)
-               {
-                  res.fma(s_I[k][c], r_q[b][a][c]);
-               }
-               s_Iq[k][b][a] = res;
+               for (int c=0; c<D1D; ++c) { u.fma(s_B[k][c], s_q[c][b][a]); }
+               s_q[k][b][a] = u;
             }
          }
       } SYNC_THREADS;
@@ -1112,43 +1108,32 @@ void KMult1(const int ndofs,
       {
          FOREACH_THREAD(a,x,D1D)
          {
-            for (int b=0; b<D1D; ++b)
-            {
-               r_Aq[k][a][b] = s_Iq[k][b][a];
-            }
+            UNROLL(D1D)
+            for (int b=0; b<D1D; ++b) { l_q[b] = s_q[k][b][a]; }
             UNROLL(Q1D)
             for (int j=0; j<Q1D; ++j)
             {
-               MFEM_ALIGN(Real) res; res = 0.0;
+               MFEM_ALIGN(Real) u; u = 0.0;
                UNROLL(D1D)
-               for (int b=0; b<D1D; ++b)
-               {
-                  res.fma(s_I[j][b], r_Aq[k][a][b]);
-               }
-               s_Iq[k][j][a] = res;
+               for (int b=0; b<D1D; ++b) { u.fma(s_B[j][b], l_q[b]); }
+               s_q[k][j][a] = u;
             }
          }
       } SYNC_THREADS;
 
-      // Grad1Z
+      // Grad1X
       FOREACH_THREAD(k,y,Q1D)
       {
          FOREACH_THREAD(j,x,Q1D)
          {
-            for (int a=0; a<D1D; ++a)
-            {
-               r_Aq[k][j][a] = s_Iq[k][j][a];
-            }
+            for (int a=0; a<D1D; ++a) { l_q[a] = s_q[k][j][a]; }
             UNROLL(Q1D)
             for (int i=0; i<Q1D; ++i)
             {
-               MFEM_ALIGN(Real) res; res = 0.0;
+               MFEM_ALIGN(Real) u; u = 0.0;
                UNROLL(D1D)
-               for (int a=0; a<D1D; ++a)
-               {
-                  res.fma(s_I[i][a], r_Aq[k][j][a]);
-               }
-               s_Iq[k][j][i] = res;
+               for (int a=0; a<D1D; ++a) { u.fma(s_B[i][a], l_q[a]); }
+               s_q[k][j][i] = u;
             }
          }
       } SYNC_THREADS;
@@ -1159,7 +1144,7 @@ void KMult1(const int ndofs,
          FOREACH_THREAD(i,x,Q1D)
          {
             UNROLL(Q1D)
-            for (int k = 0; k < Q1D; ++k) { r_Aq[j][i][k] = 0.0; }
+            for (int k = 0; k < Q1D; ++k) { r_q[i][j][k] = 0.0; }
          }
       } SYNC_THREADS;
 
@@ -1168,23 +1153,21 @@ void KMult1(const int ndofs,
       for (int k = 0; k < Q1D; ++k)
       {
          SYNC_THREADS;
-         MFEM_ALIGN(Real) r_Gqr[Q1D][Q1D];
-         MFEM_ALIGN(Real) r_Gqs[Q1D][Q1D];
          FOREACH_THREAD(j,y,Q1D)
          {
-            for (int i = 0; i < Q1D; ++i)
+            FOREACH_THREAD(i,x,Q1D)
             {
                MFEM_ALIGN(Real) qr, qs, qt;
                qr = 0.0; qs = 0.0; qt = 0.0;
                UNROLL(Q1D)
                for (int m = 0; m < Q1D; ++m)
                {
-                  const double Dim = s_D[i][m];
-                  const double Djm = s_D[j][m];
-                  const double Dkm = s_D[k][m];
-                  qr.fma(Dim, s_Iq[k][j][m]);
-                  qs.fma(Djm, s_Iq[k][m][i]);
-                  qt.fma(Dkm, s_Iq[m][j][i]);
+                  const double Dim = s_G[i][m];
+                  const double Djm = s_G[j][m];
+                  const double Dkm = s_G[k][m];
+                  qr.fma(Dim, s_q[k][j][m]);
+                  qs.fma(Djm, s_q[k][m][i]);
+                  qt.fma(Dkm, s_q[m][j][i]);
                }
                const double D00 = DX(i,j,k,0);
                const double D01 = DX(i,j,k,1);
@@ -1195,14 +1178,17 @@ void KMult1(const int ndofs,
                const double D20 = D02;
                const double D21 = D12;
                const double D22 = DX(i,j,k,5);
-               r_Gqr[j][i] = 0.0;
-               r_Gqr[j][i].fma(D00,qr);
-               r_Gqr[j][i].fma(D10,qs);
-               r_Gqr[j][i].fma(D20,qt);
-               r_Gqs[j][i] = 0.0;
-               r_Gqs[j][i].fma(D01,qr);
-               r_Gqs[j][i].fma(D11,qs);
-               r_Gqs[j][i].fma(D21,qt);
+
+               s_Gqr[j][i] = 0.0;
+               s_Gqr[j][i].fma(D00,qr);
+               s_Gqr[j][i].fma(D10,qs);
+               s_Gqr[j][i].fma(D20,qt);
+
+               s_Gqs[j][i] = 0.0;
+               s_Gqs[j][i].fma(D01,qr);
+               s_Gqs[j][i].fma(D11,qs);
+               s_Gqs[j][i].fma(D21,qt);
+
                r_qt[j][i] = 0.0;
                r_qt[j][i].fma(D02,qr);
                r_qt[j][i].fma(D12,qs);
@@ -1215,21 +1201,22 @@ void KMult1(const int ndofs,
          {
             FOREACH_THREAD(i,x,Q1D)
             {
-               MFEM_ALIGN(Real) Aqtmp; Aqtmp = 0.0;
+               MFEM_ALIGN(Real) u; u = 0.0;
                UNROLL(Q1D)
                for (int m = 0; m < Q1D; ++m)
                {
-                  const double Dmi = s_D[m][i];
-                  const double Dmj = s_D[m][j];
-                  const double Dkm = s_D[k][m];
-                  Aqtmp.fma(Dmi, r_Gqr[j][m]);
-                  Aqtmp.fma(Dmj, r_Gqs[m][i]);
-                  r_Aq[j][i][m].fma(Dkm, r_qt[j][i]);
+                  const double Dmi = s_G[m][i];
+                  const double Dmj = s_G[m][j];
+                  const double Dkm = s_G[k][m];
+                  u.fma(Dmi, s_Gqr[j][m]);
+                  u.fma(Dmj, s_Gqs[m][i]);
+                  r_q[j][i][m].fma(Dkm, r_qt[j][i]);
                }
-               r_Aq[j][i][k] += Aqtmp;
+               r_q[i][j][k] += u;
             }
          } SYNC_THREADS;
       }
+
       // GradZT
       FOREACH_THREAD(j,y,Q1D)
       {
@@ -1238,76 +1225,63 @@ void KMult1(const int ndofs,
             UNROLL(D1D)
             for (int c=0; c<D1D; ++c)
             {
-               MFEM_ALIGN(Real) res; res = 0.0;
+               MFEM_ALIGN(Real) u; u = 0.0;
                UNROLL(Q1D)
-               for (int k=0; k<Q1D; ++k)
-               {
-                  res.fma(s_I[k][c], r_Aq[j][i][k]);
-               }
-               s_Iq[c][j][i] = res;
+               for (int k=0; k<Q1D; ++k) { u.fma(s_B[k][c], r_q[i][j][k]); }
+               s_q[c][j][i] = u;
             }
          }
       } SYNC_THREADS;
+
       // GradYT
       FOREACH_THREAD(c,y,D1D)
       {
          FOREACH_THREAD(i,x,Q1D)
          {
             UNROLL(Q1D)
-            for (int j=0; j<Q1D; ++j)
-            {
-               r_Aq[c][i][j] = s_Iq[c][j][i];
-            }
+            for (int j=0; j<Q1D; ++j) { l_q[j] = s_q[c][j][i]; }
             UNROLL(D1D)
             for (int b=0; b<D1D; ++b)
             {
-               MFEM_ALIGN(Real) res; res = 0.0;
+               MFEM_ALIGN(Real) u; u = 0.0;
                UNROLL(Q1D)
-               for (int j=0; j<Q1D; ++j)
-               {
-                  res.fma(s_I[j][b], r_Aq[c][i][j]);
-               }
-               s_Iq[c][b][i] = res;
+               for (int j=0; j<Q1D; ++j) { u.fma(s_B[j][b], l_q[j]); }
+               s_q[c][b][i] = u;
             }
          }
       } SYNC_THREADS;
+
       // GradXT
       FOREACH_THREAD(c,y,D1D)
       {
          FOREACH_THREAD(b,x,D1D)
          {
             UNROLL(Q1D)
-            for (int i=0; i<Q1D; ++i)
-            {
-               r_Aq[c][b][i] = s_Iq[c][b][i];
-            }
+            for (int i=0; i<Q1D; ++i) { l_q[i] = s_q[c][b][i]; }
             UNROLL(D1D)
             for (int a=0; a<D1D; ++a)
             {
-               MFEM_ALIGN(Real) res; res = 0.0;
+               MFEM_ALIGN(Real) u; u = 0.0;
                UNROLL(Q1D)
-               for (int i=0; i<Q1D; ++i)
-               {
-                  res.fma(s_I[i][a], r_Aq[c][b][i]);
-               }
-               s_Iq[c][b][a] = res;
-               s_Iq[c][b][a] = res;
+               for (int i=0; i<Q1D; ++i) { u.fma(s_B[i][a], l_q[i]); }
+               s_q[c][b][a] = u;
             }
          }
       } SYNC_THREADS;
+
       // Gather
-      FOREACH_THREAD(j,y,D1D)
+      FOREACH_THREAD(b,y,D1D)
       {
-         FOREACH_THREAD(i,x,D1D)
+         FOREACH_THREAD(a,x,D1D)
          {
             UNROLL(D1D)
-            for (int k = 0; k < D1D; k++)
+            for (int c = 0; c < D1D; c++)
             {
                UNROLL(SMS)
                for (size_t v = 0; v < SMS; v++)
                {
-                  const int gid = MAP(i, j, k, e + v);
-                  YD(gid) += (s_Iq[k][j][i])[v];
+                  const int gid = MAP(a,b,c,e+v);
+                  YD(gid) += (s_q[c][b][a])[v];
                }
             }
          }
