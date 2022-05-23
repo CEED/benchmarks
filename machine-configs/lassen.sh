@@ -21,7 +21,7 @@ function setup_xlc()
    MPIF77=mpixlf
    mpi_info_flag="-qversion=verbose"
 
-   CFLAGS="-O2 -qmaxmem=-1 -qarch=auto -qcache=auto -qtune=auto"
+   CFLAGS="-O2"
    # CFLAGS="-O3 -qarch=auto -qcache=auto -qhot -qtune=auto"
    # CFLAGS+=" -qipa=threads"
 
@@ -44,10 +44,12 @@ function setup_gcc()
 
    MPICC=mpigcc
    MPICXX=mpig++
+   which $MPICXX
+   $MPICXX --version
    MPIF77=mpigfortran
    mpi_info_flag="--version"
 
-   CFLAGS="-O3 -mcpu=native -mtune=native"
+   CFLAGS="-O3"
    FFLAGS="$CFLAGS"
    TEST_EXTRA_CFLAGS=""
    # TEST_EXTRA_CFLAGS+=" -std=c++11 -fdump-tree-optimized-blocks"
