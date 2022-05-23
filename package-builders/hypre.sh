@@ -73,19 +73,35 @@ function hypre_build()
       my_cflags="-g"
    fi
    echo "Building $pkg, sending output to ${pkg_bld_dir}_build.log ..." && {
+   local CUDA_MAKE_OPTS=()
+   if [[ -n "$CUDA_ENABLED" ]]; then
+      CUDA_MAKE_OPTS=(
+         "--with-cuda"
+         "--with-gpu-arch=70"
+         "--enable-device-memory-pool"
+      #   "CUCC=$cuda_home/bin/nvcc"
+      )
+      xcompiler="-Xcompiler="
+      optim_flags="$cxx11_flag $xcompiler\"$CFLAGS\""
+   else
+      echo "${magenta}INFO: Building $pkg without CUDA ...${none}"
+   fi
       cd "$pkg_bld_dir/src" && \
       if [[ -e config/Makefile.config ]]; then
          make distclean
       fi && \
+      CUCC="$cuda_home/bin/nvcc -ccbin=$MPICXX" \
       ./configure \
          CC="$MPICC" \
          CXX="$MPICXX" \
          CFLAGS="$my_cflags" \
          CXXFLAGS="$my_cflags" \
          $HYPRE_EXTRA_CONFIG \
+         "${CUDA_MAKE_OPTS[@]}" \
          ${hypre_big_int:+--enable-bigint} \
          ${hypre_mixed_int:+--enable-mixedint} \
          ${hypre_debug:+--enable-debug} \
+         --with-MPI \
          --disable-fortran \
          --without-fei && \
       make -j $num_proc_build

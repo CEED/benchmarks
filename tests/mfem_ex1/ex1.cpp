@@ -81,6 +81,9 @@ int main(int argc, char *argv[])
    Array<int> nxyz;
    Mesh *mesh = make_mesh(myid, num_procs, dim, level, par_ref_levels, nxyz);
 
+   //Go through NC mesh machinery
+   mesh->EnsureNCMesh();
+
    // 5. Refine the serial mesh on all processors to increase the resolution. In
    //    this example we do 'ref_levels' of uniform refinement. We choose
    //    'ref_levels' to be the largest number that gives a final mesh with no
